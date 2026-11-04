@@ -1,0 +1,179 @@
+{
+  "status": "ROOT_ACCEPTED_CURRENT_DOCS_SOURCES_AND_INSTALLED_CHEMICAL_EXAMPLES",
+  "source_commit": "5239b61122b7c56e61058ea4e7ac06bb29749481",
+  "native_build_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "actual_sdist": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/sdist/hotpot_zzy-0.5.4.5.tar.gz",
+    "bytes": 2864741,
+    "sha256": "792b9fac916508838c21c1f94a820f4afc932522a2d482db819b121d7d79e608"
+  },
+  "actual_wheels": [
+    {
+      "abi": "cp310",
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7370408,
+        "sha256": "e0c1d734783ddabed648552d0ec28657b496cb5174421fbb3e35e4982334474a"
+      },
+      "file_members": 900,
+      "explicit_empty_zip_directory_entries_omitted_by_standard_pack": 139,
+      "verified_exact_changed_members": [
+        "hotpot/commands/cbond.md",
+        "hotpot_zzy-0.5.4.5.dist-info/METADATA",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "unchanged_members": 897,
+      "unchanged_native_components": 6,
+      "unchanged_python_stub_members": 511,
+      "actual_basic_and_doc_passed": true,
+      "observed_product_origins": 2,
+      "origin_violations": []
+    },
+    {
+      "abi": "cp311",
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7376247,
+        "sha256": "11de3bb98429c1d863a17aaf320eedc8b311e26bc304dd74916b8044b850a48e"
+      },
+      "file_members": 900,
+      "explicit_empty_zip_directory_entries_omitted_by_standard_pack": 139,
+      "verified_exact_changed_members": [
+        "hotpot/commands/cbond.md",
+        "hotpot_zzy-0.5.4.5.dist-info/METADATA",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "unchanged_members": 897,
+      "unchanged_native_components": 6,
+      "unchanged_python_stub_members": 511,
+      "actual_basic_and_doc_passed": true,
+      "observed_product_origins": 2,
+      "origin_violations": []
+    },
+    {
+      "abi": "cp312",
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7400450,
+        "sha256": "28b22e20b642a90169d997ae62b663eacb1ff0f26544c8b0def3ecda07c09505"
+      },
+      "file_members": 900,
+      "explicit_empty_zip_directory_entries_omitted_by_standard_pack": 139,
+      "verified_exact_changed_members": [
+        "hotpot/commands/cbond.md",
+        "hotpot_zzy-0.5.4.5.dist-info/METADATA",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "unchanged_members": 897,
+      "unchanged_native_components": 6,
+      "unchanged_python_stub_members": 511,
+      "actual_basic_and_doc_passed": true,
+      "observed_product_origins": 2,
+      "origin_violations": []
+    },
+    {
+      "abi": "cp313",
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7400249,
+        "sha256": "a4c5a7c32106603e25e3f015589fe78350b1cf91121f719f6bdfddf89b0187a4"
+      },
+      "file_members": 900,
+      "explicit_empty_zip_directory_entries_omitted_by_standard_pack": 139,
+      "verified_exact_changed_members": [
+        "hotpot/commands/cbond.md",
+        "hotpot_zzy-0.5.4.5.dist-info/METADATA",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "unchanged_members": 897,
+      "unchanged_native_components": 6,
+      "unchanged_python_stub_members": 511,
+      "actual_basic_and_doc_passed": true,
+      "observed_product_origins": 2,
+      "origin_violations": []
+    },
+    {
+      "abi": "cp314",
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7403191,
+        "sha256": "0d5f9c64aedb0375a89e726266e50998c9d760bbb967b6306dae375f877c6853"
+      },
+      "file_members": 900,
+      "explicit_empty_zip_directory_entries_omitted_by_standard_pack": 139,
+      "verified_exact_changed_members": [
+        "hotpot/commands/cbond.md",
+        "hotpot_zzy-0.5.4.5.dist-info/METADATA",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "unchanged_members": 897,
+      "unchanged_native_components": 6,
+      "unchanged_python_stub_members": 511,
+      "actual_basic_and_doc_passed": true,
+      "observed_product_origins": 2,
+      "origin_violations": []
+    }
+  ],
+  "actual_CP311_installed_current_examples": {
+    "passed": true,
+    "source_commit": "5239b61122b7c56e61058ea4e7ac06bb29749481",
+    "counts": {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "exact_source36_junit_case_multiset": true,
+    "main_origin_check_passed": true,
+    "main_origin_observations": 415,
+    "normal_exit_reports": 4,
+    "product_origin_reports": 4,
+    "empty_origin_reports": 0,
+    "origin_violations": [],
+    "observations": 1796,
+    "coverage": "Inherited import resolution/audit and normal-exit product observations; not an exhaustive subprocess census.",
+    "support_inputs_unchanged": true,
+    "original_models_unchanged": true,
+    "installed_product_unchanged": true,
+    "no_skip": true,
+    "formal_performance": false
+  },
+  "source_and_installed36_multisets_equal": true,
+  "root_review": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-final-acceptance-20261105/ROOT_DELIVERY_REVIEW.json",
+    "bytes": 9163,
+    "sha256": "cbfde3cb8cac0e5037323b148d806fa63c30c5b8ae3c8552453f3debdbe827f0"
+  },
+  "archive": {
+    "archive": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/docs-refreshed-delivery-5239b61/raw-evidence.tar.gz",
+      "bytes": 40831066,
+      "sha256": "ab17d98cc65f0064fca1fda2f378d715e9d1aca8f7bc2a505bce42e622490933"
+    },
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/docs-refreshed-delivery-5239b61/MANIFEST.json",
+      "bytes": 86642,
+      "sha256": "601633202fcc5e81c7c9f6a67def0b5503be71e2138597745da9e08746e2f1f6"
+    },
+    "source_commit": "5239b61122b7c56e61058ea4e7ac06bb29749481",
+    "native_build_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+    "verified_payload_count": 207,
+    "verified_payload_bytes": 48997026,
+    "exact_member_set_verified": true,
+    "regular_members_only": true,
+    "all_payloads_reconstructed_and_hash_verified": true,
+    "source_artifacts_unchanged_during_archive": true,
+    "actual_refreshed_wheels_included": 5,
+    "fresh_backend_sdist_included": 1,
+    "native_rebuild": false,
+    "gate_acceptance": false,
+    "verified_unix": 1793809624.752643
+  },
+  "decision": "Accept actualfreshbackendcurrent-source sdist and five docs-refreshed wheels reusing ED7actual clean native binaries. CurrentREADMEbody/guide andactual36installedcontracts pass. All other code/native/productmembers arebyte-identical deterministictransport, notchemicaltruthcriteria. Original failuresscopes retained.",
+  "limits": [
+    "No fresh native build claim; native ABI provenance remains ED7actual builds",
+    "Installed qualification is five ABI basic/docs checks plus CP311exact36contracts; prior broader native/functional evidence retains original identities",
+    "Normal-exit origins are observed, not an exhaustive subprocess census",
+    "Root retains stage/global acceptance and B_exp disposition"
+  ]
+}

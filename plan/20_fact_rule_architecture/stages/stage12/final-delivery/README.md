@@ -1,6 +1,11 @@
 # Stage12 final delivery
 
-Final main-scope acceptance remains open. This record joins current source,
+Stage0–12 main-scope delivery is [root accepted](validation/main-scope-acceptance.json)
+with a complete [ten-section final report](report.md). Its coherent normal Git
+delivery supplies validated `B_exp`; Stage13–15 and overall completion remain
+open. The historical checkpoints below retain their original bounds.
+
+This record joins current source,
 installed/native/version, actual workflow/GPU, scientific, performance and
 reporting evidence without substituting a bounded checkpoint for the goal.
 
@@ -190,8 +195,8 @@ main-plan acceptance criteria remain authoritative.
 | 8. Complete SDF writes/resources |581writes/1162records and independent semantic/resource review. | [Complete](validation/final-sdf-write-resources.json),32.328ms/call. Bounded accepted resource limits retained; no universal leak claim. |
 | 9. Cross-stage cost dispositions | Explicit current decisions forD001/D002/D005/D017/D018/D019/D025. | [Seven root decisions complete](validation/final-cross-stage-cost-dispositions.json). All adverse/inconclusive measurements remain, with reopen conditions; universal parity is not required. |
 | 10. Validation/navigation tools | Resolve realD015omissions and disposeD014limitations. | [Complete in bounded scope](validation/final-validation-tools.json):36applied checks pass; bare-SMILES scanner false positive remains a raw failure. |
-| 11. Documentation and final acceptance review | Current examples/API/fact-role/lifecycle/consolidation and15criteria. | [Chemical CBond reference and current examples](validation/cbond-chemical-reference.json) pass source36and actualmodelcasefiveABIs, without production/model changes. Currentguide/README must ship in refreshed package; final15criteria reconciliation remains. |
-| 12. Final report and validated Git baseline | Complete reports/limits/commit map, then actual validatedB_exp and push. | B_exp not established. Final report and documentation-package refresh remain; Stage13/14/15 production gates remain. |
+| 11. Documentation and final acceptance review | Current examples/API/fact-role/lifecycle/consolidation and15criteria. | [Chemical CBond reference and current examples](validation/cbond-chemical-reference.json) pass source36and actualmodelcasefiveABIs, without production/model changes. [FiveABIcurrentpackages and installed36](validation/final-docs-refreshed-delivery.json) complete; [15criteria accepted](validation/main-scope-acceptance.json). |
+| 12. Final report and validated Git baseline | Complete reports/limits/commit map, then actual validatedB_exp and push. | [Finalreport complete](report.md), [main-scope accepted](validation/main-scope-acceptance.json). The coherent normal Gitdelivery suppliesB_exp; nextstage resolvesactualfullSHA. Stage13/14/15production retains separateentrygates. |
 
 ## Historical continuation notes
 
@@ -225,3 +230,11 @@ original parity and rejecting a heavy-neighbour mismatch. The combined main
 source selection passes266cases with one existing scientific-boundary skip;
 original failures remain. Current repaired wheel/native, Eu and affected-version
 qualification, comparable costs and final acceptance remain open.
+
+
+## Current final records
+
+- [Actual current documentation package](validation/final-docs-refreshed-delivery.json)
+- [Final interface/owner review and deferred private checker](validation/final-interface-reconciliation.json)
+- [Main-scope fifteen-criterion acceptance](validation/main-scope-acceptance.json)
+- [Final implementation report](report.md)

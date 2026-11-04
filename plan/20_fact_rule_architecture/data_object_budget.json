@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–8E owning scopes and Stage9A–C recorded CP311 source/installed scopes accepted. Stage10+ and global gates remain open. Current510Python files/770classes/355dataclasses/8historicalbareProtocols/2TypedDicts; four generic Protocols additionally exist.9Cadds no class/record/durable field.",
+  "status": "Stage0\u201312 main-scope accepted in declared source/installed/native/scientific/cost boundaries. Current505Pythonfiles/771classes/355dataclasses/8direct+4genericProtocols/2TypedDicts; oneadditionalprivateNamedTuplecodec. Stage13\u201315/overallcompletionremainopen.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -1380,5 +1380,34 @@
     "new_durable_fields": 0,
     "relocation": "Same MolBundle, separate named export operation and lazy serializer; old bundle module deleted.",
     "verification": "stages/stage09/collections/validation/checkpoint.json"
+  },
+  "stage12_current_census_and_transport": {
+    "source_commit": "5239b61122b7c56e61058ea4e7ac06bb29749481",
+    "observed_python_files": 505,
+    "observed_classes": 771,
+    "observed_dataclasses": 355,
+    "direct_protocols": 8,
+    "generic_protocols_additional": 4,
+    "typed_dicts": 2,
+    "new_private_namedtuple": {
+      "owner": "hotpot.cheminfo.adapters.openbabel.stereo_transport._StereoConfig",
+      "fields": [
+        "family",
+        "value",
+        "specified",
+        "anchors",
+        "references",
+        "hydrogens"
+      ],
+      "scope": "One disposable immutable toolkit projection used by sharedSWIG/nativecodec; not retained as another factowner or ordinaryresultenvelope.",
+      "added_durable_fact_fields": 0,
+      "consolidation_credit": 0,
+      "delivered_with": "32e8650/ed7a64d actualsharedcodec, fiveABI/affectedworkflow evidence in final-repaired-stereo-delivery.json"
+    },
+    "reviewed_type_table": 384,
+    "reviewed_families": 43,
+    "report": "stages/stage12/final-delivery/report.md",
+    "private_inventory_checker": "P20-D036 acceptedlimitation; no successfulfinalchecker claim",
+    "remaining": "Stage13\u201315 separate; actualB_exp identity resolved after normal finalreport/delivery commit."
   }
 }

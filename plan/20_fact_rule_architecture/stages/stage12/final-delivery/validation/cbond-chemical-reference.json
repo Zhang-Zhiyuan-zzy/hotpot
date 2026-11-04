@@ -91,6 +91,28 @@
   "chemical_contract": "OriginalaminodiolC3H9NO2,totalH9,charge0,originalheavyedges/donorsanddeployednumericSINGLElinks; no stereoisomerassignment from unspecifiedinput. IndependentRDKitliteralunsanitizedSMILESreadingchecksH/charge/unspecifiedstereo, without imposingRDKitEuvalenceperception. AlloriginalfiveONNXlogits, tworesultprobabilitiesand5e-6tolerance retained.",
   "retained_failures": "All30originalmatrixfailures plus isolatedcandidate1wrongno-explicitHassumption/candidate2wrongDATIVEassumption; candidate3correctexistingcontract passes5ABIs.",
   "scope": "Two test files and two recorded-output Markdownfiles changed; no production/model/features/native/schema/budget/monitor changes.",
-  "remaining": "Docs-refreshedcurrentactualsdist/wheels and installedguide/READMEchecks; finalreport/B_exp.",
-  "global_gate_closed": false
+  "remaining": "Noaffectedcurrentguide/READMEpackagegap; actualfiveABIinstalleddocs/importsandCP311installed36pass in final-docs-refreshed-delivery.json. Finalmain-scoperelease isseparate.",
+  "global_gate_closed": false,
+  "durable_archive": {
+    "scope": "Finite CBondsemanticreference: original failedcandidate1/2, candidate3semantic correction, fact witness/eight actual operations/fiveABI actual directchecks/APPLICATION, plus terminal current-source36passed/0skip evidence. All failures and numeric tolerances retained. No tmp/cache/__pycache__, redundant archive-helper scripts, native/model payload duplicates or business rerun.",
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-cbond-semantic-reference-ed7a64d/raw-evidence.tar.gz",
+    "bytes": 671604,
+    "sha256": "7d1802a74cb6f291e5cbe1d1cb8deb818a80349692158b431b5e092fda5b8e91",
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-cbond-semantic-reference-ed7a64d/MANIFEST.json",
+      "bytes": 58374,
+      "sha256": "281e5491f55d75d618d01c16ae274b2d250e19fe22be17b80c72b0a8a18ad039"
+    },
+    "regular_members_only": true,
+    "exact_member_set_verified": true,
+    "verified_payload_count": 142,
+    "verified_supplement_count": 0,
+    "all_payload_bytes_reconstructed_and_hashed": true,
+    "payload_bytes": 4540725,
+    "verified_unix": 1793808993.9106212,
+    "business_rerun": false,
+    "gate_acceptance": false,
+    "archive_work_seconds": 0.10405240394175053
+  },
+  "current_packaging_completion": "final-docs-refreshed-delivery.json"
 }

@@ -67,5 +67,26 @@
     "Cost includes private probe, origin-serialization and path-priority maintenance overhead",
     "No paired speedup, whole-suite total or Stage12 gate acceptance claim"
   ],
-  "global_gate_closed": false
+  "global_gate_closed": false,
+  "durable_archive": {
+    "scope": "Terminal frozen16b3183selection: original source-origin failure, exact causal before/after/restore evidence, single corrected original1warmup+5measured cost, all probes/origins/JUnit/resource series, 456exact original inputs (two now-changed test sources reconstructed from matching frozenED7export), original guards and root cost review. No native/model duplicate payload or ED7runtime claim.",
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-additional3183-cost16b864f-origin-corrected/raw-evidence.tar.gz",
+    "bytes": 22774172,
+    "sha256": "d343705f4c590d3336ebbc5e795123e96e496dd50e9028c9838c606daf00f295",
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-additional3183-cost16b864f-origin-corrected/MANIFEST.json",
+      "bytes": 655662,
+      "sha256": "72bf7b8251a508e76734d74e0ff09ba3724eebe72019fc7093e0ac5d2714adf3"
+    },
+    "regular_members_only": true,
+    "exact_member_set_verified": true,
+    "verified_payload_count": 1438,
+    "verified_supplement_count": 0,
+    "all_payload_bytes_reconstructed_and_hashed": true,
+    "payload_bytes": 222885283,
+    "verified_unix": 1793808993.805796,
+    "business_rerun": false,
+    "gate_acceptance": false,
+    "archive_work_seconds": 3.8210686463862658
+  }
 }

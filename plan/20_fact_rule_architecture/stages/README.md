@@ -5,7 +5,7 @@ remains in its own project). This catalog organizes Stage0–15. Stage0–8E own
 gates are complete within their recorded source/installed/scientific scopes;
 remaining final delivery/version/science/performance obligations stay open.
 Stage9A–C and the complete15-row migration crosswalk have recorded CP311
-source/installed acceptance. Stage10–13 remain open; the owner-directed Stage14/15 branches are planned. Current navigation
+source/installed acceptance. Stage10–12 main-scope delivery is [root accepted](stage12/final-delivery/validation/main-scope-acceptance.json); Stage13 and the owner-directed Stage14/15 branches remain open. Current navigation
 points to stage-owned records; historical snapshots keep their original bounds.
 
 ## Markdown types
@@ -55,9 +55,9 @@ merely to fill a directory.
 | Stage7 | [stage07](stage07/README.md) | Stage7A–E accepted within recorded CP311 scopes; final delivery/version/resource obligations remain |
 | Stage8 | [stage08](stage08/README.md) | Stage8A–E accepted within recorded CP311 scopes; later/global obligations remain |
 | Stage9 | [stage09](stage09/README.md) |9A–C semantic/physical/collection migrations accepted at recorded CP311source/installed boundaries |
-| Stage10 | [stage10](stage10/README.md) | Planned: Complete physical package and native build migration |
-| Stage11 | [stage11](stage11/README.md) | Planned: Clean outer commands and data ownership |
-| Stage12 | [stage12](stage12/README.md) | Planned: Explicit exports, documentation, and final hardening |
+| Stage10 | [stage10](stage10/README.md) | Native/build migration and final affected five-ABI/SDKdelivery accepted |
+| Stage11 | [stage11](stage11/README.md) | Commands/reference/query ownership delivered; optional research-runtime limits retained |
+| Stage12 | [stage12](stage12/README.md) | Main-scope final report/15criteria accepted with explicit limitations |
 | Stage13 | [stage13](stage13/README.md) | Planned: kekulize/aromatic experimental rule-interface protocol |
 | Stage14 | [stage14](stage14/README.md) | Planned: general PyG training information and Molecule/Crystal query/review |
 | Stage15 | [stage15](stage15/README.md) | Planned: Crystal/SpaceGroup/SymmUnit trees, 230-type operation catalogue, group algebra, molecular expansion and periodic geometry/topology tools |

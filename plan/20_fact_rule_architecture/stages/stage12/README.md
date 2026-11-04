@@ -1,14 +1,18 @@
 # Stage12 records
 
-Explicit exports, documentation, and final hardening. The bounded
+Stage0–12 final delivery is [root accepted](final-delivery/validation/main-scope-acceptance.json);
+see the [ten-section report](final-delivery/report.md) and [current twelve-item table](final-delivery/README.md#current-closure-work--2026-11-05).
+The coherent validated Git delivery supplies `B_exp`; Stage13–15 remain open.
+
+The earlier bounded
 [Stage12A checkpoint](lazy-imports/validation/checkpoint.json) accepts the explicit
 root facade and lazy toolkit/resource boundary at CP311source/installed scopes.
 The bounded [Stage12B checkpoint](hydrogen-representation/validation/checkpoint.json)
 accepts coherent H inventory and connected consumers with CP311 source/installed,
 rebuilt RDKit-native and real model/pipeline evidence; P20-D026 is closed in that
-scope. Remaining docs/hardening, other versions/release and full Stage12/global
-acceptance remain open. Remaining independent Stage11 tail
-work is tracked as P20-D028.
+scope. Their then-open final obligations are now dispositioned by the
+main-scope acceptance above. Independent optional Stage11 research-runtime
+limits remain explicitly accepted under P20-D028.
 
 Consolidated cross-stage optimization and deferred-item review use the
 [unified issue index](../../deferred_issues.md) before main-scope acceptance and
@@ -117,3 +121,18 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [Final validation/navigation tool dispositions](final-delivery/validation/final-validation-tools.json)
 
 - [Final common-test cost and retained selection differences](final-delivery/validation/final-common-test-cost.json)
+
+
+## Final current completion records
+
+- [final-repaired-stereo-delivery](final-delivery/validation/final-repaired-stereo-delivery.json)
+- [final-gpu-performance](final-delivery/validation/final-gpu-performance.json)
+- [final-new-mechanism-cost](final-delivery/validation/final-new-mechanism-cost.json)
+- [final-cross-stage-cost-dispositions](final-delivery/validation/final-cross-stage-cost-dispositions.json)
+- [final-version-matrix](final-delivery/validation/final-version-matrix.json)
+- [final-added-test-cost](final-delivery/validation/final-added-test-cost.json)
+- [cbond-chemical-reference](final-delivery/validation/cbond-chemical-reference.json)
+- [final-docs-refreshed-delivery](final-delivery/validation/final-docs-refreshed-delivery.json)
+- [final-interface-reconciliation](final-delivery/validation/final-interface-reconciliation.json)
+- [main-scope-acceptance](final-delivery/validation/main-scope-acceptance.json)
+- [Final implementation report](final-delivery/report.md)

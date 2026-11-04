@@ -1,0 +1,56 @@
+{
+  "status": "CHECKER_DEFERRED_AFTER_THREE_ROUNDS_BUSINESS_EVIDENCE_SEPARATE",
+  "source_commit": "5239b61122b7c56e61058ea4e7ac06bb29749481",
+  "attempts": [
+    {
+      "round": 1,
+      "result": "FAILED_EXPECTED_HISTORICAL_CENSUS",
+      "actual": "505Pythonfiles/771classes, plusoneprivate_StereoConfigNamedTuple; dataclasses355/directProtocols8/generic4/TypedDicts2 unchanged."
+    },
+    {
+      "round": 2,
+      "result": "FAILED_CONFLATED_ALL_IMPORT_WILDCARDS_WITH_PACKAGE_EXPORTS",
+      "actual": "20leaf typing/library wildcardimports remain; zero packageinitializer wildcardexports. Direct46root/rolecontracts and366currentresolvedtypes in384historicalmigrationrows passed field/signaturechecks beforestop."
+    },
+    {
+      "round": 3,
+      "result": "FAILED_TUPLE_VERSUS_JSON_LIST_EXPORT_COMPARISON",
+      "actual": "Directinspectionestablishes one literal__all__tuple in eachfacade, while archivedJSONexportnames are lists. Privatecheckercompared tuple tolist without normalization. Actual31/30/5nameorders and unchangedfacadebytes are directly visible; no multipleassignment or runtimechange is asserted. Directfield/signature/zero-package-wildcardsteps executed beforestop; checkerexit remains1."
+    }
+  ],
+  "no_fourth_attempt": true,
+  "direct_export_inspection": "/tmp/hotpot_plan20/medium/stage12-final-acceptance-20261105/DIRECT_EXPORT_INSPECTION.json",
+  "business_upstream_dependency": "None demonstrated. Facade sourcefiles unchangedsinceacceptedcontractsnapshot; currentactualsource/installedbusiness, rootidentity/permission/lifecycle tests and currentpackagecontentverification supply owningevidence. No failurehidden or fullcheckerPASS claimed.",
+  "remaining_business_gate": "Actualdocs-refreshedinstalledchecks and rootfinalreport/acceptance remain.",
+  "treatment": "Defer obsoleteprivateextractor cleanup to consolidatedtoolswork; use alreadyobtainedattributedbusinessresults/directsourceinspection.",
+  "new_transport_owner": "_StereoConfig sixfields(family,value,specified,anchors,references,hydrogens), sharedadaptertask-localNamedTuple; zero newdurablefacts/dataclass/protocol/publicrootcontracts. No reductioncredit.",
+  "existing_complete_map": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-api-reconciliation/migration-index.json",
+  "existing_fact_matrix": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-api-reconciliation/role-permission-map.json",
+  "root_review": "Rootacceptsapplicableexistingcompletecontractmap, actualsource/installedbusinessresults and directcurrentowner/sourceinspection; fullprivateextractor remainsfailed/deferred.",
+  "current_census": {
+    "python_files": 505,
+    "classes": 771,
+    "dataclasses": 355,
+    "protocols_direct": 8,
+    "protocols_generic": 4,
+    "typed_dicts": 2
+  },
+  "historical_migration": {
+    "reviewed_types": 384,
+    "families": 43,
+    "moved": 342,
+    "retained": 24,
+    "explicitly_deleted": 13,
+    "historically_absent_no_credit": 5
+  },
+  "actual_unchanged_root_and_role_direct_contracts_checked_before_failure": 46,
+  "resolved_reviewed_type_fields_signatures_checked_before_failure": 366,
+  "package_wildcard_exports": 0,
+  "leaf_typing_library_wildcard_imports": 20,
+  "archive_manifest": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-main-scope-review-5239b61/MANIFEST.json",
+    "bytes": 5736,
+    "sha256": "8abb8fa2362fc2111c020da660a8edbeca70ee820361a245e1f4623afae3fb29"
+  },
+  "acceptance_scope": "Currentrole/owner/permission/lifecycle/APIevidenceplusauthoritativeowningtests; no newruntimecoverageofeverymember, heapabsenceproof or successfulprivatecheckerclaim."
+}

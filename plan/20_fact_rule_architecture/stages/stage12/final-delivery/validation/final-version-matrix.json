@@ -119,5 +119,50 @@
     "Correctedcaseispre-applicationtestauthoring; maintainedtest/docapply,currentpackageguide/supportandfinalreportremain.",
     "Original699inputs/endpointidentitiesestablishattributiononly,notchemicaltruth."
   ],
-  "global_gate_closed": false
+  "global_gate_closed": false,
+  "durable_archive": {
+    "scope": "Original1+5five-ABIboth-phaseattempts/allpreflights,60attempts/30retainedcandidateoldCBondreferencefailures; actualselectednodes/origins/JUnit/resource series and rootboundedcost/functionalcompositionreview. Model/nativepayloadsare referencedbyidentities, notduplicated. Nooriginalfailedrunrelabeledpass.",
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-original-version-cost16b864f-links-corrected/raw-evidence.tar.gz",
+    "bytes": 87224272,
+    "sha256": "0eae6905f6923bcc6918e83fe3046b140686e61e1865d5a5d83926eefaeaa74e",
+    "manifest": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-original-version-cost16b864f-links-corrected/MANIFEST.json",
+      "bytes": 14778049,
+      "sha256": "7d6150fbffdd35a1c86fa0ceeb043da0adf177d7da449f370620f70049ef7e22"
+    },
+    "supplements": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-original-version-cost16b864f-links-corrected/SUPPLEMENTS.json",
+      "bytes": 1305,
+      "sha256": "2b70e4d5c71fbe7e38f5d46d05c6ddd4011d47676ad808bc5f758e43a90b38d2"
+    },
+    "repair_record": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage12/final-original-version-cost16b864f-links-corrected/REPAIR_RECORD.json",
+      "bytes": 6040,
+      "sha256": "4955e3c1cafd8ddaae3ae45ba95f96e4e958f92717c17e9b2e0e42027b755adb"
+    },
+    "regular_members_only": true,
+    "exact_member_set_verified": true,
+    "verified_payload_count": 33551,
+    "verified_supplement_count": 3,
+    "all_payload_bytes_reconstructed_and_hashed": true,
+    "payload_bytes": 751137556,
+    "verified_unix": 1793808989.9623003,
+    "originals_unchanged": [
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-original-version-cost16b864f/raw-evidence.tar.gz",
+        "bytes": 88529035,
+        "sha256": "7d5b20f84bb42106b8664b08584dcdeed354b90a95a9650fe0b2efb1cf6f51d3"
+      },
+      {
+        "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-original-version-cost16b864f/MANIFEST.json",
+        "bytes": 14778049,
+        "sha256": "7d6150fbffdd35a1c86fa0ceeb043da0adf177d7da449f370620f70049ef7e22"
+      }
+    ],
+    "resolved_symbolic_links": 6,
+    "all30original_candidate_failures_retained": true,
+    "business_rerun": false,
+    "gate_acceptance": false,
+    "archive_work_seconds": 46.36789486370981
+  }
 }

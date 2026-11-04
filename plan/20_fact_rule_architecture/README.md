@@ -1,5 +1,7 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
+Current milestone,2026-11-05: [Stage0–12 main-scope delivery](stages/stage12/final-delivery/validation/main-scope-acceptance.json) is root accepted; the [final report](stages/stage12/final-delivery/report.md) records complete applicable business/native/version/science/cost evidence and limitations. The coherent normal Git delivery supplies validated `B_exp`. Overall work remains open for separately gated Stage13A/B, Stage14PyG and Stage15Crystal. Historical checkpoints below retain their original source and gate bounds.
+
 Status: implementation authorized on2026-10-28. Stage0–8E owning gates are
 complete within their recorded scopes. The latest [Stage8E checkpoint](stages/stage08/assembly/validation/checkpoint.json)
 accepts canonical assembly, declared H/scaffold transformations, factory behavior,

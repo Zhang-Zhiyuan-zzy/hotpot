@@ -1,0 +1,111 @@
+{
+  "status": "ROOT_ACCEPTED_STAGE0_12_MAIN_SCOPE_AT_CURRENT_VALIDATED_PRODUCT",
+  "reviewed_local": "2026-11-05T00:32:17.531988+08:00",
+  "product_commit": "5239b61122b7c56e61058ea4e7ac06bb29749481",
+  "native_build_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "criteria": [
+    {
+      "id": "14.1",
+      "decision": "ACCEPTED",
+      "meaning": "Single durable owner per16factdomains",
+      "evidence": "api-reconciliation.json; final-interface-reconciliation.json; Stage3/7/9owner/rollbacktests"
+    },
+    {
+      "id": "14.2",
+      "decision": "ACCEPTED",
+      "meaning": "Structure boundaries and lazy toolkit/native loading",
+      "evidence": "Stage9cutover; Stage12lazy-imports; final-source-refresh.json; unchangedstructureafterfinalsource"
+    },
+    {
+      "id": "14.3",
+      "decision": "ACCEPTED",
+      "meaning": "Readonly pure rules and sealed result buffers",
+      "evidence": "Stage4/5/8owningrule/immutabilitytests; finalsource/installedaffected selections"
+    },
+    {
+      "id": "14.4",
+      "decision": "ACCEPTED",
+      "meaning": "Capture/calculation/sourcevalidate/atomiccommit with rollback",
+      "evidence": "Stage7/8/9source-awarecommits; forcefield-rollback-repair.json; native-builder-stereo-repair.json"
+    },
+    {
+      "id": "14.5",
+      "decision": "ACCEPTED_SCOPED",
+      "meaning": "Forbidden persistent caches retired; selectedresults remain explicit",
+      "evidence": "api-reconciliation.json; Stage7selectedresults/canonicalstereo; Stage8search; noheap-universalproof"
+    },
+    {
+      "id": "14.6",
+      "decision": "ACCEPTED",
+      "meaning": "One private topology index/CSR foundation and Plan19semantics",
+      "evidence": "Stage7topologyselection; Stage8search; Stage9cutover; applicabledefault/graph30tests"
+    },
+    {
+      "id": "14.7",
+      "decision": "ACCEPTED",
+      "meaning": "OldCore/duplicateowners/packagewildcardexports/cyclehacks absent",
+      "evidence": "Stage9hardcut; explicit-package-exports.json; directsourceinspection;20leaflibrary/typingimportsnotpackageexports"
+    },
+    {
+      "id": "14.8",
+      "decision": "ACCEPTED_SCOPED",
+      "meaning": "API/permissions/identity/CLI plus complete scienceobservations",
+      "evidence": "final-version-coverage.json; final-interface-reconciliation.json; cbond-chemical-reference.json; fullPlan12/MCAreports"
+    },
+    {
+      "id": "14.9",
+      "decision": "ACCEPTED_SCOPED",
+      "meaning": "Declared CP310\u2013314 source/installed/native/sdist/wheel/docs andactualbackend/model/GPUtiers",
+      "evidence": "final-repaired-stereo-delivery.json; final-docs-refreshed-delivery.json; final-version-matrix.json; final-MCA/GPU/workflowrecords; disabledtiersremainunexecuted"
+    },
+    {
+      "id": "14.10",
+      "decision": "ACCEPTED_WITH_RECORDED_LIMITATIONS",
+      "meaning": "Required comparablework/currentcosts/resources with retained adverse/failedsamples",
+      "evidence": "final-cpu/gpu-performance.json; final-common-test-cost.json; final-version-matrix.json; final-added-test-cost.json; final-new-mechanism-cost.json; final-sdf-write-resources.json; unifieddeferredindex"
+    },
+    {
+      "id": "14.11",
+      "decision": "ACCEPTED",
+      "meaning": "Complete ten-section report/append-onlylog/current12state andactualdelivery",
+      "evidence": "../report.md; final-deliveryREADME; implementation_log.md; rootdeliveryreview; allrequiredlinkschecked"
+    },
+    {
+      "id": "14.12",
+      "decision": "IMPLEMENTED_WITH_RECORDED_OPTIONAL_RUNTIME_LIMITS",
+      "meaning": "Decisions12/13command/reference/querycutover, oneassetowner",
+      "evidence": "Stage11commands/legacy-assetsactualsource/installedresourcesandqueries; D028optionalresearchruntimeunverified; nofinaltreeexceptioncreatingduplicatechemistry"
+    },
+    {
+      "id": "14.13",
+      "decision": "ACCEPTED_SCOPED",
+      "meaning": "Commonrole/ownership/permission/lifecycleprotocol, Atomschema/scalar/batch",
+      "evidence": "api-reconciliation.json; complete43families/384typecrosswalk/16factdomains; Stage7\u20139currentness/remap/atomicrollbacktests; nofreshallmemberruntimeclaim"
+    },
+    {
+      "id": "14.14",
+      "decision": "ACCEPTED",
+      "meaning": "Actualconsolidationorapproveddistinctcontractretention; nofalsecredit",
+      "evidence": "D01\u2013D03retained0; D04/D05/FF-CLI\u22121each; D07\u22122; D06/D08/D09retained0; private_StereoConfigsharedtasktransportexplicitlyrecorded"
+    },
+    {
+      "id": "14.15",
+      "decision": "ACCEPTED_WITH_RETAINED_SCIENTIFIC_FINDINGS",
+      "meaning": "IntegratedPlan12requirements throughsameowners; naturalvaluesandnamedfinding/controlboundaries",
+      "evidence": "actualEu/UFF/GFN-FF/GFN2/xTB/model/pipeline/mixedlocalfailures; all187inputs/738routes/1105optimizerlaunchesandfinitefailedobservationsretained; nofixedscientificsuccesscriterion"
+    }
+  ],
+  "mandatory_unexecuted_business_gaps": [],
+  "limitations": "All36unifiedissuesareCLOSEDorACCEPTED_LIMITATION, withscope/reopen/evidence; no disabledtier, failedcheckerorfinitefailedoptimization iscalledpassed. D036hasthreeattemptsandnofourthretry.",
+  "actual_delivery": "final-docs-refreshed-delivery.json",
+  "report": "../report.md",
+  "validated_git_delivery": "The coherent normal report/delivery commit containing this acceptance suppliesB_exp after commit/push. Resolve its actualfullSHA fromGit in the nextStage13entry record; no inventedself-referentialSHA.",
+  "B_exp_before_commit": "NOT_YET_A_COMMIT_ID",
+  "overall_plan_complete": false,
+  "remaining_approved_scope": [
+    "SeparatelygatedStage13A/BthroughD_exp/I_exp",
+    "Stage14generalto_pyg/from_pyg",
+    "Stage15Crystal/SpaceGroup/SymmUnitsymmetry/expansionandgeometrictools"
+  ],
+  "no_stage13_14_15_production_released_by_this_record": true
+}

@@ -1,0 +1,62 @@
+{
+  "status": "ROOT_REVIEWED_HISTORICAL_PARTIAL_COSTS_FINAL_PERFORMANCE_HELD",
+  "source_endpoints": {
+    "baseline": "e6082f5",
+    "candidate": "436e027690a0b0f4125c11e3bf3259423c716573",
+    "current_source_context": "32e8650 is a different later endpoint"
+  },
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/performance-partial01/raw-evidence.tar.gz",
+    "sha256": "82c362df356465e219075c8b0662ad1e0a30cb13683e3fc87b3b5a3bd53fffa5"
+  },
+  "root_review": ".plan20-artifacts/20261104/stage12/performance-partial-root-review/ROOT_REVIEW.json",
+  "directly_verified_raw_results": 64,
+  "denominators": {
+    "complete_pairs": 32,
+    "completed_invocations": 65,
+    "measured_attempts": 650,
+    "measured_failures": 0,
+    "measured_no_output": 0,
+    "planned_invocations": 124,
+    "timed_mca_or_cbond_invocations": 0,
+    "unexecuted_invocations": 59,
+    "unpaired_baseline": "coordinates_256",
+    "warmups": 195
+  },
+  "semantic_noncomparable_workloads": [
+    {
+      "id": "clean_read_8",
+      "reason": "Old construction leaves the legacy implicit-H field at its initial zero; current lazy read evaluates H=4 on each isolated neutral carbon. Call counts match but scientific information differs. Retain the raw ratio as historical latency only; no equal-work regression, gain, or acceptance claim.",
+      "baseline_value": {
+        "completed_calls": 20,
+        "value": 0
+      },
+      "candidate_value": {
+        "completed_calls": 20,
+        "value": 32
+      },
+      "historical_raw_median_ratio_retained": 30.80914308835871
+    },
+    {
+      "id": "clean_read_64",
+      "reason": "Old construction leaves the legacy implicit-H field at its initial zero; current lazy read evaluates H=4 on each isolated neutral carbon. Call counts match but scientific information differs. Retain the raw ratio as historical latency only; no equal-work regression, gain, or acceptance claim.",
+      "baseline_value": {
+        "completed_calls": 20,
+        "value": 0
+      },
+      "candidate_value": {
+        "completed_calls": 20,
+        "value": 256
+      },
+      "historical_raw_median_ratio_retained": 33.3820563438724
+    }
+  ],
+  "decisions": [
+    "Preserve every raw outcome, original entry, ratio and denominator. Two clean-read ratios are descriptive cross-contract latency observations, not equal-information chemical performance comparisons.",
+    "Do not initialize, alter or reduce old work after seeing timings to manufacture equal scientific values or better ratios. The existing complete write/read workload retains equal final H values and its adverse cost.",
+    "No final-source performance acceptance or reuse is released here. The historical candidate is436e027;32e8650 changes conversion/stereo leaves. Required final complete-work, workflow, resource and sampling obligations remain.",
+    "Absolute cost and practical completion, not a universal speed ratio, govern a usable-cost decision. Preserve adverse empty/construct/write-read and projection observations independently of the two semantic mismatches.",
+    "Source default execution and forthcoming compilation are correctness/build work, not benchmark samples. Do not start timing under their concurrent load."
+  ],
+  "next_action": "Finalize source/delivery and then preregister final/current workload run or individually justified reuse, maintaining the entire declared workload membership, actual-work accounting, all failures and scientific support limits."
+}

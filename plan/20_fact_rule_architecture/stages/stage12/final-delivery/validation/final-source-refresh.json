@@ -1,0 +1,93 @@
+{
+  "status": "ROOT_VERIFIED_COMPLETE_CURRENT_CP311_SOURCE_DEFAULT_OTHER_GATES_OPEN",
+  "source_commit": "32e86506cb3d1e3f9eca8c04f6993fac7bce5293",
+  "scope": "One complete current CP311 default source milestone; extra tiers disabled, unchanged accepted native binaries reused.",
+  "execution": {
+    "argv": [
+      "taskset",
+      "-c",
+      "0,1,2,3",
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-m",
+      "coverage",
+      "run",
+      "--branch",
+      "--source=hotpot",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "-p",
+      "no:cacheprovider",
+      "-p",
+      "origin_plugin",
+      "-p",
+      "outcomes_plugin",
+      "--junitxml=/tmp/hotpot_plan20/long/stage12-final-source-refresh-20261104/cp31101/junit.xml",
+      "-ra",
+      "tests"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "returncode": 0,
+    "elapsed_seconds": 449.211590975523,
+    "attempts": 1,
+    "retries": 0
+  },
+  "results": {
+    "collected": 7111,
+    "passed": 6971,
+    "failed": 0,
+    "skipped": 137,
+    "strict_known_limit_xfailed": 3,
+    "passed_subtests": 49,
+    "warnings": 17,
+    "all_6978_prior_nodes_retained": true,
+    "new_nodes": 133,
+    "all_nine_prior_corrections_passed": true
+  },
+  "skip_reason_counts": {
+    "Skipped: requires --run-optional": 11,
+    "Skipped: requires --run-model-artifacts": 44,
+    "Skipped: requires --run-scientific-boundary": 8,
+    "Skipped: requires --run-high-compute": 27,
+    "Skipped: requires --run-external": 47
+  },
+  "tier_switches": {
+    "--run-external": false,
+    "--run-optional": false,
+    "--run-scientific-boundary": false,
+    "--run-high-compute": false,
+    "--run-model-artifacts": false
+  },
+  "coverage": {
+    "main_process_only": true,
+    "statement_percent": 69.8313554028732,
+    "branch_percent": 59.65909090909091,
+    "not_a_scientific_threshold": true
+  },
+  "source_and_origins": {
+    "source_support_files": 1558,
+    "six_existing_native_bytes_unchanged": true,
+    "main_origin_observations": 914,
+    "normal_exit_process_reports": 446,
+    "origin_violations": 0,
+    "guard_mismatches": 0,
+    "all_six_native_identities_observed": true
+  },
+  "archive": {
+    "bytes": 10475879,
+    "path": ".plan20-artifacts/20261104/stage12/final-source-refresh32e8650/raw-evidence.tar.gz",
+    "sha256": "f3e8b13d7eec337db7946fa99aac040c7889d498cbd7639c9e66aab04d0aabaf"
+  },
+  "root_review": ".plan20-artifacts/20261104/stage12/final-source-refresh32e8650/ROOT_REVIEW.json",
+  "verification_command": "python .plan20-artifacts/20261104/stage12/final-source-refresh32e8650/verify_and_archive.py",
+  "root_verified_archive_members": 1008,
+  "historical_source_default": "source-default.json retains the actual earlier556b21e run and original failure/correction records; this followup does not overwrite that evidence.",
+  "limits": [
+    "Default source CP311 scope only; five extra tiers remain disabled and skips/strict known-limit xfails remain explicit.",
+    "Six existing accepted checkout natives reused; no clean build/install/ABI, other-version, model/GPU/external, scientific, performance or global acceptance follows.",
+    "Origin observer is bounded to observed resolutions/imports/normal exits, not a census of every child. Coverage instruments the main pytest process, not child branches.",
+    "taskset applies CPUs selected from the first four allowed ids. A later external /proc lookup could not see the child namespace; version probe records the actual same taskset allocation, rather than claiming that failed lookup measured the pytest process.",
+    "Root owns remaining delivery/acceptance and all code/records changes."
+  ]
+}

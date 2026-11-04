@@ -79,6 +79,27 @@ and raw native records retain unresolved Level2 semantics. No clean native rebui
 current GPU, other-version or global acceptance follows. Instrumented correctness
 timings are not performance evidence.
 
+The [current32e8650 full CP311 source refresh](validation/final-source-refresh.json)
+passes6971cases with137tier-disabled skips,3strict known-limit xfails and49passed
+subtests, preserving all6978prior nodes and adding133. Root independently checks
+1558source/support files, six reused natives,914main-origin observations and446
+normal-exit process reports, then verifies1008archive members. Main-process
+statement/branch coverage is69.8314%/59.6591%; no other-tier or delivery claim
+follows. The [historical partial cost review](validation/performance-partial-review.json)
+retains all65/124invocations and32pairs. Two clean-H reads compare legacy default0
+with evaluated current H=4per isolated carbon: their raw30.81/33.38ratios remain
+historical latency observations, not equal-information chemical performance
+verdicts. All other adverse costs and59unexecuted invocations remain explicit;
+final timing and evidence reuse remain held.
+
+Final delivery preparation also detects that the new native-stereo companion
+was absent from the source distribution. The [explicit resource correction](validation/stereo-codec-package.json)
+adds only that README to MANIFEST/package-data; an actual rebuilt sdist includes
+it with all511Hotpot Python/stub members unchanged. Five previously dispositioned
+operator/reference omissions remain. Native compilation and actual final wheel
+resource inclusion are still pending; the old missing-guide preparation stays
+retained and is not released for compilation.
+
 Root owns the final source freeze, one-sdist/five-ABI build, provider-specific
 preregistered MCA observations, evidence reuse, remaining issue dispositions,
 main-scope report and validated B_exp. Stage13 and optional profile activation

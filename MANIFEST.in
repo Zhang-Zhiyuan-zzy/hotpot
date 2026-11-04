@@ -18,6 +18,7 @@ include hotpot/plugins/ml/features/elements/_elements.pd.xz
 include hotpot/plugins/plots/cmaps/BluesSat.npy
 recursive-include hotpot/cheminfo/adapters/visualization/fonts *.ttf
 include hotpot/cheminfo/adapters/visualization/draw.md
+include hotpot/cheminfo/adapters/openbabel/README.md
 include hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json
 include hotpot/cheminfo/operations/inference/artifacts/data/cbond/README.md
 include hotpot/commands/cbond.md

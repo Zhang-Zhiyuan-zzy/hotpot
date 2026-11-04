@@ -9182,3 +9182,79 @@ work and B_exp remain open; the65historical timing invocations retain their
 own attribution and no timing release occurs. This coherent business checkpoint
 includes the owner-approved Stage15 full-element clarification for normal commit/
 push; no stage or overall acceptance is declared.
+
+
+### 2026-11-04 — Current complete CP311 source milestone and cost semantics review
+
+Continuation remains Stage12 under goal.md, main Sections12/14 and the three
+repository governance/stage/validation skills; no new stage or scientific route
+is opened. The prior turn verified the running local test agent and its actual
+89%output; this continuation receives the terminal run rather than restarting it.
+The local Sol/high agent executes exactly one current-source CP311 default:
+`taskset -c 0,1,2,3 /tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -m coverage run --branch --source=hotpot -m pytest -q --import-mode=importlib -p no:cacheprovider -p origin_plugin -p outcomes_plugin --junitxml=/tmp/hotpot_plan20/long/stage12-final-source-refresh-20261104/cp31101/junit.xml -ra tests`.
+Commit32e86506cb3d1e3f9eca8c04f6993fac7bce5293 yields7111nodes:6971passed,
+137tier-disabled skips,3strict known-limit xfails and49passed subtests,0failures,
+17warnings; measured controller elapsed449.211591s. All6978prior nodes remain
+and133are added. Original failures and older source/default evidence remain.
+
+Root independently reads raw outcomes, JUnit, collection, main/child origins,
+all1558source/support and six existing native bytes, and all1008sealed archive
+members. There are zero source/native or origin violations; all six natives are
+observed, with914main-origin observations and446normal-exit process reports.
+Main-process statement coverage69.8314%/branch59.6591%is execution evidence,
+not a scientific threshold or child-branch coverage. Actual verification command:
+`python .plan20-artifacts/20261104/stage12/final-source-refresh32e8650/verify_and_archive.py`.
+The10,475,879-byte archive SHA256 is
+f3e8b13d7eec337db7946fa99aac040c7889d498cbd7639c9e66aab04d0aabaf.
+Maintained validation/final-source-refresh.json joins this scope without replacing
+source-default.json. No current installed/default, other-version/native rebuild,
+model/GPU/external, performance or global acceptance is inferred.
+
+Root additionally reads all64raw result records underlying32historical cost pairs
+from the unchanged partial archive. All640measured observations in these complete
+pairs plus192warmups completed; the separate unpaired baseline contributes the
+remaining10measured/3warmups of the full65-invocation ledger. Two clean-H tasks
+return0from the legacy default field versus4per isolated carbon after current
+lazy evaluation. Their30.809/33.382raw ratios stay recorded, but cannot establish
+an equal-information chemical regression or gain. The complete write/read task
+retains equal final H values and its adverse cost; no old input or denominator is
+changed. The remaining30pair tasks retain matching declared operation/value
+contracts (cold import intentionally changes eager-loading details); this is not
+final-source cost acceptance. All65/124invocations,650measurements/195warmups,
+59unexecuted entries, other adverse results and zero timedMCA/CBond invocations
+remain. Validation/performance-partial-review.json and the root review retain the
+precise scope; D014 gains that validation-context limit. Final timing stays held.
+
+Next exclusive local-agent partition prepares one actual final32e8650sdist and
+five-ABI clean-build commands under /tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final32e8650/preparation01;
+no product/test/maintained/Git/config editing, native compilation, installation,
+tests or models are authorized in preparation. Root reviews before releasing
+builds. Normal Git push of32e8650remains blocked by GitHub publickey rejection;
+one commit is local-only, with no authentication configuration changed. Final
+same-sdist/version/GPU/scientific/cost reports, main acceptance andB_exp stay open.
+
+
+### 2026-11-04 — Ship the native stereo companion before final ABI build
+
+Actual32e8650preparation produces one sdist but identifies a new sixth noncode
+omission: adapters/openbabel/README.md. Unlike the five already dispositioned
+operator/reference files, this4380-byte document specifies the registered
+openbabel-stereo/1conversion and support contract. Root holds compilation and
+adds that exact path to MANIFEST.in plus the Open Babel setuptools package-data
+entry. No Python chemistry, C++/ABI, model, tests, public API or scientific rule
+changes. Existing complete source evidence remains attributed to32e8650; the
+new package recipe is qualified separately rather than triggering unrelated tests.
+
+Root copies the isolated tracked source to codec-guide-fix01, overlays exactly
+the two packaging files, and runs `/tmp/hotpot-plan20-env/bin/python -m build --sdist --no-isolation --outdir /tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final32e8650/codec-guide-fix01/sdist /tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final32e8650/codec-guide-fix01/source`.
+RC0; actual tar inspection proves that only the codec README is added, no member
+is removed, all511Hotpot Python/stub payloads are unchanged, and only the two
+recipe files plus generatedSOURCES.txtchange. The2,863,668-byte sdist SHA256 is
+cdd28dff83002798ee676276f056bb48ab0f784b8040750723b308ad5ec8c795.
+Full command/environment/bytes reside in .plan20-artifacts/20261104/stage12/
+stereo-codec-package and maintained validation/stereo-codec-package.json.
+No native compilation, wheel installation, model or scientific run is claimed.
+The original32e8650preparation remains immutable/HOLD; the next final committed
+snapshot must generate the one source distribution used for the five clean ABI
+builds. This is a package delivery repair with actual artifact validation, not
+a bookkeeping-only commit. Final acceptance andB_exp remain open.

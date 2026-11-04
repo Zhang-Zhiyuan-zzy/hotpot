@@ -177,8 +177,8 @@ def test_pickle_rebinds_canonical_sources_results_and_selected_observations_to_r
     _generated(mol)
     record, _ = mol._capture_factual_record()
     assert len(fields(record)) == 24
-    assert record.__reduce__()[1][1] == 6
-    with pytest.raises(ValueError, match='version 6'):
+    assert record.__reduce__()[1][1] == 7
+    with pytest.raises(ValueError, match='version 7'):
         _restore_molecule_record(type(record), 3, record.__reduce__()[1][2])
     restored = pickle.loads(pickle.dumps(mol))
     uids = tuple(atom._uid for atom in restored.atoms)

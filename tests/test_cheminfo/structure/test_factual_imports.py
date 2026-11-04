@@ -102,7 +102,8 @@ def test_empty_preconfigured_target_preserves_cell_spin_identifier_and_clears_al
     set_stereo_payload(target, payload)
     target.conformer_add(np.empty((0, 3)), 1.)
     convert(source(), target)
-    assert tuple(getattr(target.crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')) == (5, 6, 7, 90, 90, 90)
+    assert tuple(getattr(target.crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')) == pytest.approx((5, 6, 7, 90, 90, 90))
+    assert target.crystal.bond_images == (None,) * len(target.bonds)
     assert target.spin_mult == 3 and target.identifier == 'existing'
     assert not target._source_frames and not target._conformer_results
     assert target._frame_result is None

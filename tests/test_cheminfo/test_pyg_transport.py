@@ -50,7 +50,7 @@ def molecule():
     mol.spin_mult = 2
     mol.identifier = 'independent'
     mol.properties = {'target': 0., 'array': np.array([1., 2.]), 'tuple': (b'raw', None)}
-    mol._crystal = Crystal(5., 6., 7., 90., 100., 110.)
+    Crystal(5., 6., 7., 90., 100., 110., molecule=mol)
     return mol
 
 
@@ -136,13 +136,13 @@ def test_edited_tensors_and_reordered_members_drive_reconstruction():
     data = mol.to_pyg()
     order = torch.tensor([2, 0, 3, 1]); inverse = torch.argsort(order)
     for name in ('atom_key', 'z', 'formal_charge', 'total_h', 'aromatic', 'atom_id', 'pos',
-                 'atom_present', 'atom_source', 'representation_available', 'atom_constraint'):
+                 'atom_present', 'atom_source', 'representation_available', 'atom_constraint', 'occupancy', 'occupancy_present'):
         data[name] = data[name][order]
     for name in ('edge_index', 'angle_index', 'torsion_index', 'wiberg_index'):
         data[name] = inverse[data[name]]
     edge_order = torch.tensor([2, 0, 1])
     data.edge_index = data.edge_index[:, edge_order]
-    for name in ('bond_key', 'bond_order', 'bond_kind', 'bond_direction', 'bond_aromatic', 'bond_id', 'bond_constraint'):
+    for name in ('bond_key', 'bond_order', 'bond_kind', 'bond_direction', 'bond_aromatic', 'bond_id', 'bond_constraint', 'bond_image', 'bond_image_present'):
         data[name] = data[name][edge_order]
     data.pos[1] = torch.tensor([8., 9., 10.])
     data.formal_charge[0] = -1

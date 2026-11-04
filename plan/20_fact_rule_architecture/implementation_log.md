@@ -9981,3 +9981,552 @@ was reconstructed/read back completely; identity is in the checkpoint.
 GPU preparation is running separately on the permitted ai-14environment; no GPU
 result claimed. Additional runtime support, connected Crystal15B/C,14D and final
 integration remain open. Main branch and Stage0–13 acceptance are unchanged.
+
+
+## 2026-11-05 — Stage15A exact-domain decision
+
+Independent branch feat/plan20-crystal-symmetry starts at validated B_exp5a7b193.
+Root aligned effective goal, main/companions and full Stage15 review with current
+six-scalar carrier, mathematical angle convention, association/builder/lifecycle,
+package reference-data owner and graph limits. Accepted exact §16.4 contract is
+`stages/stage15/domain/contracts/decisions.md`. One full affine SymmUnit and one
+immutable SpaceGroup own exact group/setting; no786enum or generator restriction.
+Promote attributed pinned table to the existing reference owner, with licences;
+lazy optional Gemmi is CIF syntax only. No OB/RDKit/CCDC route. Standalone exact
+group checkpoint precedes connected Crystal facade publication. Self/parallel
+periodic quotient is explicitly unavailable in current simple graph, retained
+as a bounded extension limitation rather than collapsed or secretly repaired.
+Root freezes tolerances, codec hard cut, matching versus identification and
+generated P1. Product, installed, numerical/chemical/CIF/cost gates remain open;
+reference table arithmetic alone closes none. Three unsuccessful bounded attempts
+will be recorded and unrelated independent work proceeds after dependency review.
+
+
+## 2026-11-05 — standalone Stage15 exact symmetry production
+
+Root accepts one immutable SpaceGroup plus abstractSymmUnit/privateaffine
+implementation and attributed230group runtime lookup. LocalSol/xhighreview
+found actualconstructor/deletionimmutabilityandlicencefilenameissues; bounded
+repairs passcurrent297CP311sourceand297outside-checkoutinstalledtests on each
+CP310–314, with174observedorigins/0violations andunchangedsite/supportfiles.
+AllsixacceptedED7nativepayloadsperABIremainunchanged; wheelsarerepacks, not
+freshnativebuilds. Exactcarry/group/lattice/settingandanalyticfixturespass;
+referenceagreementisnotamolecular/scientificapproval. Originalcollectionfailure
+ismissinggeometrynativeandretained, followedbyattributedcopiesandactualpasses.
+
+Rootacceptscurrent2+7costs:2.893/2.865/6.226msfullP1/P21/Fm3morbits512sites
+and68.330msF225primitive/back. Sharedload,frequencyvariability,allrawsamples
+andtracked/RSSlimitsremain; nooldfeature/sixscalarcomparisonorparityclaim.
+247regulararchivepayloads/73905882compressedbytesfullyreconstructandhashverify
+under.plan20-artifacts/20261105/stage15/exact-symmetry-standalone. Rootreport
+andcheckpointindexexactidentitiesandbusinesslimits. ConnectedCrystal15B/C,
+15Dfindings,15Eformats,15Fdelivery,Stage14Dandoverallcompletionremainopen.
+MolecularStage14source/installedCP311passes281tests separately; itscost/GPU
+evidenceandrootcheckpointarepending. Noremotehelperisactive.
+
+
+## 2026-11-05 — connected Stage15B entry after exact-domain push
+
+Standalone checkpoint bcc199b355183f857b8784b267cf4c53b2eaa21a was normally
+pushed to origin/feat/plan20-crystal-symmetry. Root retains the unchanged full
+main-plan/goal/companion alignment, reread governance/stage/validation references,
+accepted15A and the actual association, complete builder, pickle, topology,
+identity, transaction and external projection consumers. The bounded private
+lifecycle decision is domain/contracts/lifecycle.md before dependent edits.
+One oriented cell/group owner, UID-bound relations, current-record generation7,
+complete association aliases and narrow transactional undo migrate together.
+The old six-scalar matrix orientation/alpha-gamma behavior is intentionally
+corrected; historical supplied scalar facts are not rewritten. Stage14 is an
+independent branch and consumes this codec only at14D. Full molecular actions,
+findings/CIF/delivery remain later gates; no scope is silently dropped.
+
+
+## 2026-11-05 — connected Stage15B cell and lifecycle checkpoint
+
+Root accepts one oriented immutable Crystal state, existing Molecule membership,
+UID-bound relations/images, generation7 complete-record hard cut and narrow
+transactional association undo. Copy/components/compatible merge/reorder/removal,
+cold combined aliases, standard angles and adapter six-parameter projections
+migrate together. No second chemical graph or prohibited toolkit route exists.
+
+Final actual CP311 source affected04 and outside-checkout pip-installed wheel
+both pass559/0fail/error/skip; elapsed6.7304s/17.7937s. Installed196observed
+origins have0violations;912site/21support files and all6acceptednativepayloads
+remainunchanged. This is a repack, not a fresh native build. Exact commands and
+all29finalsourceinputs are in stage15b-connected-20261105 records. Source bytes
+remain those tested. Earlier failed attempts remain, including the actual
+external-import missing-relations gap and stale schema/oracle expectations.
+
+Independent local Sol/xhigh review identifies missingXYZ fabrication, generated
+nonP1 acceptance and association replacement while waiting for the owner lock.
+Allthree are repaired;6targeted regressions and two independent witnesses pass.
+The third independent witness correctly reaches local coordinate rejection then
+fails its own eq=False record equality assertion; its remaining subcases did not
+execute. Root direct source/installed coordinate regressions pass. That private
+script is not an overallPASS and is not rerun merely for reporting aesthetics.
+
+153regularverifiedarchivepayloads/7736642compressedbytes are retained under
+.plan20-artifacts/20261105/stage15/connected-cell-lifecycle; outerSHA256
+242b8630d62aad845dd018bf489ffaf027007ecdd98447ff3b8960b9e39aa322.
+Maintained connected_cell_checkpoint/report index exactinputs/outcomes/limits.
+15Cactions,15Dfindings,15Eformats,15Fcost/support/delivery and14DCrystalPyG remain
+open. The pending exact repeated-action/supercell source-frame relation must be
+settled before its producer, without floating reconstruction or overloading a
+group setting as provenance. No Stage15/overallcompletion is claimed.
+
+
+## 2026-11-05 — Stage15C one-placement entry and historical frame decision
+
+Connected checkpoint3d3c5ef is normally pushed with29tested source/test inputs
+unchanged. Retain valid full main/companion alignment and effective goal;
+root reread Stage15 action/generation/ownership/codec contracts and actual source
+consumers. The bounded actions.md contract precedes producer code. Source origin
+gets an explicit fifth exact basis-map entry, not group-setting provenance or a
+floating-inferred lattice relation. Physical cell edits retain history but mark
+that exact relation unavailable. One-placement operate precedes replication.
+LocalSol/xhigh source scout identifies existing stereo algebra reuse and actual
+foreign source-code replay limitation; its bounded pure helper implementation
+has exclusive algebra.py/newtest ownership. Root owns carrier/operation/codec,
+remaining tests, integration and decisions. No remote helper is active. The
+standalone/currentCP311 checkpoint remains historical in its actual scope;
+new affected action/currentness/installed evidence is required before delivery.
+
+
+### Stage15C observed native absence records
+
+Initial integrated source attempt01 returns855pass/5fixturefail: the new tests
+mistakenly use tuple-valued Atom.constraint although that existing setter/getter
+is scalar all-axes. Only setup/read is corrected to actual axis fields; source
+attempt02and real outside-checkout installedCP311 then both return860pass with
+zero failures/errors/skips. Actual source and installed guards pass. All first
+failures remain. These successful observations precede the following named map
+addition and do not claim final post-change evidence.
+
+Actual RDKit extraction emits CHI_UNSPECIFIED/STEREONONE records and display
+NONE even for achiral inputs. Root removes an unnecessary local restriction by
+accepting only those exact orientation-free absence values under mirror, with
+matching source/descriptor codes and empty carrier references. Specified foreign
+stereo and unknown display meanings remain unavailable. This is a documented
+finite conversion/action rule based on an actual producer, not a generic opaque
+fallback or toolkit execution. New affected source/installed evidence follows.
+
+
+### Stage15C independent action review and two concrete repairs
+
+LocalSol/xhigh review witnesses find two integration defects after the initial
+860source/installedpass: ordinary-copy source-frame policy drops a selected
+historical attachment on transformed coordinates, and a generated record whose
+all row origins are unknown unnecessarily demands a source-frame map. Root
+reuses existing canonical source-frame capture/install to retain the selected
+immutable observation with actual geometry invalidation; ordinary Molecule.copy
+policy is untouched. Source-frame conversion is requested only when a known
+Atom/Bond origin actually depends on it. Two direct regression fixtures are
+added; source input is unchanged on each local failure. Original review attempt
+contains4passes/2actualdefects/1toolkit-import-guard checkererror; one narrow
+corrected cold-alias witness passes. Preserve all original witness outputs and
+source identities. Final repaired source/installed validation remains pending.
+
+
+### Stage15C one-placement final qualification and root acceptance
+
+Final source attempt03 and actual outside-checkout installed CP311 qualification02
+each pass874/0fail/0error/0skip after all repairs.196correct product origins and
+0violations;912installed/29support files unchanged;source bytes unchanged.
+Six native payloads remain accepted baseline bytes;this is a repack, not a new
+native build. Independent review's original4pass/2defect/1checkererror and initial
+855pass/5fixturefail remain archived. Do not reinterpret older860pass as final.
+
+Current-only complete capture/action/publication costs at32/512sites have medians
+1.777681/5.836156ms,one warmup and five samples each,separate memory observations;
+loadbefore/after0.39/0.52/0.61. Root accepts bounded usability without comparison,
+parity or leak claims and proceeds to generation. action_checkpoint/report own
+exact source/wheel/result identities.185regular archive payloads/15200346bytes,
+SHA2565930735cbde334a1313fd52885379ad193c0bdd02510a82a3f08b7fd16b0b8d3,
+under .plan20-artifacts/20261105/stage15/one-placement-action.
+
+Next isolated localSol/xhigh task prepares pure wrapping/voltage/supercell index
+math in a temporary directory only, with root-owned signatures. No remote helper
+is active. Root retains application, cross-owner integration and acceptance.
+Generation, periodic observations, CIF, integrated delivery and14D remain open.
+The owner's three-unsuccessful-attempt rule applies per bounded issue; retain its
+evidence and upstream impact before advancing unaffected work. No fourth attempt
+on P20-D036 is authorized or performed.
+
+
+## 2026-11-05 — Stage15C generation entry
+
+Action checkpoint0223d1939f86292ddc0f0650e931821ff23436f4 is committed and pushed,
+with all26qualified source/test inputs independently matched to committed bytes.
+Root retains full main/companion alignment and rereads accepted15A/15B/15C plus
+complete generation/matching/periodic contract sections and actual builders,
+stereo remap, topology and immutable Crystal owners. generation.md freezes the
+bounded immutable-record route before production edits. It preserves one active
+chemical/cell/group authority, exact source origins and explicit identification
+only; no proximity deduplication, toolkit or model inference. LocalSol/xhigh
+prepares pure periodic math in its assigned temporary output only. Root owns
+public/carrier and generation integration. No remote helper or new route is used.
+
+
+### Stage15C complete generation qualification and root acceptance
+
+Root integrates pure periodic math and the localSol/xhigh artifact validator,
+retaining one immutable-record action implementation. Source focused189pass,
+then complete affected1038pass/0fail/0error/0skip; actual outside-checkout installed
+CP311 also1038pass,199correct origins,0violations,915site/32support files unchanged.
+All bound source/test bytes remain unchanged. Six native payloads are baseline
+bytes; this is a repack. Seven independent current-source business witnesses pass.
+No remote helper, toolkit, engine or model runs. Prior partial results retain
+scope, including119pass/5deselected before final integration.
+
+Current-only complete cell/finite-unit/2x3x2 medians at8source sites are
+23.212386/123.693887/225.927480ms; at32sites51.837108/216.945084/843.991783ms.
+One warmup/five samples/separate memory probe each, actual Bond displacements
+checked. Loadbefore1.01/0.57/0.54,after1.24/0.64/0.56. Root accepts usable bounded
+cost without comparison/parity/leak claim and continues15D without optimization.
+
+The archive wrapper copied the old output path and overwrote a local prior
+archive. Root restores original185payloads/15200346bytes from unchanged raw
+observations and exact qualified committed source, matching original complete
+SHA2565930735cbde334a1313fd52885379ad193c0bdd02510a82a3f08b7fd16b0b8d3.
+Retain correction evidence; distinct generation output refuses overwrite. Final
+208member/16060014byte generation archiveSHA256
+254885b93894ade06ed8a5788463b18510d3cb35d86058dd5830b0a4294eb410.
+No business input, outcome or historical provenance is changed by that repair.
+
+Generation preserves explicit identification only, known source history and
+actual finite edge-image packets. A whole bijective content result retains
+original charge/spin; changed multiplicity does not invent coupled spin.
+Self/parallel quotient edges remain P20-D038. P20-D036 receives no fourth retry.
+15D matching/periodic findings,15E format closure,15F final domain evidence and
+Stage14D Crystal integration remain open; generation checkpoint/report own
+exact source/wheel/result identities. Root retains integration and acceptance.
+
+
+## 2026-11-05 — Stage15D placed-relation and observation entry
+
+Generation checkpoint9043300f73a42d0c1d730c221520832c50b4bd18 is committed/pushed;
+all30qualified source/test inputs match committed bytes. Existing full-plan and
+companion alignment remains valid. Root rereads main§18, accepted15A/B/C and
+complete matching/periodic/finite-loop requirements against actual native graph
+matching, immutable record, cell, periodic and geometry owners. observations.md
+settles current-active-frame query keys and stable whole-unit lifts before code.
+Use existing native graph matching plus the common chemistry validator, never
+a second isomorphism implementation or historical-row guess. D1 andD2 are bounded
+coherent implementation slices; neither can silently substitute for full15D.
+
+Root owns query/current-frame orchestration and public thin methods. One local
+Sol/xhigh child may prepare pure finite linking math in its exclusive temporary
+artifact directory; no worktree writes or further delegation. No external helper
+service or prohibited toolkit route participates. All15E/F/14D and overall gates
+remain open; P20-D036 retains its three-attempt stop.
+
+
+### Stage15D1 placed-relation implementation and bounded qualification
+
+Root implements current-frame finite units/full placed actions, single existing
+native graph matching and shared chemistry identification; caller tolerance is
+explicit and generation retains its1e-10default. Candidate keys address current
+rows/group, not historical snapshots. Symmetry retains full nonzero-origin affine
+terms; pure translations cannot stabilize finite units. Numeric nonclosure
+reports actual matches without changing them. Required unknown mappings remain
+local unavailable; input facts are unchanged.
+
+New fixtures initially misuse identity-based MoleculeRecord equality, incomplete
+site_relations keys and a2D point; preserve all failures. Real native packing
+then rejects directed/unordered endpoints. Canonicalize packed endpoints/edges
+and aligned fields only, preserving original dative meaning. Focused30pass;
+final complete sourcefull02 and actual outside-checkout installed CP311 each
+1068pass/0fail/0error/0skip,203correct origins/0violations,918site/33support files
+unchanged. Retain priorfull01=1066pass/1samepackingfail. Required absent-element
+case also has direct unavailable/nonmutation regression. All32qualified source/
+test inputs remain unchanged. Six native payloads are baseline bytes, repack only.
+
+Current-only complete relation/symmetry medians at16unit sites17.140570/
+44.737490ms; at64sites31.450780/64.688249ms. One warmup/five samples and separate
+memory observation each; loadbefore/after0.78/0.77/0.65. Root accepts bounded
+usability without parity/speedup/exclusive-host/leak assertion. Full prepared
+periodic contact neighborhoods and broader scaling remain15D2, not passed here.
+Archive133regular payloads/7773521bytes,SHA256
+4939bde37f375ba8fcf0bd75502998c2291514446c6d659f23abbdb12ce67aa4,
+under .plan20-artifacts/20261105/stage15/placed-relations. Checkpoint/report bind
+exact source/wheel/results and limits. LocalSol/xhigh independently prepares
+finite-loop mathematics in its assigned artifact directory; root alone edits
+worktree/query owners. No external helper or prohibited toolkit work.15D2/E/F,
+14D and overall acceptance stay open; no fourth P20-D036 retry occurs.
+
+
+### 2026-11-05 — Stage15D2 finite-loop and periodic-geometry entry
+
+Continue from pushed b984bf9b1fae8c2cca0e0dbfb25582995f79d7a7 with a clean
+Stage15 worktree. Root reuses the unchanged full-plan/companion alignment,
+rereads governance references, effective goal, accepted15A/15D contracts,
+review§4.3/4.4 and actual graph/geometry/record owners. Root reviews the local
+Sol/xhigh isolated polygonal Gauss derivation and tests before integration.
+D2a publishes explicit image-labelled finite-loop linking, including actual
+directed Bond closure, exact separation and numerical integer resolution; it
+requires a known cell but no invented group. D2b then integrates prepared
+metric neighborhoods and periodic surface/contact findings. The same local
+child has exclusive artifact-only periodic-neighbor implementation/test
+ownership; root alone edits the worktree and owns acceptance/Git. Three
+unsuccessful bounded attempts stop that issue and preserve dependency impact;
+independent15E/14D work may advance. D2a alone closes no full15D/15E/F/14D gate.
+
+
+### Stage15D2a finite-loop linking qualification
+
+Actual directed Bond/image closure and the reviewed exact-separation/interval
+polygonal Gauss helper are integrated.60new checks pass; complete affected
+CP311source and outside-checkout installed each1128pass/0fail/0error/0skip.
+Installed205correct origins/0violations,920site/36support files unchanged;
+six native payloads unchanged, repack only. No bounded integration failure.
+Known-group requirement is disabled only for explicit loop geometry, preserving
+unknown group facts. Nonzero/None warning codes are separate from retained
+values; code breaks leave source unchanged. Whitehead zero is not unlinking.
+Current-only4/8/16vertex-per-loop medians13.089115/49.048528/189.000507ms,
+onewarmup/fivesamples/separate memory;sharedload9.25/3.12/1.57. Root accepts
+bounded usability without comparison/leak/large-ring throughput claim. Archive
+8172137bytes/141members,SHA256b99d2ce19018bb7de7f3fa93f58532c49331022bcc78997eb935cec62ebe57a6
+at .plan20-artifacts/20261105/stage15/finite-linking. Exact source/wheel/checks
+and limits are in linking_checkpoint.json/linking_report.md.15D2b/E/F/14D and
+overall completion remain open; no unrelated owner work is staged.
+
+
+### 2026-11-05 — Stage15D2b periodic geometry qualification
+
+Prepared exact-metric Cartesian periodic bins now feed contact and complete-unit
+neighborhood work; pure helpers retain actual full-image keys and directed Bond
+images. Current-row placement relations, actual-image adjacency, existing cycle
+selection/native surface batches and separate finite-loop observations are
+integrated. Unknown/lift/chemistry limits remain local and retain reasons;
+findings are immutable before RuntimeWarnings and no source is repaired.
+Independent localSol/xhigh review reproduced1failed/8passed:unsupported complete
+stereo-map reasons were dropped on contact assembly. Root partitioned a two-file
+repair; first attempt153focused/9unchangedwitnesses passed. Root reviewed the
+common-unit/common-translation index, supported-map precedence and regressions.
+No external helper or forbidden pending agent was used.
+
+Original fixture-shadowing, node-ID-wrapper and identity-threshold failures are
+preserved. Identity/translation now preserves source Cartesian points, avoiding
+an artificial threshold perturbation. Finalfull02 CP311source1246pass/0fail/
+0error/0skip(19.446s); actual outside-checkout installedqualification02 same
+1246pass(45.984s),205correctorigins/0violations,920site/43support unchanged.
+Six native payloads unchanged;attributed repack,not fresh native build.
+
+Current-only public query medians:inversiondimer4.305437ms,boundarysurface
+8.179175ms,bridgedHopf23.445208ms;sparse64/256/1024sites93.999794/388.714593/
+1861.170750ms. Onewarmup/fivesamples/separate tracedmemory;actualhardware/load
+recorded(sharedinitial1.12/0.82/0.99). Root accepts measured bounded usability;
+no parity/speedup/leak/exclusivehost/dense-network claim. Archive353verified
+payloads/15904626bytes,SHA256a0b9865175bd87befd5f4a3bfdc67dfc2c8d6cd603e3e4f991622db2493e0890,
+.plan20-artifacts/20261105/stage15/periodic-geometry. geometry_checkpoint/report
+bind exact commands,source,wheel,failures,observations and remaining limits.
+15E/F,14D and final integration stay open; no fourth P20-D036 retry or unrelated
+owner file access/staging. The local child now prepares only an isolated pure
+portable-cell candidate while root retains worktree/acceptance/Git control.
+
+
+### 2026-11-05 — Stage15E pure persistence/CIF entry
+
+Pushedf7627336d5f74749d4ada1250bc99b93a07266b1 closes bounded15DCP311
+observations. Root reuses retained full-plan/companion alignment, rereads
+effectivegoal/governance/15A–D/review15E/6 and actual cell/group/record/builder,
+CIF corpus and connectedI/O/Stage14 owners. persistence.md settles the accepted
+CIF methods' exact standard/extension/loss map, optional lazy syntax-onlyGemmi,
+reference/setting and missing-image behavior, no guessed connectivity or
+self/parallel-edge collapse, original source retention and source/installed
+CP311 evidence. It does not claim whole live-sessionCIFpersistence. Full current
+pickle retains its existing domain. No scientific/toolkit algorithm is added.
+Root reviews and integrates the localSol/xhigh portable-cell candidate(73isolated
+checks passed;no worktree edits during its preparation). This is only a private
+plain-data projection of the sole nine-fieldrecord, through existing group and
+canonical-cell constructors. CIF and14D consume it; it adds no second fact owner.
+Child receives exclusive implementation files under this settled contract;
+root keeps integration/design/records/Git/acceptance.15E/F/14D stay open.
+
+
+### 2026-11-05 — Stage15E root CIF01 key review and validation freeze
+
+Reviewed syntax-only adapter, current-fact/Crystal/stereo codecs, complete CIF
+operation, facade/optional metadata and independent positive/negative/boundary
+fixtures against the settled persistence contract. A cell-only Crystal has no
+Molecule archive owner: accept the bounded private `_cif_source` input archive;
+it is never an active chemical/cell fact or an added public API. Publish the
+scientist-facing `operations/crystal.md` as package data. No external chemistry,
+symmetry, neighbor or structure API is used. Import rejection wraps the original
+cause and retains source text/block; it fabricates no result or unknown fallback.
+The repository corpus denominator remains11:10 supported read/write/read cases
+and1 exact simple-quotient-graph rejection (25 repeated endpoint pairs); the
+inherited all-dot-code shorthand is corrected by actual syntax evidence.
+Local Sol/xhigh subagent prepares delivery validation; root owns business key
+review, acceptance and Git. Freeze these product bytes for fresh source/installed
+qualification, documentation recipes and attributable read/write observations.
+Stage14D shared runtime integration waits on affected15E publication.
+
+
+### 2026-11-05 — Stage15E/F accepted: CIF current facts and complete domain delivery
+
+Implemented reviewed CIF/portable/Level1 codecs and the accepted thin Crystal
+facades; optional Gemmi0.7.5 syntax only. Standard/native consistency, original
+operator IDs and both endpoints, oriented/generated/history facts, missing/zero
+values and exact unsupported simple-graph rejection are qualified. No guessed
+chemistry or prohibited external API. Cell-only archive edge is documented.
+
+Actual `/tmp/hotpot_plan20/medium/stage15e-delivery-20261105/COMMANDS.txt` records
+source1715pass and outside-checkout installed CP310–3141715pass each, all0fail/
+error/skip, recipes/calls pass,210origins each/0violations and all guards stable.
+Fresh958-member sdist has actual backend Gemmi extras and required sources/data/
+licences; five RECORD-verified wheels reuse six attributed unchanged native
+payloads each, not fresh native builds. Original focused fixture failures and
+10/11successful corpus plus1exact rejected projection remain. CIF cost campaign
+completed45timed calls with9warmups/9separate memory calls: full468site
+read/write/read median80.304334ms; root accepts bounded usability, not parity.
+Hardware and raw/adverse/failed records are retained.
+
+Root source/key review, explicit domain limits, recipes, owner/consumer/removal
+closure and full evidence agree: accept15A–F and release the domain to14D.
+Archive42130839bytes/338verified payloads:
+`.plan20-artifacts/20261105/stage15/cif-final-delivery/evidence.tar.gz`,
+SHA256`4ad49c2c24bd189fabd6ce7c7eb29e1d19ee0d37ab3ce606609865cb6500b96e`.
+Maintained persistence report/checkpoint and verification map bind all results.
+Stage14D and final combined branch integration remain required; no overall
+completion or new scientific-truth claim. Proceed with a coherent business
+commit/push, then shared PyG integration.
+
+
+##2026-11-05 — Stage14 actual installed CUDA observation
+
+The committed molecular candidate c0eb6c4passed the real CP311CUDA general-Data
+workflow on ai-14GPU7,A80080GB. Exactly3graphs,32synthetic new-model SGD steps,
+CPU reconstruction and save/load completed;161product origins correct and895
+installed product files match the same qualified wheel. First2import-only failures
+(rich/Cython dependencies) were retained;3rdattempt passed. Remote outputs only
+under permitted mca_test; dedicated packages under~/.local/conda. No external
+helper was used and no deployed inference/science/performance claim follows.
+Receipt/artifact index: .plan20-artifacts/20261105/stage14/real-cuda/INDEX.json.
+This record will accompany the next related business checkpoint;other-version
+runtime support,Crystal14Dand integrated acceptance remain open.
+
+
+### 2026-11-05 — Stage14D portable Crystal/Data preparation
+
+Root reuses unchanged full-plan/companion alignment and rereads effectivegoal,
+14A–C/15A–D contracts,actualData/capture/builder and published oriented owners.
+crystal/contracts/decisions.md settles the current2schema hard cut:oriented
+matrix,actual image/occupancy tensors,exact shared group/setting/history metadata,
+useful derived numeric operations and explicit current-key joins. No second
+chemical/group owner,trainedfeature change,legacyloader or inferred missing
+periodicity.15D is pushedf762733;15E is independent and pending. Prepare only;
+actual shared roundtrips await affected15E closure. Root owns globalinterface
+choices and integration. Existing molecularCUDA records remain uncommitted with
+this related business slice,not a bookkeeping-onlycommit.
+
+
+### 2026-11-05 — Stage14D shared domain entry after Stage15E/F publication
+
+Stage15A–F is root-accepted/pushed4407db0 with source1715pass, all5installed
+ABIs1715pass each, complete current CIF/source retention and declared format
+limits. Merge its published domain into14D: product changes auto-merge; preserve
+both independent interface/map entries and every append-only historical log
+tail. Restore only explicitly owned14D preparations from sealed stash5372ab25.
+No retrospective change to B_exp,D_exp,I_exp or earlier evidence. Reuse retained
+full-plan/companions alignment and read effective goal/skills, both14contracts,
+15domain/persistence contracts and actual source owners/consumers.
+
+Root settles current schema2 hard cut and adds only accepted thin Crystal
+facades. General Data uses one molecular capture/builder and the shared exact
+Crystal/stereo codecs; deployed model encoders remain separate. Tensor buffers
+are constructed after owner lock release. Foreign explicit length units apply
+to both pos and oriented basis; paired images must reverse. Current row keys
+remap only current context; historical indices stay historical. Root-owned new
+fixtures exercise actual expansion/finite extraction, nonzero voltage isolation
+and edited-position geometry after reconstruction. Source/installed/business
+and mixed CPU/CUDA evidence follow; no runtime claim from preparation.
+Local Sol/xhigh subagent independently reviews bounded product changes and
+executes meaningful focused checks, with no source edits/delegation. Root retains
+fix/integration/design/acceptance/Git authority.
+
+
+### 2026-11-05 — Stage14D first bounded repair and delivery freeze
+
+Independent local Sol/xhigh review established three real current-boundary
+defects: standalone molecular declaration loss, unnamed current context joins,
+and stereo diagnostic ordering. The first product repair changes only the two
+adapters and promotes19 independent cases to a maintained test module. Present
+charge/spin/identifier now reject on explicit standalone absence; false-presence
+payload is not a fact. Shared stereo decodes once before cell validation; all
+original integrity checks remain. Existing mapping validation names missing
+context/equivalence members. No broad catch, speculative guard, second codec,
+scientific algorithm or deployed-feature change. Root key review accepts the
+bounded repairs; actual CP311 focused86pass/0fail/0skip,892source guards stable.
+Original review failures and witness-only correction are retained under
+/tmp/hotpot_plan20/medium/stage14d-key-review-20261105/. Freeze current product
+bytes for49affected test modules, source/installed/documentation, fresh sdist,
+actual mixed Crystal CUDA and complete-work observations. CP311 comes first;
+other ABI support follows only its pass. Unchanged accepted native payloads
+remain attributed reuse, not fresh builds. Stage14/final integration gates
+remain open; no overall completion from this repair checkpoint.
+
+
+### 2026-11-05 — Stage14D complete-source expectation migration
+
+The first49module source run completed1880cases:1862pass/18fail/0skip; actual
+packaged recipes passed. All failures are confined to inherited bundle-test
+expectations:17require obsolete schema1 and1requires the pre-SpaceGroup/SymmUnit
+export tuple. Root inspected every failure and the accepted hard-cut/public
+contracts. Update exactly those2expectations to current schema2 and approved
+exports; preserve ethanol/benzene,H,aromatic,bond/order,sharing,serialization,
+ordering and failure-containment assertions. Product bytes remain identical to
+repair01. Original source01/JUnit is retained; source02 and fresh sdist02 bind
+the maintained test migration. No arbitrary pass-count/chemical oracle change.
+
+
+### 2026-11-05 — Stage14D/E accepted within declared transport domain
+
+Root reviews current product repairs and direct business evidence, accepting14A–E.
+Editable schema2 ordinaryData has one oriented basis/image/occupancy authority,
+shared exact Crystal/stereo context, explicit current versus historical joins,
+unknown versus P1 and standalone versus empty semantics. Three concrete boundary
+defects were corrected on the first repair;19independent cases remain maintained.
+Deployed MCA/CBond encoders, native sources and scientific algorithms are unchanged.
+
+Actual tooling at `/tmp/hotpot_plan20/medium/stage14d-delivery-20261105` ran
+`python run_source.py source02`, `python build_sdist.py sdist02`,
+`python qualify_installed.py ABI installed01` and
+`python record_runtime.py installed01/ABI` for CP311 first, then CP310/312/313/314.
+Source49modules and each outside-checkout installed ABI1880pass/0fail/error/skip;
+Crystal/PyG packaged recipes pass,213origins each have0violations and all product/
+support/Gemmi/source guards stay stable. Fresh961-member sdist has531Python/stub
+members and actual metadata/data/licences/docs. Five RECORD-verified repacks each
+reuse6accepted unchanged native payloads; these are not fresh native builds.
+Original source01's18obsolete schema/export expectations remain archived; exactly
+2test literals migrated, with chemical expectations and denominator preserved.
+
+`python /tmp/hotpot_plan20/medium/stage14d-crystal-pyg-20261105/launch_remote.py`
+passed on ai-14A80080GB GPU6, existing CP311/Torch2.7.1+cu126/PyG2.6.1. Fivegraphs
+with3/16/0/4/0sites and2/1/1/0/0operations crossed ordinaryDataLoader,CUDA,32synthetic
+SGDsteps,CPU/unbatch/fresh reconstruction and trusted save/load.172actual origins
+and919wheel product files match/unchanged. This is general transport/new-model
+training evidence, not deployed inference, science, or exclusive-device timing.
+No external helper service was restarted; permitted remote shell paths only.
+
+The first complete-cost campaign failed its disposable-record identity comparator:
+MoleculeRecord has eq=False. Direct field/metadata/owner checks found no chemical
+source mutation. Original failed logs/script/result/guards are preserved; first
+case work counts follow control flow but unflushed timings are unavailable. The
+local Sol/xhigh subagent diagnosed/corrected task-local comparison only, preserving
+all24record fields, separate bond metadata and membership/owner identities.
+`python -B /tmp/hotpot_plan20/medium/stage14d-cost-20261105/run_task.py attempt02 measure.py`
+then passed3cases, each1warmup/5timed/1separate same-process memory call;27raw events,
+943unchanged guarded files and172correct source origins. Root accepts usable
+medians60.301725/66.888210/201.867601ms and traced peaks2251280/3064387/2764866B.
+Every spike is retained; tracemalloc omits native tensor allocation, RSS is cumulative,
+and no baseline/parity/leak/dedicated-host claim follows. Explicit cache/TMP/tooling
+environment deltas and hardware/load snapshots remain with exact argv/runtime.
+
+Archive `.plan20-artifacts/20261105/stage14/crystal-final-delivery/evidence.tar.gz`
+is45869791B,SHA256e8e61ed1cf23e63e5acc439a7e1b55c91ef1b9e445cacefadd71187a5e3621b4;
+all373indexed payloads independently read back. Compact maintained checkpoint/
+report and current schema supersession bind accepted evidence. Historical14A/B
+checkpoints retain their scopes. Finish the current merge checkpoint and ordinary
+push, then validate the actual Stage13/14/15 union. Overall completion remains
+open; B_exp/D_exp/I_exp retain their exact prior meaning.

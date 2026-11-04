@@ -1409,5 +1409,17 @@
     "report": "stages/stage12/final-delivery/report.md",
     "private_inventory_checker": "P20-D036 acceptedlimitation; no successfulfinalchecker claim",
     "remaining": "Stage13\u201315 separate; actualB_exp identity resolved after normal finalreport/delivery commit."
+  },
+  "stage15b_exact_symmetry": {
+    "status": "root-accepted standalone domain; three necessary ordinary classes, zero dataclasses;297source/installed tests per ABI",
+    "ordinary_classes_added": [
+      "hotpot.cheminfo.structure.symmetry.SpaceGroup",
+      "hotpot.cheminfo.structure.symmetry.SymmUnit",
+      "hotpot.cheminfo.structure.symmetry._AffineSymmUnit"
+    ],
+    "dataclasses_added": 0,
+    "rationale": "One immutable group fact owner, required public abstract operation family, one private full affine implementation. No per-kind types/DTO or generic registry.",
+    "contract": "stages/stage15/domain/contracts/decisions.md",
+    "checkpoint": "stages/stage15/domain/validation/exact_symmetry_checkpoint.json"
   }
 }

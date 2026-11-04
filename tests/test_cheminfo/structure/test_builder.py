@@ -145,7 +145,7 @@ def test_pickle_reconstructs_through_normal_constructor_and_deepcopy(protocol):
     assert deepcopy(record) is record
     restore, (record_type, version, values) = restored.__reduce__()
     assert restore is builder._restore_molecule_record
-    assert record_type is MoleculeRecord and version == 6
+    assert record_type is MoleculeRecord and version == 7
     assert len(values) == 24
     with pytest.raises(ValueError):
         _atoms(restored).flags.writeable = True
@@ -552,10 +552,10 @@ def test_current_record_constructor_and_reducer_have_an_explicit_schema_boundary
         MoleculeRecord(*values)
     for version, payload in ((0, values), (1, values), (2, values), (3, values),
                              (4, values), (4, values[:4] + ((),) + values[4:]),
-                             (5, values), (6, values[:-1]), (6, values + ((),))):
+                             (5, values), (6, values), (7, values[:-1]), (7, values + ((),))):
         with pytest.raises(ValueError):
             builder._restore_molecule_record(MoleculeRecord, version, payload)
-    restored = builder._restore_molecule_record(MoleculeRecord, 6, values)
+    restored = builder._restore_molecule_record(MoleculeRecord, 7, values)
     assert restored is not record
     for field in fields(record):
         assert getattr(restored, field.name) == getattr(record, field.name)

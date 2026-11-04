@@ -1,17 +1,17 @@
-"""Freeze the existing row/angle convention during mathematical extraction."""
+"""Standard crystallographic angles and orientation replace the old scalar loss."""
 
 import numpy as np
 
 from hotpot.cheminfo.structure.crystal import Crystal
 
 
-def test_oblique_cell_preserves_alpha_between_the_first_two_rows():
+def test_oblique_cell_uses_standard_gamma_between_the_first_two_rows():
     matrix = np.array(((1., 0., 0.), (.5, np.sqrt(3.) / 2., 0.), (0., 0., 2.)))
     cell = Crystal.from_matrix(matrix)
     np.testing.assert_allclose(
         (cell.a, cell.b, cell.c, cell.alpha, cell.beta, cell.gamma),
-        (1., 1., 2., 60., 90., 90.), atol=1e-12)
-    assert not hasattr(cell, 'matrix')
+        (1., 1., 2., 90., 90., 60.), atol=1e-12)
+    np.testing.assert_array_equal(cell.matrix, matrix)
 
 
 def test_orthogonal_cell_has_independent_lengths_and_degree_angles():
@@ -20,7 +20,7 @@ def test_orthogonal_cell_has_independent_lengths_and_degree_angles():
     assert (cell.alpha, cell.beta, cell.gamma) == (90., 90., 90.)
 
 
-def test_from_matrix_keeps_subclass_conversion_dispatch():
+def test_from_matrix_keeps_subclass_and_full_basis_without_scalar_reconstruction():
     class SpecializedCrystal(Crystal):
         @staticmethod
         def _matrix_to_params(matrix):
@@ -28,4 +28,4 @@ def test_from_matrix_keeps_subclass_conversion_dispatch():
 
     cell = SpecializedCrystal.from_matrix(np.diag((2., 3., 5.)))
     assert type(cell) is SpecializedCrystal
-    assert (cell.a, cell.b, cell.c, cell.alpha, cell.beta, cell.gamma) == (2., 3., 5., 80., 85., 95.)
+    assert (cell.a, cell.b, cell.c, cell.alpha, cell.beta, cell.gamma) == (2., 3., 5., 90., 90., 90.)

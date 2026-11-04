@@ -1,11 +1,9 @@
 """The closed molecular Data codec. Torch imports occur only at conversion calls."""
 
-from dataclasses import fields
-from enum import Enum
 import numpy as np
 import warnings
 
-SCHEMA = 'hotpot.molecule/1'
+SCHEMA = 'hotpot.molecule/2'
 KINDS = ('unknown', 'zero', 'single', 'double', 'triple', 'aromatic', 'dative')
 ATOM_COLUMNS = ('atomic_number', 'formal_charge', 'implicit_hydrogens', 'is_aromatic', 'id', 'x', 'y', 'z')
 NODE_FIELDS = ('z', 'formal_charge', 'total_h', 'aromatic', 'atom_id')
@@ -97,73 +95,13 @@ def _unportable(value, path='metadata'):
     return tuple(items) if kind == 'tuple' else items
 
 
-def _structured(value):
-    """Encode only the sole stereo schema's dataclasses and enum spellings."""
-    if isinstance(value, Enum):
-        return value.value
-    if hasattr(type(value), '__dataclass_fields__'):
-        return {field.name: _structured(getattr(value, field.name)) for field in fields(value)}
-    if type(value) in (tuple, list):
-        return [_structured(item) for item in value]
-    return value
-
-
 def _stereo(value, keys, edges):
-    from ..structure.stereo import (StereoPayload, StereoRecord, StereoAnchor, StereoCarrier,
-        StereoGroupRef, StereoAnchorKind, StereoCarrierKind, StereoGroupKind,
-        AtomTransportRecord, BondTransportRecord, HydrogenTransportState)
-    if value is None:
-        return None
-    _mapping(value, ('schema_version', 'records', 'atom_facts', 'bond_facts'), 'hotpot_stereo')
-    edge_set = {frozenset(edge) for edge in edges}
-    def row(key):
-        if key not in keys:
-            raise ValueError(f'pyg_stereo_reference atom_key={key}')
-        return keys[key]
-    def hydrogen(item):
-        if item is None:
-            return None
-        _mapping(item, ('implicit_hydrogens', 'bracket_explicit_hydrogens', 'no_implicit'), 'hotpot_stereo.hydrogens')
-        return HydrogenTransportState(**item)
-    records = []
-    for item in value['records']:
-        _mapping(item, ('anchor', 'carriers', 'descriptor', 'group', 'source_namespace', 'source_code'), 'hotpot_stereo.records')
-        anchor = _mapping(item['anchor'], ('kind', 'atom_indices'), 'hotpot_stereo.anchor')
-        if anchor['kind'] not in {kind.value for kind in StereoAnchorKind}:
-            raise ValueError('pyg_schema hotpot_stereo.anchor.kind: unknown kind')
-        kind = StereoAnchorKind(anchor['kind'])
-        members = tuple(row(key) for key in anchor['atom_indices'])
-        pairs = (members,) if kind is StereoAnchorKind.BOND else tuple(zip(members, members[1:])) if kind is StereoAnchorKind.AXIS else ()
-        if any(frozenset(pair) not in edge_set for pair in pairs):
-            raise ValueError(f'pyg_stereo_reference anchor={members}: missing bond')
-        for entry in item['carriers']:
-            _mapping(entry, ('kind', 'atom'), 'hotpot_stereo.carriers')
-            if entry['kind'] not in {kind.value for kind in StereoCarrierKind}:
-                raise ValueError('pyg_schema hotpot_stereo.carriers.kind: unknown kind')
-        carriers = tuple(StereoCarrier(StereoCarrierKind(entry['kind']),
-            row(entry['atom']) if entry['kind'] == StereoCarrierKind.ATOM.value else entry['atom'])
-            for entry in item['carriers'])
-        group = item['group']
-        if group is not None:
-            _mapping(group, ('scope', 'kind', 'id'), 'hotpot_stereo.group')
-            if group['kind'] not in {kind.value for kind in StereoGroupKind}:
-                raise ValueError('pyg_schema hotpot_stereo.group.kind: unknown kind')
-            group = StereoGroupRef(group['scope'], StereoGroupKind(group['kind']), group['id'])
-        records.append(StereoRecord(StereoAnchor(kind, members), carriers, item['descriptor'],
-                                   group, item['source_namespace'], item['source_code']))
-    for item in value['atom_facts']:
-        _mapping(item, ('atom', 'isotope', 'radical_electrons', 'current_hydrogens', 'source_hydrogens', 'source_namespace'), 'hotpot_stereo.atom_facts')
-    atom_facts = tuple(AtomTransportRecord(row(item['atom']), item['isotope'], item['radical_electrons'],
-        hydrogen(item['current_hydrogens']), hydrogen(item['source_hydrogens']), item['source_namespace'])
-        for item in value['atom_facts'])
-    bond_facts = []
-    for item in value['bond_facts']:
-        _mapping(item, ('atom_indices', 'display_direction'), 'hotpot_stereo.bond_facts')
-        members = tuple(row(key) for key in item['atom_indices'])
-        if frozenset(members) not in edge_set:
-            raise ValueError(f'pyg_stereo_reference display={members}: missing bond')
-        bond_facts.append(BondTransportRecord(members, item['display_direction']))
-    return StereoPayload(value['schema_version'], tuple(records), atom_facts, tuple(bond_facts))
+    from ..structure._stereo_codec import _stereo_from_data
+    try:
+        return _stereo_from_data(value, keys, edges)
+    except (ValueError, TypeError) as error:
+        code = 'pyg_stereo_reference' if str(error).startswith('stereo_reference') else 'pyg_schema'
+        raise type(error)(f'{code} hotpot_stereo: {error}') from error
 
 
 def _subjects(uids, current, namespace):
@@ -202,14 +140,15 @@ def capture_details(record, metadata, *, properties, atom_uids, source_frames, g
     from ..structure._builder import _thaw_canonical
     current = {uid: row for row, uid in enumerate(atom_uids)}
     annotations = {key: value for key, value in properties.items() if key != 'pyg_observations'}
-    graph = {'charge_source': record.charge[2], 'spin_source': record.spin_mult[2],
+    graph = {'molecule_present': True, 'charge_source': record.charge[2], 'spin_source': record.spin_mult[2],
              'identifier': _portable(record.identifier, 'identifier'),
              'annotations': _portable(annotations, 'properties')}
     bonds = [{'bond_key': row, 'source': record.bond_sources[row],
               'other_direction': record.bond_directions[row] if record.bond_directions[row] not in
                   (None, 'atom1_to_atom2', 'atom2_to_atom1') else None,
               'metadata': _portable(item, f'bonds[{row}].metadata')} for row, item in enumerate(metadata)]
-    stereo = _structured(record.stereo_payload)
+    from ..structure._stereo_codec import _stereo_to_data
+    stereo = _stereo_to_data(record.stereo_payload)
     _stereo(stereo, dict(enumerate(range(record.atom_count))), record.bond_endpoints)
     sources = []
     for i, frame in enumerate(source_frames):
@@ -301,8 +240,9 @@ def encode(record, details, available):
     for name, declaration in [('net_charge', record.charge), ('spin_mult', record.spin_mult)]:
         data[name] = tensor([declaration[1] if declaration[0] else 0], torch.float64)
         data[name + '_present'] = tensor([declaration[0]], torch.bool)
-    data.cell_parameters = tensor([record.cell or (0,) * 6], torch.float64)
-    data.cell_present = tensor([record.cell is not None], torch.bool)
+    from ._pyg_crystal import encode_cell
+    for name, value in encode_cell(record.cell, n, m).items():
+        data[name] = value
     for name, value in details.items():
         data[name] = [_tensors(value, torch)]
     return data
@@ -489,7 +429,7 @@ def _decode_schema(data):
     if len(metadata) != len(wrapped_bonds) or set(metadata) != set(bond_keys):
         raise ValueError('pyg_mapping hotpot_bonds: bond keys differ from current edges')
     graph = _mapping(_wrapper(data, 'hotpot_graph'),
-        ('annotations', 'identifier', 'charge_source', 'spin_source'), 'hotpot_graph')
+        ('annotations', 'identifier', 'charge_source', 'spin_source', 'molecule_present'), 'hotpot_graph')
     properties = _unportable(graph['annotations'], 'hotpot_graph.annotations')
     if type(properties) is not dict:
         properties = {'annotations': properties}
@@ -530,8 +470,16 @@ def _decode_schema(data):
         is_present = bool(_array(data, name + '_present', torch.bool, (1,))[0])
         value = float(_array(data, name, torch.float64, (1,))[0])
         declarations[name] = (is_present, value if is_present else None, source if is_present else None)
-    cell = _array(data, 'cell_parameters', torch.float64, (1, 6))[0]
-    cell_present = bool(_array(data, 'cell_present', torch.bool, (1,))[0])
+    stereo_payload = _stereo(_wrapper(data, 'hotpot_stereo'), key_rows, edges)
+    identifier = tuple(_unportable(graph['identifier']))
+    from ._pyg_crystal import decode_cell
+    cell = decode_cell(data, key_rows, bond_keys)
+    if type(graph['molecule_present']) is not bool:
+        raise ValueError('pyg_schema hotpot_graph.molecule_present: requires a boolean')
+    if not graph['molecule_present'] and (n or m or properties or frames
+            or declarations['net_charge'][0] or declarations['spin_mult'][0] or identifier[0]
+            or observations['current_source'] or observations['historical'] is not None):
+        raise ValueError('pyg_mapping standalone Crystal: molecular content requires molecule_present=True')
     record = _make_molecule_record(atom_values=values, atom_presence=masks, atom_sources=sources,
         atom_frac_valences=tuple((key_rows[item['atom_key']], item['value']) for item in fractional),
         bond_endpoints=tuple(edges), bond_values=bond_values, bond_kinds=tuple(KINDS[i] for i in kind_codes),
@@ -540,16 +488,16 @@ def _decode_schema(data):
         bond_sources=tuple(metadata[key]['source'] for key in bond_keys),
         bond_metadata=tuple(_unportable(metadata[key]['metadata']) for key in bond_keys),
         bond_aromatic=tuple(aromatic), charge=declarations['net_charge'], spin_mult=declarations['spin_mult'],
-        cell=tuple(cell) if cell_present else None,
-        stereo_payload=_stereo(_wrapper(data, 'hotpot_stereo'), key_rows, edges),
+        cell=cell,
+        stereo_payload=stereo_payload,
         source_frames=frames, conformer_results=(), frame_selection=None,
         angle_constraints=constraints['angle_index'], torsion_constraints=constraints['torsion_index'],
-        identifier=tuple(_unportable(graph['identifier'])),
+        identifier=identifier,
         pair_wiberg_bond_orders=tuple((*pair, float(value)) for pair, value in zip(constraints['wiberg_index'], wiberg)))
-    properties['pyg_observations'] = {'namespace': 'imported_hotpot.molecule/1',
+    properties['pyg_observations'] = {'namespace': 'imported_hotpot.molecule/2',
         'initial_atom_keys': list(atom_keys), 'initial_bond_keys': list(bond_keys),
         'observations': _plain(observations, 'observations'), 'frames': _plain(frame_values, 'frames')}
-    return record, properties
+    return record, properties, graph['molecule_present']
 
 
 def _foreign(data, field_map):
@@ -561,7 +509,8 @@ def _foreign(data, field_map):
     supported = set(NODE_FIELDS) | set(EDGE_FIELDS) | set(INDEX_WIDTHS) | {
         'atom_key', 'pos', 'atom_present', 'atom_source', 'representation_available', 'atom_constraint',
         'wiberg_value', 'net_charge', 'spin_mult', 'net_charge_present', 'spin_mult_present',
-        'cell_parameters', 'cell_present', 'annotations'}
+        'cell_matrix', 'cell_present', 'bond_image', 'bond_image_present',
+        'occupancy', 'occupancy_present', 'crystal_context', 'annotations'}
     if type(selectors) is not dict or 'z' not in selectors or set(selectors) - supported:
         raise ValueError('pyg_schema field_map.fields: required z or unsupported field')
     selected, used = {}, {}
@@ -604,10 +553,10 @@ def _foreign(data, field_map):
     for name in NODE_FIELDS:
         normalized[name] = supplied(name, torch.zeros(n), torch.bool if name == 'aromatic' else torch.int64, (n,))
     normalized.pos = supplied('pos', torch.zeros(n, 3), torch.float64, (n, 3))
+    factors = {'angstrom': 1., 'nanometer': 10., 'bohr': 0.529177210903}
+    if ('pos' in selected or 'cell_matrix' in selected) and field_map['coordinate_unit'] not in factors:
+        raise ValueError('pyg_schema coordinate_unit: angstrom, nanometer or bohr required')
     if 'pos' in selected:
-        factors = {'angstrom': 1., 'nanometer': 10., 'bohr': 0.529177210903}
-        if field_map['coordinate_unit'] not in factors:
-            raise ValueError('pyg_schema coordinate_unit: angstrom, nanometer or bohr required')
         normalized.pos *= factors[field_map['coordinate_unit']]
     present = torch.tensor([[name in selected for name in (*NODE_FIELDS, 'pos', 'pos', 'pos')]] * n, dtype=torch.bool).reshape(n, 8)
     normalized.atom_present = supplied('atom_present', present, torch.bool, (n, 8))
@@ -623,6 +572,7 @@ def _foreign(data, field_map):
         ('bond_constraint', torch.zeros(m), torch.bool), ('bond_key', torch.arange(m), torch.int64)]:
         normalized[name] = supplied(name, default, dtype, (m,))
     mode = field_map['edge_mode']
+    keep = None
     if mode == 'paired':
         groups, order = {}, []
         endpoints = normalized.edge_index.T.tolist()
@@ -667,10 +617,40 @@ def _foreign(data, field_map):
     for name in ('net_charge', 'spin_mult'):
         normalized[name] = supplied(name, torch.zeros(1), torch.float64, (1,))
         normalized[name + '_present'] = supplied(name + '_present', torch.tensor([name in selected]), torch.bool, (1,))
-    normalized.cell_parameters = supplied('cell_parameters', torch.zeros(1, 6), torch.float64, (1, 6))
-    normalized.cell_present = supplied('cell_present', torch.tensor(['cell_parameters' in selected]), torch.bool, (1,))
+    from ._pyg_crystal import foreign_cell
+    periodic = {}
+    for name, dtype, shape in [('cell_matrix', torch.float64, (1, 3, 3)),
+            ('cell_present', torch.bool, (1,)), ('bond_image', torch.int64, (m, 3)),
+            ('bond_image_present', torch.bool, (m,)), ('occupancy', torch.float64, (n,)),
+            ('occupancy_present', torch.bool, (n,))]:
+        if name in selected:
+            periodic[name] = supplied(name, None, dtype, shape)
+    if 'cell_matrix' in periodic:
+        periodic['cell_matrix'] *= factors[field_map['coordinate_unit']]
+    if keep is not None:
+        for first, second in (groups[key] for key in order):
+            known = periodic.get('bond_image_present')
+            if known is not None and known[first].item() != known[second].item():
+                raise ValueError('pyg_mapping paired bond_image_present: opposite arcs disagree')
+            if 'bond_image' in periodic and (known is None or known[first].item()):
+                if not torch.equal(periodic['bond_image'][first], -periodic['bond_image'][second]):
+                    raise ValueError('pyg_mapping paired bond_image: opposite arcs disagree')
+        for name in ('bond_image', 'bond_image_present'):
+            if name in periodic:
+                periodic[name] = periodic[name][keep]
+    if 'crystal_context' in selected:
+        periodic['crystal_context'] = selected['crystal_context']
+    for name, value in foreign_cell(periodic, n, normalized.edge_index.shape[1]).items():
+        normalized[name] = value
+    context = normalized.hotpot_crystal[0]
+    if context is not None:
+        keys = normalized.atom_key.tolist()
+        context['relations']['equivalent_images'] = [[[keys[row], symbol, image] for row, symbol, image in entry]
+                                                    for entry in context['relations']['equivalent_images']]
+        context['current_atom_keys'] = keys
+        context['current_bond_keys'] = normalized.bond_key.tolist()
     annotations = _plain(selected.get('annotations', {}), 'annotations')
-    normalized.hotpot_graph = [{'charge_source': 'pyg_supplied' if 'net_charge' in selected else None,
+    normalized.hotpot_graph = [{'molecule_present': True, 'charge_source': 'pyg_supplied' if 'net_charge' in selected else None,
         'spin_source': 'pyg_supplied' if 'spin_mult' in selected else None,
         'identifier': _portable((False, None), 'identifier'), 'annotations': _tensors(_portable(annotations, 'annotations'), torch)}]
     normalized.hotpot_bonds = [[{'bond_key': key, 'source': None, 'other_direction': None,

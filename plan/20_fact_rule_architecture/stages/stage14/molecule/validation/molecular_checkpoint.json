@@ -49,9 +49,23 @@
     "excluded": "Derivable installed sites, test tmp/cache and bytecode; identities/guards and actual wheels retained."
   },
   "remaining": [
-    "real CUDA transport",
     "other Python runtime evidence where claimed",
     "Stage15 connected domain and14D Crystal encoding",
     "integrated final delivery/docs"
-  ]
+  ],
+  "real_cuda": {
+    "status": "PASS_BOUNDED_INSTALLED_CP311_CUDA",
+    "archive": ".plan20-artifacts/20261105/stage14/real-cuda/INDEX.json",
+    "gpu": "NVIDIA A800-SXM4-80GB",
+    "graphs": [
+      4,
+      128,
+      0
+    ],
+    "training_steps": 32,
+    "product_origins": 161,
+    "origin_violations": 0,
+    "installed_product_bytes_match_wheel": 895,
+    "scope": "ordinary DataLoader\u2192CUDA\u2192synthetic training\u2192CPU\u2192unbatch\u2192fresh import plus trusted-local save/load; no deployed model inference"
+  }
 }

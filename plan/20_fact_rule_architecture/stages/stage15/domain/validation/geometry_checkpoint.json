@@ -1,0 +1,227 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_PERIODIC_GEOMETRY_CHECKPOINT",
+  "date": "2026-11-05",
+  "baseline": "7a3beb6",
+  "contract": "../contracts/observations.md",
+  "source_inputs": {
+    "hotpot/cheminfo/operations/crystal_geometry.py": "6957e3f0c55628043d7fe40aeb647241d3d4ce63226a075e1e395610f4fa0b8c",
+    "hotpot/cheminfo/operations/crystal_matching.py": "fb453f92521e36c5cfdcfa6fad797188c7f64cb2ae1732419491b7e0d092fe82",
+    "hotpot/cheminfo/rules/mathematics/periodic.py": "f13b0b84cab3ec85d728c57db10c99f08595f05705bb98f3f166ffb79a8394d0",
+    "hotpot/cheminfo/structure/crystal.py": "9a6ad264605a83e429828b71f7b033c02905c0c024ab10fb70f0eda6cdd843f7",
+    "tests/test_cheminfo/structure/test_crystal_matching.py": "2c552a40bc71ecff29971be7daa74bae8483f69c48eb0de6da28ac236a76705c",
+    "tests/test_cheminfo/structure/test_crystal_generation.py": "ddd40c65aa4de6fcea1e602efc602d981859907408714fc825f4920d76ce89b5",
+    "tests/test_cheminfo/structure/test_crystal_identification.py": "78a592563d516c038078526e99be55dd24db1b26b1b63b3cea8f9ad996b601f1",
+    "tests/test_cheminfo/structure/test_crystal_periodic_math.py": "1f80ab987188cb2712715f43349f81b929a71b246afcafd78f83f631a5c527e5",
+    "tests/test_cheminfo/structure/test_crystal_actions.py": "ed21ef6e56b602051fc4cf9543aad26864711abba219fa0125d60a75b48884c8",
+    "tests/test_cheminfo/test_stereo_isometry.py": "4da64224c157fa63d152461d68a35117c41d4ddad6d05e0a09077def60d66189",
+    "tests/test_cheminfo/test_stereo_level2_algebra.py": "8fb15c12eddf788c66a8bb6de1423d4a0677e0d21ec51476aeae2db3663febef",
+    "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py": "072c1e8cd22d1412fa0ff2007f44b610b4a181a8b5619aac134c0d09530af04c",
+    "tests/test_cheminfo/test_stereo_level1_remap.py": "9a757a19749c673ff632e2a0e36c230e0796443da7302e27229535268421405f",
+    "tests/test_cheminfo/structure/test_crystal_cell_math.py": "5714b1cfbe17dbf3f21ff3c6d2f5fe6003943a2781e322063b87338b1b3a70e2",
+    "tests/test_cheminfo/structure/test_crystal_lifecycle.py": "f675c8b1e914aaba928676eeddf3f47dfabed2a9f4c3165e062a9366d1b2bee2",
+    "tests/test_cheminfo/structure/test_crystal_convention.py": "dae9d6c2024278ced7a336fed66f84a390f9f124491f2e72a61f486e6c04193b",
+    "tests/test_cheminfo/structure/test_coordinate_frame_lifecycle.py": "0d6b2cdceb90fe41333a1a0f23d294b3360f7354a84e9dbb097519744b8e61bd",
+    "tests/test_cheminfo/structure/test_coordinate_frames.py": "9e1ee5570de32a0ca827bc1542391cae6f164a635cec4d97db5f636d58765487",
+    "tests/test_cheminfo/structure/test_builder.py": "bac2422a524ce97e87c99fc2437e3bf9753d80f3cfd239dffb78b11e63f2c277",
+    "tests/test_cheminfo/structure/test_uid_lifecycle.py": "fe27b74267b98f7a9130dbfe43460961baebd7f7b3dda8ba7c24201f630bb4b9",
+    "tests/test_cheminfo/structure/test_stage12_hydrogen_lifecycle.py": "6822a9af15a4ad64d29d9aeddb8644ba494572437b999732a67bb6e0270066b4",
+    "tests/test_cheminfo/test_partial_charge_lifecycle.py": "7ef8b7cac7ac19cc8bf4c216057c297acfd220213404d33ccd10a2442af0b7a5",
+    "tests/test_cheminfo/structure/test_source_identity.py": "94e8d1847a879c9ec9a9cb87c8fc40e11f3ba1c1eb1fc91d90e9015ecb3a4125",
+    "tests/test_cheminfo/structure/test_factual_imports.py": "ca0c7d5c2c0adac716226e4f934d13c0952e98e8002c8df3124633db5ccf5d75",
+    "tests/test_cheminfo/adapters/test_crystal_transport.py": "77b24b0123dacf04dc4d173f444b65321efd9f49d902c1810b59f633114d9f5d",
+    "tests/test_cheminfo/test_plan20_carrier_cutover.py": "2580bf34081b6c2d3b3bfe35b691fbcb7f01f7982fbc508f0a225743773f6b2b",
+    "tests/test_cheminfo/structure/test_constraints.py": "22c5050d4013134bcde4e1619221a0b0a7402dd695067c138f2b0f7022019f2b",
+    "tests/test_cheminfo/structure/test_selected_results.py": "f90b6d1283be9f48425208dc110fbff7e4824012837685ec5119d4799a08e0ec",
+    "tests/test_cheminfo/structure/test_conversion_freshness.py": "200fbe4799fccc8419450548d4c235074b3129679eec87516d3edd31af3cdfb7",
+    "tests/test_cheminfo/test_native_molecule_buffers.py": "20fe4501d93941c4baf3a4085f5b0a51f8984bb2dda13b02591176615ed13a7d",
+    "tests/test_cheminfo/structure/test_crystal_linking.py": "e779e8ff050136ee52f5ad6517ecd854dec06fee8860e6637483157b8b2b0bcd",
+    "tests/test_cheminfo/structure/test_crystal_linking_math.py": "4e57d101ad8be58a14a7946c08bb3e109a34d960b3ef07dfcd6b08e3e07ed5b6",
+    "tests/test_cheminfo/structure/test_crystal_geometry.py": "d83282ef99954d7f59c8d20a5566874fe79ed5b8a220b06d4bae40201491ad46",
+    "tests/test_cheminfo/structure/test_crystal_periodic_neighbors.py": "fa10227852a25e2f0ecb32bd51abc12fe7a02943ce68eed0ff2deda2f329fd18",
+    "tests/test_cheminfo/geometry/test_segment_cycle_relation.py": "067cabb8c3e9432e3a74c28175cbbda86832c831651d6e8fd19ea294cd7f147a",
+    "tests/test_cheminfo/geometry/test_native_cycle_batch.py": "d8d9e048766bc14a2bdfa8b9031ae6b94ddcbde3d557e9de8bb98ec1268ed28c",
+    "tests/test_cheminfo/geometry/test_native_prepared_invariants.py": "d84491baa5f6b9a1a862c4d35262a91a467582f8eb44cce76b383dea92f67e7c",
+    "tests/test_cheminfo/geometry/test_native_nonplanar_relation.py": "40d778a6785e7b3271c64dcacad2d7498142e485a6a00b9bba7c6c7fc19c904d",
+    "tests/test_cheminfo/geometry/test_metamorphic.py": "011e0a84f441aebd04f933ea2198d3fe2d04147d5b4b9c00d35578053d4c3e91"
+  },
+  "source": {
+    "returncode": 0,
+    "elapsed_seconds": 19.44615613669157,
+    "cases": 1246,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "source_unchanged": true
+  },
+  "installed": {
+    "cp311": {
+      "returncode": 0,
+      "elapsed_seconds": 45.98401070944965,
+      "testcases": 1246,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "observed_product_origins": 205,
+      "origin_violations": 0,
+      "unchanged_site_files": 920,
+      "unchanged_support_files": 43
+    }
+  },
+  "wheels": {
+    "cp311": {
+      "baseline": "/tmp/hotpot_plan20/medium/stage15d2-linking-20261105/qualification01/wheels/cp311/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "baseline_sha256": "d76733de8f87dd6a1b1125a4669f7606bc56727e3345b4db9b229329a6d94f2d",
+      "candidate": "/tmp/hotpot_plan20/medium/stage15d2-geometry-20261105/qualification02/wheels/cp311/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "167488a37a7ffd6df312d1668f5879c0e29c9fd2b6c1e78d33bdeb6b98a2b56e",
+      "added": [],
+      "changed": [
+        "hotpot/cheminfo/operations/crystal_geometry.py",
+        "hotpot/cheminfo/operations/crystal_matching.py",
+        "hotpot/cheminfo/rules/mathematics/periodic.py",
+        "hotpot/cheminfo/structure/crystal.py",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "members": 916,
+      "unchanged_native_members": [
+        "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so"
+      ],
+      "kind": "Repack of accepted B_exp payloads, not a fresh native build."
+    }
+  },
+  "independent_review": {
+    "original": "1 failed, 8 passed; unsupported complete-map reason lost on contact",
+    "repair": "First repair:153 focused passed and9 original witnesses passed; no errors/skips",
+    "evidence": "raw/stage15d2-geometry-key-review-20261105/REPORT.md and raw/stage15d2-geometry-repair-20261105/REPORT.md"
+  },
+  "costs": {
+    "inversion_dimer": {
+      "atoms": 2,
+      "bonds": 1,
+      "cell_representatives": 2,
+      "seconds": [
+        0.004388745874166489,
+        0.004305437207221985,
+        0.004302948713302612,
+        0.00430954247713089,
+        0.0042269472032785416
+      ],
+      "median_seconds": 0.004305437207221985,
+      "tracemalloc_peak_bytes": 41532,
+      "finding_counts": {}
+    },
+    "crossing_boundary_surface": {
+      "atoms": 6,
+      "bonds": 5,
+      "cell_representatives": 1,
+      "seconds": [
+        0.008180435746908188,
+        0.008260548114776611,
+        0.008179174736142159,
+        0.008130231872200966,
+        0.008115744218230247
+      ],
+      "median_seconds": 0.008179174736142159,
+      "tracemalloc_peak_bytes": 62892,
+      "finding_counts": {
+        "CRYSTAL-PERIODIC-BOND-RING": 1
+      }
+    },
+    "bridged_hopf": {
+      "atoms": 8,
+      "bonds": 9,
+      "cell_representatives": 1,
+      "seconds": [
+        0.023445207625627518,
+        0.023453203961253166,
+        0.023415371775627136,
+        0.02332136407494545,
+        0.023474914953112602
+      ],
+      "median_seconds": 0.023445207625627518,
+      "tracemalloc_peak_bytes": 86879,
+      "finding_counts": {
+        "CRYSTAL-PERIODIC-BOND-RING": 2,
+        "CRYSTAL-INTERPENETRATION": 2,
+        "CRYSTAL-CLOSED-LOOP-LINK": 1
+      }
+    },
+    "sparse_sites_64": {
+      "atoms": 64,
+      "bonds": 0,
+      "cell_representatives": 1,
+      "seconds": [
+        0.09385862946510315,
+        0.1127585843205452,
+        0.09441194869577885,
+        0.09399979375302792,
+        0.09361463412642479
+      ],
+      "median_seconds": 0.09399979375302792,
+      "tracemalloc_peak_bytes": 512974,
+      "finding_counts": {}
+    },
+    "sparse_sites_256": {
+      "atoms": 256,
+      "bonds": 0,
+      "cell_representatives": 1,
+      "seconds": [
+        0.4076834823936224,
+        0.3884134441614151,
+        0.38847434893250465,
+        0.4076052736490965,
+        0.38871459290385246
+      ],
+      "median_seconds": 0.38871459290385246,
+      "tracemalloc_peak_bytes": 1946622,
+      "finding_counts": {}
+    },
+    "sparse_sites_1024": {
+      "atoms": 1024,
+      "bonds": 0,
+      "cell_representatives": 1,
+      "seconds": [
+        1.8885778449475765,
+        1.8567866254597902,
+        1.8778506889939308,
+        1.8611707501113415,
+        1.8580855783075094
+      ],
+      "median_seconds": 1.8611707501113415,
+      "tracemalloc_peak_bytes": 7616529,
+      "finding_counts": {}
+    }
+  },
+  "cost_policy": "Actual Crystal.geometry_findings, preparation before timing; one warmup, five timed complete queries; separate traced-memory query. Current-only, no baseline/parity claim.",
+  "cost_hardware_load_before": [
+    1.12,
+    0.82,
+    0.99
+  ],
+  "archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage15/periodic-geometry/evidence.tar.gz",
+    "bytes": 15904626,
+    "sha256": "a0b9865175bd87befd5f4a3bfdc67dfc2c8d6cd603e3e4f991622db2493e0890",
+    "regular_members": 353,
+    "selected_raw_bytes": 20915390,
+    "all_payloads_verified": true,
+    "excluded": "Derivable installed sites, test tmp/cache and bytecode; identities/guards and actual wheels retained."
+  },
+  "root_cost_disposition": "Accept measured CP311 small molecular queries and sparse1024site usability; no historical parity/speedup/exclusive-host/leak/dense-network/large-loop throughput claim. Detailed hardware and observations retained.",
+  "failures": [
+    "focused01:71passed/11failed because fixture shadowed group argument; corrected fixture only",
+    "precision-witness01:wrapper rejected node-ID as a file before pytest; preserved",
+    "precision-witness02:identity Cartesian roundtrip perturbed exact threshold; preserve original Cartesian source values for identity/translations",
+    "independent key review:unsupported complete-map reason lost; bounded production repair and regressions verified"
+  ],
+  "coverage_limits": [
+    "Metric-bounded prepared periodic candidates, current physical image keys and complete-unit relation classification; no destructive site identification.",
+    "Ring selection/native surfaces retain their declared indeterminacy. Automatic finite linking omits shared-vertex/coincident-unit pairs and is not infinite network topology.",
+    "CP311 source and attributed installed repack only; six native payloads unchanged, not rebuilt.",
+    "CIF/portable encoding, final support/package/scaling delivery and Stage14D remain open."
+  ]
+}

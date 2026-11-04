@@ -1,0 +1,279 @@
+{
+  "status": "ROOT_ACCEPTED_STANDALONE_EXACT_SYMMETRY",
+  "date": "2026-11-05",
+  "baseline": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+  "contract": "../contracts/decisions.md",
+  "source_inputs": {
+    "hotpot/__init__.py": "1ff2af5418dbbd34c77568672db7b602d2fbb87f03d1832fdb8b092ec48f3f8c",
+    "hotpot/cheminfo/__init__.py": "01f8d9b8dffcfbc1df9abea34436afec77f28ace614d65531276e2135e6d6edf",
+    "hotpot/cheminfo/structure/__init__.py": "709e736ac02669cb327912b25d0a409f1e64221fc190d2bb71f747c03f6e37f1",
+    "hotpot/cheminfo/structure/symmetry.py": "5493b575b77d71680482eda0d9d5dac3bbd228b7cc6df7aaeba54d24c2017d2f",
+    "hotpot/cheminfo/rules/mathematics/symmetry.py": "4e5e587d458f8093bee786eea80bb9bcaa3fa1bff2dc0b32de78929658e2c345",
+    "hotpot/cheminfo/reference/space_groups.py": "581905f6a8b39392f7059e2457846c719f7cafe56bf0d711f0292e1b64b0d2bf",
+    "hotpot/cheminfo/reference/data/space_groups.json": "7174f54b107bfdb6a9ee715b6de94e3810613733bda7f33fd3172c5f98d72bd3",
+    "hotpot/cheminfo/reference/data/space_groups.GEMMI-LICENSE.txt": "1f256ecad192880510e84ad60474eab7589218784b9a50bc7ceee34c2b91f1d5",
+    "hotpot/cheminfo/reference/data/space_groups.COMCIFS-LICENSE.txt": "f5b745ef98087f531e719ee8ca6a96809444573ecc7173c6fa68eaad39b3cc3f",
+    "tests/test_cheminfo/structure/test_crystal_symmetry_kinds.py": "4387ee2f98b73fed4667d0639e255be559593e161824da9795e7861c07c889fa",
+    "tests/test_cheminfo/structure/test_crystal_symmetry.py": "62eb12f9f06b78e194517ec142d3b33fa93135201053eefe7355f16b5b160358",
+    "tests/test_cheminfo/test_import_safety.py": "e85b2ce696928df296a2e1e60d03b3bee49278d17d0761ef59a6af67611cfc17",
+    "tests/test_cheminfo/structure/test_stage9_carrier_owners.py": "279639ea850431b9eabb55152635aa4db2d28a1bacc637d9469b9b809af1283b"
+  },
+  "source": {
+    "tests": 297,
+    "passed": 297,
+    "failed": 0,
+    "skipped": 0,
+    "returncode": 0,
+    "elapsed_seconds": 44.33389614149928
+  },
+  "installed": {
+    "cp311": {
+      "returncode": 0,
+      "elapsed_seconds": 52.02266192436218,
+      "testcases": 297,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "observed_product_origins": 174,
+      "origin_violations": 0,
+      "unchanged_site_files": 910,
+      "unchanged_support_files": 8
+    },
+    "cp310": {
+      "returncode": 0,
+      "elapsed_seconds": 84.62392939813435,
+      "testcases": 297,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "observed_product_origins": 174,
+      "origin_violations": 0,
+      "unchanged_site_files": 910,
+      "unchanged_support_files": 8
+    },
+    "cp312": {
+      "returncode": 0,
+      "elapsed_seconds": 68.25768948532641,
+      "testcases": 297,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "observed_product_origins": 174,
+      "origin_violations": 0,
+      "unchanged_site_files": 910,
+      "unchanged_support_files": 8
+    },
+    "cp313": {
+      "returncode": 0,
+      "elapsed_seconds": 66.46982296928763,
+      "testcases": 297,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "observed_product_origins": 174,
+      "origin_violations": 0,
+      "unchanged_site_files": 910,
+      "unchanged_support_files": 8
+    },
+    "cp314": {
+      "returncode": 0,
+      "elapsed_seconds": 71.20861283689737,
+      "testcases": 297,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "observed_product_origins": 174,
+      "origin_violations": 0,
+      "unchanged_site_files": 910,
+      "unchanged_support_files": 8
+    }
+  },
+  "wheels": {
+    "cp311": {
+      "baseline": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "baseline_sha256": "11de3bb98429c1d863a17aaf320eedc8b311e26bc304dd74916b8044b850a48e",
+      "candidate": "/tmp/hotpot_plan20/medium/stage15b-post-review-20261105/wheels/cp311/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "cf331e5429caf7c029a39b9ca9d49efd75c295ba151fc92fba9556b4c0f87fa3",
+      "added": [
+        "hotpot/cheminfo/reference/data/space_groups.COMCIFS-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.GEMMI-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.json",
+        "hotpot/cheminfo/reference/space_groups.py",
+        "hotpot/cheminfo/rules/mathematics/symmetry.py",
+        "hotpot/cheminfo/structure/symmetry.py"
+      ],
+      "changed": [
+        "hotpot/__init__.py",
+        "hotpot/cheminfo/__init__.py",
+        "hotpot/cheminfo/structure/__init__.py",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "members": 906,
+      "unchanged_native_members": [
+        "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so"
+      ],
+      "kind": "Repack of accepted B_exp payloads, not a fresh native build."
+    },
+    "cp310": {
+      "baseline": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "baseline_sha256": "e0c1d734783ddabed648552d0ec28657b496cb5174421fbb3e35e4982334474a",
+      "candidate": "/tmp/hotpot_plan20/medium/stage15b-post-review-20261105/wheels/cp310/hotpot_zzy-0.5.4.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "d28655fc92e099eaedf3cb5f97eab04870f95421a2ad672e3a1e9f2e8b2660a0",
+      "added": [
+        "hotpot/cheminfo/reference/data/space_groups.COMCIFS-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.GEMMI-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.json",
+        "hotpot/cheminfo/reference/space_groups.py",
+        "hotpot/cheminfo/rules/mathematics/symmetry.py",
+        "hotpot/cheminfo/structure/symmetry.py"
+      ],
+      "changed": [
+        "hotpot/__init__.py",
+        "hotpot/cheminfo/__init__.py",
+        "hotpot/cheminfo/structure/__init__.py",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "members": 906,
+      "unchanged_native_members": [
+        "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-310-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/obWrappers/_ob_native.cpython-310-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rdWrappers/_rd_native.cpython-310-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-310-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-310-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so"
+      ],
+      "kind": "Repack of accepted B_exp payloads, not a fresh native build."
+    },
+    "cp312": {
+      "baseline": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "baseline_sha256": "28b22e20b642a90169d997ae62b663eacb1ff0f26544c8b0def3ecda07c09505",
+      "candidate": "/tmp/hotpot_plan20/medium/stage15b-post-review-20261105/wheels/cp312/hotpot_zzy-0.5.4.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "c3e824d6e772e3bf854b4eafbe06818cd3e490c62f6545fd8fff8aca21c95bc4",
+      "added": [
+        "hotpot/cheminfo/reference/data/space_groups.COMCIFS-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.GEMMI-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.json",
+        "hotpot/cheminfo/reference/space_groups.py",
+        "hotpot/cheminfo/rules/mathematics/symmetry.py",
+        "hotpot/cheminfo/structure/symmetry.py"
+      ],
+      "changed": [
+        "hotpot/__init__.py",
+        "hotpot/cheminfo/__init__.py",
+        "hotpot/cheminfo/structure/__init__.py",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "members": 906,
+      "unchanged_native_members": [
+        "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-312-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/obWrappers/_ob_native.cpython-312-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rdWrappers/_rd_native.cpython-312-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-312-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-312-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so"
+      ],
+      "kind": "Repack of accepted B_exp payloads, not a fresh native build."
+    },
+    "cp313": {
+      "baseline": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "baseline_sha256": "a4c5a7c32106603e25e3f015589fe78350b1cf91121f719f6bdfddf89b0187a4",
+      "candidate": "/tmp/hotpot_plan20/medium/stage15b-post-review-20261105/wheels/cp313/hotpot_zzy-0.5.4.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "66fc7e858907bee3db32bc311ee4403700ca0626b281a8163091bd3066ecc853",
+      "added": [
+        "hotpot/cheminfo/reference/data/space_groups.COMCIFS-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.GEMMI-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.json",
+        "hotpot/cheminfo/reference/space_groups.py",
+        "hotpot/cheminfo/rules/mathematics/symmetry.py",
+        "hotpot/cheminfo/structure/symmetry.py"
+      ],
+      "changed": [
+        "hotpot/__init__.py",
+        "hotpot/cheminfo/__init__.py",
+        "hotpot/cheminfo/structure/__init__.py",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "members": 906,
+      "unchanged_native_members": [
+        "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-313-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/obWrappers/_ob_native.cpython-313-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rdWrappers/_rd_native.cpython-313-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-313-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-313-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so"
+      ],
+      "kind": "Repack of accepted B_exp payloads, not a fresh native build."
+    },
+    "cp314": {
+      "baseline": "/tmp/hotpot_plan20/medium/stage12-docs-refreshed-delivery-20261105/repacked/hotpot_zzy-0.5.4.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "baseline_sha256": "0d5f9c64aedb0375a89e726266e50998c9d760bbb967b6306dae375f877c6853",
+      "candidate": "/tmp/hotpot_plan20/medium/stage15b-post-review-20261105/wheels/cp314/hotpot_zzy-0.5.4.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "b21db3a8a5901baa2b18e422a1aef530bb366420b288c7736698daf836541d31",
+      "added": [
+        "hotpot/cheminfo/reference/data/space_groups.COMCIFS-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.GEMMI-LICENSE.txt",
+        "hotpot/cheminfo/reference/data/space_groups.json",
+        "hotpot/cheminfo/reference/space_groups.py",
+        "hotpot/cheminfo/rules/mathematics/symmetry.py",
+        "hotpot/cheminfo/structure/symmetry.py"
+      ],
+      "changed": [
+        "hotpot/__init__.py",
+        "hotpot/cheminfo/__init__.py",
+        "hotpot/cheminfo/structure/__init__.py",
+        "hotpot_zzy-0.5.4.5.dist-info/RECORD"
+      ],
+      "members": 906,
+      "unchanged_native_members": [
+        "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-314-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/obWrappers/_ob_native.cpython-314-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rdWrappers/_rd_native.cpython-314-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-314-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-314-x86_64-linux-gnu.so",
+        "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so"
+      ],
+      "kind": "Repack of accepted B_exp payloads, not a fresh native build."
+    }
+  },
+  "native_build": "Six unchanged accepted ED7 payloads reused per ABI; no fresh native-build claim.",
+  "review": {
+    "R1": "Reinitialization and deletion of immutable group/operation state repaired, tested in current complete selection.",
+    "R2": "Two runtime licence target names corrected; exact reference algebra unchanged.",
+    "report_member": "raw/stage15b-independent-review-20261105/REPORT.md"
+  },
+  "cost": {
+    "disposition": "ACCEPTED_CURRENT_USABLE",
+    "medians_ms": {
+      "P1_orbit512": 2.892596,
+      "P21_orbit512": 2.865435,
+      "Fm3m_orbit512": 6.225606,
+      "F_to_primitive_and_back": 68.32975
+    },
+    "limits": "2 warmups + 7 samples; separate tracked-allocation probe, shared host. All measurements retained. No six-scalar equivalence, paired speedup, leak or universal scaling claim."
+  },
+  "archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage15/exact-symmetry-standalone/evidence.tar.gz",
+    "bytes": 73905882,
+    "sha256": "07b72471cd3438a86603954e1e67d1ec6dddd9dd2c259801240dc3bbb524ce91",
+    "regular_members": 247,
+    "selected_raw_bytes": 78827521,
+    "all_payloads_verified": true,
+    "excluded": "Derivable installed sites, test tmp/cache and bytecode; identities/guards and actual wheels retained.",
+    "repository_path": ".plan20-artifacts/20261105/stage15/exact-symmetry-standalone/evidence.tar.gz"
+  },
+  "remaining": [
+    "Connected oriented Crystal/association/codec/lifecycle15B",
+    "Molecular operation/cell filling/expansion15C",
+    "Relations/periodic geometry/closed-loop linking15D",
+    "Pure persistence/CIF/connected projection15E",
+    "Complete stage delivery15F",
+    "Stage14D consumer and overall integration"
+  ],
+  "stage15_complete": false,
+  "overall_complete": false
+}

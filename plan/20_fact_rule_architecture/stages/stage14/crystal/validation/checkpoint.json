@@ -1,0 +1,301 @@
+{
+  "date": "2026-11-05",
+  "status": "ROOT_ACCEPTED_STAGE14A_TO_E_DECLARED_TRANSPORT_DOMAIN",
+  "acceptance": "Root accepts useful general Molecule/Crystal transport, actual training-data movement and chemical query/review, package support and explained bounded current-only costs. Overall Plan20 and final combined13/14/15 delivery remain open.",
+  "current_contract": {
+    "schema": "hotpot.molecule/2",
+    "hard_cut_no_schema1_loader": true,
+    "data_type": "ordinary torch_geometric.data.Data",
+    "interfaces": [
+      "Molecule.to_pyg()",
+      "Molecule.from_pyg(data, *, field_map=None)",
+      "Crystal.to_pyg()",
+      "Crystal.from_pyg(data, *, field_map=None)"
+    ],
+    "decisions": "../contracts/decisions.md",
+    "documentation": "../../../../../../hotpot/cheminfo/operations/pyg.md",
+    "semantics": [
+      "oriented cell, directed image and occupancy tensors are authoritative",
+      "exact shared group/setting/current joins and historical maps retain distinct meaning",
+      "unknown group is not P1; missing image is not zero",
+      "standalone Crystal is distinct from an attached empty Molecule",
+      "edited supported tensors remain authoritative; unsupported or contradictory maps reject locally",
+      "generic-import scientific observations remain attributable historical annotations; no implicit inference or deployed-model feature redesign"
+    ]
+  },
+  "source_identity": {
+    "head": "c0eb6c4c134806b2d96827d2fc5cf4352ec8ac69",
+    "accepted_stage15_merge": "4407db0",
+    "qualification": "Root no-commit merge plus accepted14D repair and two literal test migrations; HEAD alone is not the validated byte identity.",
+    "guarded_files": 943,
+    "guard": "delivery/source02/SOURCE_BEFORE.json",
+    "guard_sha256": "df72cfa7523bd5ac7f1c9c770209c1f6d151fe62626116d996de97b543373f6b",
+    "source_guard_unchanged": true,
+    "source_and_cost_guards_equal": true
+  },
+  "review_and_repairs": {
+    "three_product_defects": [
+      "stereo-first named diagnostic order on dual-invalid input",
+      "required current context/equivalence joins escaping as raw KeyError",
+      "standalone Crystal discarding present charge/spin/identifier declarations"
+    ],
+    "repair_passed": 86,
+    "new_maintained_boundary_cases": 19,
+    "repair_evidence": "review/repair01/REPAIR_SUMMARY.json",
+    "initial_source01": {
+      "passed": 1862,
+      "failures": 18,
+      "errors": 0,
+      "skipped": 0,
+      "result": "delivery/source01/RESULT.json"
+    },
+    "stale_test_literals_migrated": 2,
+    "literal_migration": "Seventeen obsolete schema1 expectations and one pre-SpaceGroup/SymmUnit export-tuple expectation; product bytes unchanged by this expectation migration.",
+    "original_failures_retained": true
+  },
+  "source_cp311": {
+    "passed": 1880,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "affected_test_modules": 49,
+    "elapsed_seconds": 83.53833910264075,
+    "docs_returncode": 0,
+    "docs_elapsed_seconds": 3.215409532189369,
+    "result": "delivery/source02/RESULT.json",
+    "exact_test_intent": "delivery/source02/tests/intent.json",
+    "exact_docs_intent": "delivery/source02/docs/intent.json",
+    "selection": "delivery/TESTS.json"
+  },
+  "fresh_sdist": {
+    "members": 961,
+    "hotpot_python_and_stub_members_verified": 531,
+    "sha256": "6f92dc71462bbc491fa4a981be1e7dcdccc059205f085f478391d7e67b08f5e9",
+    "fresh_sdist": true,
+    "native_compilation": false,
+    "source_unchanged": true,
+    "result": "delivery/sdist02/RESULT.json",
+    "exact_build_intent": "delivery/sdist02/build/intent.json"
+  },
+  "installed_cp310_to_cp314": {
+    "cp310": {
+      "passed": 1880,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 182.1857837624848,
+      "docs_returncode": 0,
+      "observed_product_origins": 213,
+      "origin_violations": 0,
+      "stable_source_site_support_optional_guards": true,
+      "wheel_sha256": "0ad6ea2eb90ad9e072c23d6aa9ae83a9d2c3c86f7415f3585272e016ece20837",
+      "RECORD_verified": true,
+      "unchanged_native_payloads": 6,
+      "fresh_native_build": false,
+      "python": "3.10.20",
+      "torch": "2.7.1+cpu",
+      "pyg": "2.6.1",
+      "result": "delivery/installed01/cp310/RESULT.json",
+      "wheel_identity": "delivery/installed01/wheels/cp310/IDENTITY.json"
+    },
+    "cp311": {
+      "passed": 1880,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 126.48671133816242,
+      "docs_returncode": 0,
+      "observed_product_origins": 213,
+      "origin_violations": 0,
+      "stable_source_site_support_optional_guards": true,
+      "wheel_sha256": "889910c07fb94f8003d2202b1b1d039a9215524e8e64882b6358ccb520a5a346",
+      "RECORD_verified": true,
+      "unchanged_native_payloads": 6,
+      "fresh_native_build": false,
+      "python": "3.11.16",
+      "torch": "2.7.1+cpu",
+      "pyg": "2.6.1",
+      "result": "delivery/installed01/cp311/RESULT.json",
+      "wheel_identity": "delivery/installed01/wheels/cp311/IDENTITY.json"
+    },
+    "cp312": {
+      "passed": 1880,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 150.44112100452185,
+      "docs_returncode": 0,
+      "observed_product_origins": 213,
+      "origin_violations": 0,
+      "stable_source_site_support_optional_guards": true,
+      "wheel_sha256": "240db87446f665a64deede7a8c274af30023b7d74007d46dcbd9c6172af18b70",
+      "RECORD_verified": true,
+      "unchanged_native_payloads": 6,
+      "fresh_native_build": false,
+      "python": "3.12.13",
+      "torch": "2.7.1+cpu",
+      "pyg": "2.6.1",
+      "result": "delivery/installed01/cp312/RESULT.json",
+      "wheel_identity": "delivery/installed01/wheels/cp312/IDENTITY.json"
+    },
+    "cp313": {
+      "passed": 1880,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 141.435891835019,
+      "docs_returncode": 0,
+      "observed_product_origins": 213,
+      "origin_violations": 0,
+      "stable_source_site_support_optional_guards": true,
+      "wheel_sha256": "5886420c7585eacd8d762149c1764060c59e6a15b09e2160033b90a777cf73be",
+      "RECORD_verified": true,
+      "unchanged_native_payloads": 6,
+      "fresh_native_build": false,
+      "python": "3.13.15",
+      "torch": "2.7.1+cpu",
+      "pyg": "2.6.1",
+      "result": "delivery/installed01/cp313/RESULT.json",
+      "wheel_identity": "delivery/installed01/wheels/cp313/IDENTITY.json"
+    },
+    "cp314": {
+      "passed": 1880,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "elapsed_seconds": 142.16714999824762,
+      "docs_returncode": 0,
+      "observed_product_origins": 213,
+      "origin_violations": 0,
+      "stable_source_site_support_optional_guards": true,
+      "wheel_sha256": "369a0507b1c73e1c8138464164427ec3d76bad9389d84c79d7459b944d125756",
+      "RECORD_verified": true,
+      "unchanged_native_payloads": 6,
+      "fresh_native_build": false,
+      "python": "3.14.7",
+      "torch": "2.9.1+cpu",
+      "pyg": "2.6.1",
+      "result": "delivery/installed01/cp314/RESULT.json",
+      "wheel_identity": "delivery/installed01/wheels/cp314/IDENTITY.json"
+    }
+  },
+  "installed_scope": {
+    "outside_checkout": true,
+    "stable_site_files_each": 929,
+    "stable_support_files_each": 57,
+    "stable_optional_syntax_files_each": 39,
+    "native_claim": "Five RECORD-verified repacks, six accepted unchanged native payloads each; no fresh native builds or standalone SDK qualification.",
+    "exact_intents": "delivery/installed01/<abi>/{install,tests,docs,runtime}/intent.json"
+  },
+  "actual_crystal_cuda": {
+    "status": "PASSED",
+    "python": "3.11.14",
+    "torch": "2.7.1+cu126",
+    "cuda_runtime": "12.6",
+    "device": "ai-14 NVIDIA A800-SXM4-80GB, selected physical GPU6",
+    "graphs": 5,
+    "sites": [
+      3,
+      16,
+      0,
+      4,
+      0
+    ],
+    "group_operation_counts": [
+      2,
+      1,
+      1,
+      0,
+      0
+    ],
+    "synthetic_SGD_steps": 32,
+    "product_origins": 172,
+    "origin_violations": 0,
+    "unchanged_wheel_product_files": 919,
+    "wheel_sha256": "889910c07fb94f8003d2202b1b1d039a9215524e8e64882b6358ccb520a5a346",
+    "workload_result": "cuda/received/output/result.json",
+    "installed_attribution": "cuda/received/INSTALLED_ATTRIBUTION.json",
+    "exact_workload_intent": "cuda/received/workload-intent.json",
+    "scope": "Ordinary mixed DataLoader/CUDA, synthetic SGD, CPU/unbatch/fresh reconstruction and trusted save/load only; no deployed-model inference, scientific validation, convergence or exclusive-device speed claim."
+  },
+  "cost": {
+    "status": "ROOT_ACCEPTED_EXPLAINED_USABLE_CURRENT_ONLY_COST",
+    "result": "cost/attempt02/RESULT.json",
+    "measurements": "cost/attempt02/COST.json",
+    "raw": "cost/attempt02/RAW.jsonl",
+    "diagnosis": "cost/TASK14E-COST-DIAG01.json",
+    "per_case": {
+      "mixed16": {
+        "graphs": 16,
+        "total_sites": 32,
+        "warmups": 1,
+        "timed_calls": 5,
+        "memory_calls": 1,
+        "median_ms": 60.301725,
+        "traced_peak_bytes": 2251280,
+        "cumulative_maxrss_kib": 373372
+      },
+      "crystal4x128": {
+        "graphs": 4,
+        "total_sites": 512,
+        "warmups": 1,
+        "timed_calls": 5,
+        "memory_calls": 1,
+        "median_ms": 66.88821,
+        "traced_peak_bytes": 3064387,
+        "cumulative_maxrss_kib": 378916
+      },
+      "generated1x128": {
+        "graphs": 1,
+        "total_sites": 128,
+        "warmups": 1,
+        "timed_calls": 5,
+        "memory_calls": 1,
+        "median_ms": 201.867601,
+        "traced_peak_bytes": 2764866,
+        "cumulative_maxrss_kib": 379180
+      }
+    },
+    "original_failure": {
+      "retained": "cost/attempt01",
+      "root_failed_result_retained": "cost/RESULT.json",
+      "cause": "Fresh eq=False MoleculeRecord instances compared by disposable identity; every captured fact leaf and tracked ownership identity was unchanged.",
+      "product_mutation_found": false,
+      "raw_metrics_available": false,
+      "counts_inferred_from_preserved_flow": {
+        "mixed16": {
+          "warmups": 1,
+          "timed_calls": 5,
+          "memory_calls": 1
+        },
+        "other_cases": {
+          "warmups": 0,
+          "timed_calls": 0,
+          "memory_calls": 0
+        }
+      }
+    },
+    "resources": "3995WX64cores/128logical CPUs, affinity0\u2013127, CPU/Torch/BLAS threads1; load0.32/1.59/1.42 before and0.47/1.56/1.41 after; raw hardware and all timing spikes retained.",
+    "limits": "One separate tracemalloc phase per case in the same process, native Torch allocation incomplete; RSS cumulative with all fixtures constructed up front. No historical parity, speedup, leak or exclusive-host claim. Attempt-local cache/TMP and tooling PYTHONPATH delta are explicit in IDENTITY.json."
+  },
+  "archive": {
+    "archive": ".plan20-artifacts/20261105/stage14/crystal-final-delivery/evidence.tar.gz",
+    "index": ".plan20-artifacts/20261105/stage14/crystal-final-delivery/INDEX.json",
+    "bytes": 45869791,
+    "sha256": "e8e61ed1cf23e63e5acc439a7e1b55c91ef1b9e445cacefadd71187a5e3621b4",
+    "verified_payloads": 373,
+    "all_payloads_read_back_verified_by_root": true,
+    "excluded": "Derivable installed sites, env/tmp/cache/pytest-temp; exact intents/results/guards, wheels, sdist and original failures retained."
+  },
+  "coverage_limits": [
+    "Affected49module source/installed selection is recorded, not a new whole-repository default-suite result.",
+    "Foreign schemas need explicit field_map; unavailable facts and unsupported self/parallel quotient edges are not inferred or collapsed.",
+    "Portable useful training/review fields are qualified, not full runtime-state cloning or arbitrary-object serialization.",
+    "Deployed CBond/MCA features remain separate; this CUDA result is not deployed-model inference or a scientific benchmark.",
+    "Historical14A/schema1 and molecular source/CUDA checkpoints retain their original source/schema/evidence scopes."
+  ],
+  "remaining": [
+    "Final combined Stage13/14/15 union validation and delivery remain pending; this checkpoint does not close overall Plan20."
+  ],
+  "root_review": "Root reviewed and accepted these records and the unchanged943-file business binding before the related coherent commit/push; resulting Git identity is recorded by final integration."
+}

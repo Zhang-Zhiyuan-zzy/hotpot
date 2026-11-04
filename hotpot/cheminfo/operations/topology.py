@@ -48,8 +48,8 @@ def _merge_component(mol, captured):
         stale_ensembles = tuple((payload,
             marker + (() if 'frame_representation' in marker else ('frame_representation',)))
             for payload, marker in current.conformer_results)
-        if offset and incoming.cell is not None and current.cell != incoming.cell:
-            raise ValueError('Components require compatible unit cells')
+        from ..structure._crystal import _merge_crystal_records
+        cell = _merge_crystal_records(current.cell, incoming.cell, offset, incoming.atom_count)
         charge = incoming.charge if not offset else (
             (True, current.charge[1] + incoming.charge[1], 'component_merge')
             if current.charge[0] and incoming.charge[0] else (False, None, None))
@@ -78,7 +78,7 @@ def _merge_component(mol, captured):
             bond_directions=current.bond_directions + incoming.bond_directions,
             bond_sources=current.bond_sources + incoming.bond_sources,
             bond_metadata=current.bond_metadata + incoming.bond_metadata,
-            charge=charge, spin_mult=spin, cell=current.cell if offset else incoming.cell,
+            charge=charge, spin_mult=spin, cell=cell,
             partial_charge_result=(incoming.partial_charge_result if not offset else
                 _merged_partial_charge_record(current, incoming.atom_count)),
             stereo_payload=payload,

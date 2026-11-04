@@ -30,7 +30,13 @@ not contain a second complete MoleculeRecord, Atom table, original Molecule,
 locks, private identities, dependency engine or hidden pristine restoration path.
 No runtime registry, new exception class, result envelope or confidence label.
 
-## Molecular schema `hotpot.molecule/1`
+## Molecular schema `hotpot.molecule/2`
+
+The first molecular checkpoint used schema1. Stage14D replaces that current
+schema atomically with2 and the shared oriented Crystal record; historical
+checkpoint reports retain their original scope. There is no schema1 loader.
+The [Crystal contract](../../crystal/contracts/decisions.md) owns the exact cell,
+image,occupancy and group view; the molecular fields below retain their meaning.
 
 Use ordinary `torch_geometric.data.Data`. `hotpot_schema` is a one-element list
 containing the schema string. Node and edge tensors are authoritative for the
@@ -64,7 +70,10 @@ Missing values have false presence; their numerical storage is not a fact.
 | `wiberg_index`, `wiberg_value` | int64 / 2×P, float64 / P | Sparse supplied pair values; no quadratic all-pair generation. |
 | `net_charge`, `spin_mult` | float64 / 1 each | Existing graph declaration values, interpreted only when corresponding presence is true. Preserve accepted scalar values without new inference. |
 | `net_charge_present`, `spin_mult_present` | bool / 1 each | Declaration presence, including explicit zero. |
-| `cell_parameters`, `cell_present` | float64 / 1×6, bool / 1 | Existing six-scalar attached cell only; no new Stage15 inference. |
+| `cell_matrix`, `cell_present` | float64 / 1×3×3, bool / 1 | Current oriented row basis and attached-cell presence. |
+| `bond_image`, `bond_image_present` | int64 / M×3, bool / M | Directed integer image; absent differs from explicit zero. |
+| `occupancy`, `occupancy_present` | float64 / N, bool / N | Current supplied site occupancy. |
+| `space_group_R`, `space_group_t` | int64 / G×3×3, float64 / G×3 | Derived numeric views of the exact current group. |
 
 Use one-element list wrappers around graph-ragged structures so ordinary PyG
 batching does not concatenate their graph-local references. Fixed `*_index`

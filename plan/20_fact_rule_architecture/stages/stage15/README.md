@@ -1,6 +1,25 @@
 # Stage15 — Crystal spatial symmetry and molecular expansion
 
-Owner-directed additional Plan20 branch, revised 2026-11-04. The
+Owner-directed additional Plan20 branch. Root accepted the concrete
+[Stage15A contract](domain/contracts/decisions.md) on 2026-11-05; standalone exact
+SpaceGroup/SymmUnit production is root-accepted at the
+[297-test source/five-version installed checkpoint](domain/validation/exact_symmetry_report.md).
+Connected cell/lifecycle migration is root-accepted at the
+[559-test source/installed CP311 checkpoint](domain/validation/connected_cell_report.md).
+One-placement action is root-accepted at the
+[874-test source/installed CP311 checkpoint](domain/validation/action_report.md).
+Cell generation is root-accepted at the
+[1,038-test source/installed CP311 checkpoint](domain/validation/generation_report.md).
+Placed relations have a bounded
+[1,068-test CP311 checkpoint](domain/validation/relation_report.md).
+Explicit finite-loop linking has a bounded
+[1,128-test CP311 checkpoint](domain/validation/linking_report.md).
+Periodic contact/surface observations have a bounded
+[1,246-test CP311 checkpoint](domain/validation/geometry_report.md).
+Pure CIF/current persistence and full domain delivery are accepted at the
+[1,715-test source/five-version installed checkpoint](domain/validation/persistence_report.md).
+Stage15A–F are complete within their accepted domain; Stage14D and final
+combined integration remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic
@@ -39,11 +58,12 @@ observations and zero linking number is not an unlink certificate. Crystal
 behavior uses Hotpot math/topology, with only a separately justified table/CIF
 lookup candidate. No direct or indirect OpenBabel/RDKit/CCDC Python API route.
 
-This is concrete design/reference work, not runtime delivery or publication of
-new signatures. The existing six-parameter cell remains the Stage0–12 contract
-until Stage15's connected migration from validated `B_exp`. Stage15A must settle
+The exact symmetry, connected lifecycle, molecular actions, findings and
+current format closure are delivered. The
+connected migration replaces the six-parameter ordinary cell record with one
+oriented record; six parameters remain only at declared external projections. Stage15A settles
 the exact public/export/codec/CIF/dependency/tolerance choices and the existing
-topology foundation's self/parallel periodic-edge limit. The group catalogue's
+topology foundation's self/parallel periodic-edge limit in its accepted contract. The group catalogue's
 exact arithmetic checks do not pass molecular, numerical or runtime gates.
 
 Stage14D prepares against 15A's accepted schema, then consumes 15B/C's implemented

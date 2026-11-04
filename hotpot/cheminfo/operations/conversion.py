@@ -223,14 +223,15 @@ def _assign_partial_charge(mol, model, model_args):
     return charges
 
 
-def _to_pyg(mol):
-    """Capture the useful factual closure once; construct external buffers unlocked."""
-    from ..adapters.pyg import _encode_molecule
+def _capture_pyg(mol, *, crystal=None):
+    """Capture useful current facts once under their owner lock."""
     from ..adapters._pyg_molecule import capture_details, _portable
     from ..structure._dependencies import GROUP_INDEX, _FactStatus
     from ..structure._fields import FIELD_INDEX, FIELD_PRESENCE_BITS
     from ..structure._identity import _capture_source
     with mol._mutation_lock:
+        if crystal is not None and (crystal._molecule is not mol or mol._crystal is not crystal):
+            raise RuntimeError('CRYSTAL-CONTEXT-INTEGRITY: active association changed')
         # Reject unsupported values before the existing metadata copy can invoke
         # an arbitrary object's deepcopy protocol inside the factual capture.
         for row, bond in enumerate(mol._bonds):
@@ -250,13 +251,58 @@ def _to_pyg(mol):
             atom_uids=tuple(atom._uid for atom in mol._atoms), source_frames=mol._source_frames,
             generated=mol._conformer_results, selected_frame=mol._frame_result,
             partial_charge=mol._partial_charge_result, mca=mca, mca_join=join)
-    return _encode_molecule(record, details, availability)
+    return record, details, availability
+
+
+def _to_pyg(mol):
+    """Construct external buffers only after the chemical capture lock is released."""
+    from ..adapters.pyg import _encode_molecule
+    return _encode_molecule(*_capture_pyg(mol))
 
 
 def _from_pyg(molecule_type, data, *, field_map=None):
     """Decode current Data into one fresh factual candidate, then retain history."""
     from ..adapters.pyg import _decode_molecule
-    record, properties = _decode_molecule(data, field_map)
+    record, properties, _ = _decode_molecule(data, field_map)
     mol = molecule_type._build_molecule(record)
     mol.properties = properties
     return mol
+
+
+def _to_pyg_crystal(crystal):
+    """Use the one molecular capture and the published current Crystal codec."""
+    from dataclasses import replace
+    from ..structure.molecule import Molecule
+    from ..structure._crystal import _read_crystal_record
+    from ..adapters._pyg_molecule import capture_details
+    from ..adapters.pyg import _encode_molecule
+    mol = crystal._molecule
+    if mol is not None:
+        return _encode_molecule(*_capture_pyg(mol, crystal=crystal))
+    empty = Molecule()
+    record, metadata = empty._capture_factual_record(include_frames=False)
+    record = replace(record, cell=_read_crystal_record(crystal))
+    details = capture_details(record, metadata, properties={}, atom_uids=(), source_frames=(),
+        generated=(), selected_frame=None, partial_charge=None, mca=None, mca_join=False)
+    details['hotpot_graph']['molecule_present'] = False
+    return _encode_molecule(record, details, ())
+
+
+def _from_pyg_crystal(crystal_type, data, *, field_map=None):
+    """Reconstruct one fresh Crystal from the actual current graph/context."""
+    from ..adapters.pyg import _decode_molecule
+    from ..structure.molecule import Molecule
+    from ..structure._crystal import _new_crystal, _detach_crystal
+    record, properties, molecule_present = _decode_molecule(data, field_map)
+    if record.cell is None:
+        raise ValueError('pyg_mapping Crystal: an explicit oriented cell is required')
+    if not molecule_present:
+        return _new_crystal(record.cell, crystal_type=crystal_type)
+    molecule = Molecule._build_molecule(record)
+    molecule.properties = properties
+    if type(molecule.crystal) is crystal_type:
+        return molecule.crystal
+    _detach_crystal(molecule.crystal)
+    value = _new_crystal(record.cell, molecule, crystal_type=crystal_type)
+    molecule._crystal = value
+    return value

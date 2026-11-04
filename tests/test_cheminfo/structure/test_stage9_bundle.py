@@ -36,7 +36,7 @@ def pyg_runtime():
 def _assert_chemical_graph(graph, name, runtime):
     torch, data_type = runtime
     assert isinstance(graph, data_type)
-    assert graph.hotpot_schema == ["hotpot.molecule/1"]
+    assert graph.hotpot_schema == ["hotpot.molecule/2"]
     count = 3 if name == "ethanol" else 6
     assert graph.num_nodes == count
     assert graph.z.dtype == torch.int64
@@ -65,7 +65,7 @@ def test_public_collection_and_operation_have_one_current_owner():
     assert MolBundle.__qualname__ == "MolBundle"
     assert to_pyg_dataset.__module__ == operation.__name__
     assert Path(inspect.getfile(MolBundle)).resolve() == Path(owner.__file__).resolve()
-    assert structure.__all__ == ("Molecule", "Atom", "Bond", "BondKind", "Crystal")
+    assert structure.__all__ == ("Molecule", "Atom", "Bond", "BondKind", "Crystal", "SpaceGroup", "SymmUnit")
     legacy = "hotpot.cheminfo.bundle"
     assert legacy not in sys.modules
     assert importlib.util.find_spec(legacy) is None

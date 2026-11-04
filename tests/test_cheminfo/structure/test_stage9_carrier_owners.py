@@ -17,7 +17,7 @@ import numpy as np
 import pytest
 
 import hotpot
-from hotpot import Atom, Bond, BondKind, Crystal, Molecule
+from hotpot import Atom, Bond, BondKind, Crystal, Molecule, SpaceGroup, SymmUnit
 from hotpot.cheminfo.structure._fields import MolBlock
 from hotpot.cheminfo.structure._source_identity import _SourceIdentity
 from hotpot.cheminfo.structure.conformer import Conformers
@@ -35,6 +35,8 @@ _PUBLIC_OWNERS = {
     "Bond": "hotpot.cheminfo.structure.bond",
     "BondKind": "hotpot.cheminfo.structure.bond_kind",
     "Crystal": "hotpot.cheminfo.structure.crystal",
+    "SpaceGroup": "hotpot.cheminfo.structure.symmetry",
+    "SymmUnit": "hotpot.cheminfo.structure.symmetry",
 }
 _OTHER_OWNERS = {
     "MolBlock": "hotpot.cheminfo.structure._fields",

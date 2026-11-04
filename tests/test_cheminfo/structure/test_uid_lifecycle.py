@@ -364,7 +364,7 @@ from hotpot.cheminfo.stereo import get_stereo_payload
 from tests.test_cheminfo._stage5_fixtures import immutable_snapshot
 assert Path(sys.modules[Molecule.__module__].__file__).resolve() == Path(sys.argv[2])
 mol, atom, bond, record, metadata = pickle.loads(Path(sys.argv[1]).read_bytes())
-assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 6
+assert type(record) is MoleculeRecord and record.__reduce__()[1][1] == 7
 assert atom is mol.atoms[0] and bond is mol.bonds[0]
 assert bond.atom1 is mol.atoms[1] and bond.atom2 is atom
 assert atom._uid == 1 and mol.atoms[1]._uid == 2 and bond._uid == 0

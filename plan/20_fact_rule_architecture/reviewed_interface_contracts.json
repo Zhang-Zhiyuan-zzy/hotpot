@@ -5023,5 +5023,53 @@
     "ordinary_data": true,
     "current_result_restore": false,
     "crystal_domain": "deferred to implemented Stage15; Stage14D remains open"
+  },
+  "stage15a_public_contract_decision": {
+    "date": "2026-11-05",
+    "owner": "root",
+    "baseline_commit": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+    "status": "accepted_before_product_authoring",
+    "contract": "stages/stage15/domain/contracts/decisions.md",
+    "exports": [
+      "hotpot.SpaceGroup",
+      "hotpot.SymmUnit"
+    ],
+    "schema": "hotpot.crystal/1",
+    "periodic_topology_domain": "current simple Molecule graph; unrepresentable self/parallel quotient explicitly unavailable",
+    "toolkits_forbidden": [
+      "OpenBabel",
+      "RDKit",
+      "CCDC"
+    ]
+  },
+  "stage14d_current_public_contract_decision": {
+    "date": "2026-11-05",
+    "owner": "root",
+    "status": "accepted14D/E current schema and business delivery; final branch union pending",
+    "supersedes": "stage14a_public_contract_decision schema1 selection only; original molecular checkpoint remains historical",
+    "schema": "hotpot.molecule/2",
+    "contracts": [
+      "stages/stage14/molecule/contracts/decisions.md",
+      "stages/stage14/crystal/contracts/decisions.md"
+    ],
+    "public_methods": [
+      "Molecule.to_pyg",
+      "Molecule.from_pyg",
+      "Crystal.to_pyg",
+      "Crystal.from_pyg"
+    ],
+    "ordinary_data": true,
+    "legacy_loader": false,
+    "authoritative_tensors": [
+      "cell_matrix/cell_present",
+      "bond_image/bond_image_present",
+      "occupancy/occupancy_present"
+    ],
+    "exact_context": "Shared hotpot.crystal/1 codec, exact group/setting/current and historical maps; no duplicate tensor facts",
+    "derived_views": "space_group_R and space_group_t agree with exact current group; unknown group has0operations",
+    "presence": "Standalone Crystal differs from Crystal with an empty Molecule; absent facts differ from explicit zero",
+    "historical_observations": "Generic import retains observations as attributable historical annotations, never current MCA/partial-charge attachments",
+    "deployed_models": "MCA/CBond retain their separate unchanged model-owned encoders",
+    "evidence": "stages/stage14/crystal/validation/checkpoint.json"
   }
 }

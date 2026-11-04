@@ -8421,3 +8421,179 @@ export. Root adds this concrete distinction to Stage14: migrate public/dataset
 callers to to_pyg(), preserve actual model-input mathematics at its owners,
 and retain no legacy public output. This trace is source inspection only; no
 inference or runtime equivalence test was performed for the question.
+
+
+### 2026-11-04 — Owner decision: model-specific inputs and general PyG purpose
+
+The owner explicitly assigns every deployed model (including CBond/MCA) its own
+Molecule/Crystal-to-model feature interface at the corresponding model module.
+That interface selects only needed information and maximizes execution efficiency;
+it has no obligation to route through the general public PyG conversion. Shared
+pure encoding helpers remain possible without moving the model contract away
+from its owner. Current source inspection already establishes those separate
+CBond/MCA entry paths; no frozen production bytes change for this decision.
+
+General to_pyg() supplies the maximum useful, chemically interpretable training
+information to PyTorch/PyG for new models. General from_pyg() structures the
+chemical information actually encoded in Data into Molecule/Crystal for query
+and review. Minimize loss in the documented useful-field contract without making
+internal runtime persistence or complete object-state cloning a goal. Useful
+scientific annotations/targets and their atom/site/graph mappings stay explicit;
+unknown chemical facts are not guessed from feature positions or labels.
+
+Root reuses the unchanged mainline alignment, rereads the effective goal,
+governance/stage/validation skills and both governance references, Stage14's
+complete plan, the relevant Stage15 publication/consumer boundaries and main-plan
+Section18, and checks current source/callers and clean tracked Git state. The
+following scoped document revision updates Stage14 outcomes, field-selection
+criteria, ownership, business checks and indexes, with only a short Section18
+reference adjustment. Existing field/batch/foreign-map details remain to settle
+at14A; this is no Stage14 production release, model redesign/retraining, new
+public interface or B_exp waiver. Existing final native/MCA/xTB jobs retain their
+actual source and independent acceptance boundaries.
+
+The bounded local Sol/medium read-only review finds one gate inconsistency:
+14C still unconditionally required deployed CBond/MCA inference although the
+affected-behavior checks correctly limited it to shared-code/chemistry changes.
+Root corrects14C to that same condition. No other concrete defect is identified
+in the authorized five-document diff. Root runs scoped local-link/whitespace
+checks; no chemical/model/runtime equivalence is inferred from document review.
+
+
+### 2026-11-04 — Stage12 bounded frozen-selection bridge release
+
+Root reviews the37slot source/equivalence map and proposed support scope against
+main Sections11.3/12and the unchanged2689logical-slot manifest. Release only
+17private current-behavior bridges(9split-contract/facade+8topology/stereo), their
+physical/logical mapping and focused CP311 checks under timing-equivalence01/
+approved-support01; no maintained code/test/manifest edit, timing or runner/
+comparator change. Preserve original sizes/call counts where still meaningful.
+
+The3deleted prepare_coordination_geometry slots remain RETIRED_NONCOMPARABLE
+in the original ledger, without fake calls, zero-time values or passes. The
+restore(active)→foreign-handle negative-case translation is executed only as
+CURRENT_TRANSLATED_NONCOMPARABLE: the invalid domain and extra construction
+differ. Changed CLI control, split exports and approved Calculator/confidence
+retirement also retain explicit contract-migration limits. No bridge or renamed
+node grants blanket equivalence, and no full2689common speedup claim is released.
+Report complete raw work/retirements and later compare only independently
+reviewed common semantic work with explicit membership. This follows Section12's
+existing incomparable-work accounting rather than weakening a scientific gate.
+Root inspects support/counters/failures before further execution. Exact release:
+/tmp/hotpot_plan20/long/stage12-final-version-support-20261104/timing-equivalence01/root-support-release01.json.
+
+
+### 2026-11-04 — Final CP313 source/installed technical release
+
+The final ec4d618CP313 clean/repaired build has actually completed RC0 with
+maintained release smokes/content checks; its original execution receipt and
+same-sdist binding remain authoritative. Root releases one source/default then
+one installed/default technical invocation from the prepared version map on
+CPU104-111(now free after that ABI build), outside the checkout. Materialize
+only the714verified committed support files, current product source for source
+mode, matching six rebuilt natives/bundled libraries and no-deps private wheel
+installation. Reuse the already accepted gallery-provenance support correction;
+keep actual raw argv/origins/outcomes and original failures with no auto retry.
+Source's2Git-only and installed's33source-private exclusions retain their
+owning source obligations; no outcome is fabricated for them. No model/GPU/
+scientific tier, optional dependency install, whole-matrix timing, comparator
+change or support claim is implied. Driver and receipts are under
+/tmp/hotpot_plan20/long/stage12-final-version-support-20261104.
+
+The same final technical route is separately released for completed finalCP310
+RC0build on its now-free88-95CPUallocation, with matching interpreter/wheel and
+a fresh execution01/cp310directory. Driver/support/source identities and scope
+remain as above; no retry or result from another ABI is substituted.
+
+
+### 2026-11-04 — Observed CP310 FF rollback failure and bounded repair release
+
+The actual finalec4d618source/default run onCP310 reports two failures in the
+existing real dictionary-allocation injection: forcefield/index with original
+KeyboardInterrupt or MemoryError. After rollback, a retained Bond has lost
+_member_uid. CP313's separate133scientific-state AST fingerprint failures are
+a checker-version issue: direct stdlib-onlyCP311/CP313 observations show that
+3.13ast.dump omits empty fields; no chemistry/hash-forcing correction is released
+for that issue. Original runs/streams/children and all failures remain intact.
+
+Root inspects the full working-copy snapshot/restoration/commit owner, factual
+transaction and exact existing allocator tests, and aligns the bounded repair
+with main-plan14.5's preserved atomic FF publication/rollback and effective-goal
+identity/transaction integrity. _restore_failed_commit currently clears then
+updates Molecule/member/conformer __dict__, allocating new buckets during undo
+even though complete independent dicts already exist in its snapshot. Release
+only rebinding those private instance dictionaries to the preallocated saved
+dicts. Keep the same Molecule/Atom/Bond/conformer objects, public factual/index/
+pair container owners, memberships, values, exception, and monotonic UID high
+water; add no catch, retry, fallback, public API or scientific change.
+
+Root exclusively owns working_copy.py. LocalSol/medium may validate the affected
+existing tests against exact repaired source copies and matching unchanged native
+components across five versions; it may not alter product or maintained tests.
+All currently executing ec4d618/original556b21e jobs retain their inputs and old
+identities. Repair invalidates a claim that those artifacts contain the repaired
+Python owner, not their actual unaffected scientific observations. Final-source
+freeze/packaging and affected installed checks must bind the repaired checkpoint.
+
+
+### 2026-11-04 — Terminal source/version findings and remaining installed boundary
+
+Correction to the preceding rollback-release citation: the preserved FF atomic
+commit/rollback migration row is main-plan Section9.2 (working_copy.py row),
+not Section14.5. This append-only correction changes no release scope.
+
+Both original ec4d618 source/default attempts completed with unchanged510-file
+product guards. CP310:6813passed/4failed/166skipped/3strictxfail/49subtests;
+CP313:6684passed/133failed/166skipped/3strictxfail/49subtests. Preserve both raw
+runs. CP310's two FF allocator failures receive the already bounded dictionary
+restore repair. The third is stdlib get_type_hints adding Optional for a None
+default in3.10; a direct3.10/3.11 same-code stdlib probe reproduces this without
+Hotpot, so the existing raw annotation/signature is not rewritten. The fourth
+is a real3.10 assembly failure: BaseException.add_note is absent and masks the
+original worker ValueError. Its bounded support correction remains required.
+CP313's133AST fingerprint failures retain the independently observed ast.dump
+empty-field formatting difference; no scientific algorithm/hash forcing follows.
+The direct stdlib typing/notes evidence is ast-diagnostic01/
+stdlib-typing-and-notes.json under stage12-final-version-support-20261104.
+
+The existing two-boundary driver stopped after source RC1, so installed/default
+has not run. Root releases only that still-unexecuted installed invocation for
+each completed ABI, against its original verified wheel/site/support and same
+88-95(CP310)/104-111(CP313) allocations. Preserve source failures and leave each
+old artifact unchanged; no automatic retry, private product repair, model/timing
+or success claim. Actual installed outcomes will be separate. This does not
+establish repaired-source final delivery or close any gate.
+
+
+### 2026-11-04 — Owner-directed independent Sol/max Crystal plan revision
+
+The owner prioritizes crystallographic spatial symmetry and complete molecular
+copy/expansion, requests the full Crystal property/method tree before code,
+and requires an abstract SymmUnit family of group elements with operate and
+group algebra. Root rereads current complete Stage15 plan/README, affected
+Stage14 publication boundary, the effective goal and governance references;
+existing mainline alignment remains. A separate local GPT-6.1Sol/max subagent
+(crystal_plan_solmax) exclusively reviews/edits stages/stage15/review.md and
+README.md. Root retains all other files, decisions and delivery. The worker
+must distinguish asymmetric content, affine operations, full space group and
+cell quotient, molecule overlap with complete site/graph isomorphism, crowding,
+and periodic piercing/entanglement findings without deciding crystal truth.
+OpenBabel/RDKit/CCDC Python API calls are prohibited for this Crystal work;
+existing conflicting adapter wording must be revised. No product implementation,
+backend/model run, source gate, third-party approval or runtime15entry follows.
+The already-running mainline jobs retain their inputs and scope.
+
+
+### 2026-11-04 — FF rollback repair focused source acceptance
+
+Root reviews the three dictionary-rebinding changes and independently verifies
+five exact repaired copies, terminal RC0/JUnit72passed each, all40real allocator
+cases, and141unchanged native/build inputs. Accept only this focused source
+repair:360passed/0failed/0skipped with no repeated run or maintained-test change.
+The original two CP310 failures remain archived. Raw commands/environments,
+origins/outcomes, source repair and allocation receipts are durably archived at
+.plan20-artifacts/20261104/stage12/forcefield-rollback-repair; the maintained
+final-delivery validation index is forcefield-rollback-repair.json. Final wheel
+packaging/affected installed verification must include the new Python bytes;
+existing scientific artifacts retain their actual original source identities.
+No performance, overall delivery, B_exp or later-stage gate is closed.

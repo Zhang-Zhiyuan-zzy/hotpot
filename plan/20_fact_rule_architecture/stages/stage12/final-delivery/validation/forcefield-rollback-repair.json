@@ -1,0 +1,467 @@
+{
+  "schema": "plan20-bounded-validation-v1",
+  "status": "FOCUSED_SOURCE_REPAIR_ACCEPTED_FINAL_DELIVERY_OPEN",
+  "source_commit": "ec4d61889a7262df765da29082e405b3c612cd15",
+  "repair_file": "hotpot/cheminfo/operations/forcefields/working_copy.py",
+  "repair_sha256": "4b2e2fdcc11bb5e8fe6f711f5eb758ef4b40d8afb94bdc9bc52bbfb67557a4ad",
+  "observed_defect": "CP310 allocator rejection during failed FF index publication discarded Bond._member_uid when rollback rebuilt instance dictionary buckets.",
+  "change": "Rebind the saved independent Molecule/member/conformer instance dictionaries; preserve object identities, owner containers and original exceptions.",
+  "observations": [
+    {
+      "abi": "cp311",
+      "argv": [
+        "taskset",
+        "-c",
+        "64-71",
+        "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "-B",
+        "-s",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--import-mode=importlib",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "rollback_outcomes",
+        "--rootdir",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/source",
+        "--basetemp",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/pytest-temp",
+        "--junitxml",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/junit.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "cwd": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/source",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/source:/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/observer",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "PYTEST_ADDOPTS": "",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/tmp",
+        "HOTPOT_ROLLBACK_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/process-origins",
+        "HOTPOT_ROLLBACK_OUTCOMES": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp311/outcomes.json",
+        "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "unset_environment": [
+        "PYTHONHOME",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE"
+      ],
+      "returncode": 0,
+      "counts": {
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "repair": {
+        "path": "hotpot/cheminfo/operations/forcefields/working_copy.py",
+        "sha256": "4b2e2fdcc11bb5e8fe6f711f5eb758ef4b40d8afb94bdc9bc52bbfb67557a4ad"
+      },
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7373644,
+        "sha256": "31ca3d416683603a4731788efe79d2206b92e9b9b5dec93d0c0848baff12d583",
+        "natives": [
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so"
+        ],
+        "native_sha256": {
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": "ac4e807e0d20548cfdc77f084169b34af40bfd4ce497e12485f1317d381f4c6b",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": "1833230c31e6724963d13f69007a813527a9b15ba3a7cac7d1b83feade5582b6",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": "e65cf8de14b1c08ab66576c11b9375ae097af10c3fdb3fb5dffebce67d1d8685",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": "ac64084c071c59aae14ecf12bcc697cd966eecdff1211f85e62fafb2249ccccd",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": "e1b65924a2baf862144c9e06f0bf14b9dd5ee96890a0c04fa80bbea827ce2fc6",
+          "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "386e743c129f75e89d662fdce34b751d3eee5da205ad9c42a062e42b95b0ca16"
+        }
+      },
+      "raw_receipt": "validation01/cp311/execution.json"
+    },
+    {
+      "abi": "cp310",
+      "argv": [
+        "taskset",
+        "-c",
+        "64-71",
+        "/tmp/hotpot-plan20-20261028/matrix/cp310/env/bin/python",
+        "-B",
+        "-s",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--import-mode=importlib",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "rollback_outcomes",
+        "--rootdir",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/source",
+        "--basetemp",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/pytest-temp",
+        "--junitxml",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/junit.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "cwd": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/source",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/source:/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/observer",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "PYTEST_ADDOPTS": "",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/tmp",
+        "HOTPOT_ROLLBACK_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/process-origins",
+        "HOTPOT_ROLLBACK_OUTCOMES": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp310/outcomes.json",
+        "LD_LIBRARY_PATH": "/tmp/hotpot-plan20-20261028/matrix/cp310/env/lib/python3.10/site-packages/openbabel/lib",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "unset_environment": [
+        "PYTHONHOME",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE"
+      ],
+      "returncode": 0,
+      "counts": {
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "repair": {
+        "path": "hotpot/cheminfo/operations/forcefields/working_copy.py",
+        "sha256": "4b2e2fdcc11bb5e8fe6f711f5eb758ef4b40d8afb94bdc9bc52bbfb67557a4ad"
+      },
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7368171,
+        "sha256": "e016671f7cd58acf728ab3ce9a26560f1b04286834c4f5558504a0344cb66e01",
+        "natives": [
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-310-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-310-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-310-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-310-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-310-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so"
+        ],
+        "native_sha256": {
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-310-x86_64-linux-gnu.so": "7d85fd66c6dab1628e38aa5f12f1f8df352bd32c99fa69f1cc062af2f67c25c9",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-310-x86_64-linux-gnu.so": "06437de611f6750617c9d5361b812b613aaa99aceecf25c2efa5286d83b72aab",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-310-x86_64-linux-gnu.so": "2850e57db91eb6a2cadfd013d1a780c3464c094e101ba69aaca5544ab104de0c",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-310-x86_64-linux-gnu.so": "bb6454c8d0826e3becc146b8cb0ddc9e21fbcbe5f1460d760ae76df2f28bd143",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-310-x86_64-linux-gnu.so": "1411e123265bda2f8472aaf92b1033ecebfec753f2147b4e8be58657f0e7a8fd",
+          "hotpot/cheminfo/structure/_fact_native.cpython-310-x86_64-linux-gnu.so": "cdd2ee72b5c4a5fb56aee1fdd688e8f37a514cf69916725fe37cdbc3ee2029ee"
+        }
+      },
+      "raw_receipt": "validation01/cp310/execution.json"
+    },
+    {
+      "abi": "cp312",
+      "argv": [
+        "taskset",
+        "-c",
+        "64-71",
+        "/tmp/hotpot-plan20-20261028/matrix/cp312/env/bin/python",
+        "-B",
+        "-s",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--import-mode=importlib",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "rollback_outcomes",
+        "--rootdir",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/source",
+        "--basetemp",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/pytest-temp",
+        "--junitxml",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/junit.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "cwd": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/source",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/source:/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/observer",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "PYTEST_ADDOPTS": "",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/tmp",
+        "HOTPOT_ROLLBACK_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/process-origins",
+        "HOTPOT_ROLLBACK_OUTCOMES": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp312/outcomes.json",
+        "LD_LIBRARY_PATH": "/tmp/hotpot-plan20-20261028/matrix/cp312/env/lib/python3.12/site-packages/openbabel/lib",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "unset_environment": [
+        "PYTHONHOME",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE"
+      ],
+      "returncode": 0,
+      "counts": {
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "repair": {
+        "path": "hotpot/cheminfo/operations/forcefields/working_copy.py",
+        "sha256": "4b2e2fdcc11bb5e8fe6f711f5eb758ef4b40d8afb94bdc9bc52bbfb67557a4ad"
+      },
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7399272,
+        "sha256": "5cd19234e7cd54710d04b9ac7edc54f616c5f9b76b7b74a3dce2a30d850ce5f2",
+        "natives": [
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-312-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-312-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-312-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-312-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-312-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so"
+        ],
+        "native_sha256": {
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-312-x86_64-linux-gnu.so": "d856b1ed333af11c906fff2a056c30c7870f3f5e27ea7771131dd62bd4b09b14",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-312-x86_64-linux-gnu.so": "9050d498b885a9b6a86caaae2048f9e0dcd8757ffa87a21eac4015be720046eb",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-312-x86_64-linux-gnu.so": "992b5fb698e80f43218ed138e627f14a7ab66b9a90200e8b85c6f67cc5839f9f",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-312-x86_64-linux-gnu.so": "1ead378a083bd5e54b4c5ce19a00f92ec01ace70e879dd5d827cf1a5db4354f8",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-312-x86_64-linux-gnu.so": "2f8f9b619f92a4bd82922f298ac4580b33a08908e06d2e785de0f301a9d37df2",
+          "hotpot/cheminfo/structure/_fact_native.cpython-312-x86_64-linux-gnu.so": "055ab0b3ac60f1fb4163fb4504d7dd5b1c35b223529dd21646c3016754813969"
+        }
+      },
+      "raw_receipt": "validation01/cp312/execution.json"
+    },
+    {
+      "abi": "cp313",
+      "argv": [
+        "taskset",
+        "-c",
+        "64-71",
+        "/tmp/hotpot-plan20-20261028/matrix/cp313/env/bin/python",
+        "-B",
+        "-s",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--import-mode=importlib",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "rollback_outcomes",
+        "--rootdir",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/source",
+        "--basetemp",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/pytest-temp",
+        "--junitxml",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/junit.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "cwd": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/source",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/source:/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/observer",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "PYTEST_ADDOPTS": "",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/tmp",
+        "HOTPOT_ROLLBACK_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/process-origins",
+        "HOTPOT_ROLLBACK_OUTCOMES": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp313/outcomes.json",
+        "LD_LIBRARY_PATH": "/tmp/hotpot-plan20-20261028/matrix/cp313/env/lib/python3.13/site-packages/openbabel/lib",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "unset_environment": [
+        "PYTHONHOME",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE"
+      ],
+      "returncode": 0,
+      "counts": {
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "repair": {
+        "path": "hotpot/cheminfo/operations/forcefields/working_copy.py",
+        "sha256": "4b2e2fdcc11bb5e8fe6f711f5eb758ef4b40d8afb94bdc9bc52bbfb67557a4ad"
+      },
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7399107,
+        "sha256": "fcea9564a477e464c4fd2653aba1a730d83cc7392a2b35df96df31dae197483c",
+        "natives": [
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-313-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-313-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-313-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-313-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-313-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so"
+        ],
+        "native_sha256": {
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-313-x86_64-linux-gnu.so": "2e2212c1d276756fd1dc405e9ab957d558ed1e72b910f9cca21ed8395baf8fbe",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-313-x86_64-linux-gnu.so": "6699aef7d941a6bec1e928d38931c37d0eaf11914977cdbd066682bcb3de6035",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-313-x86_64-linux-gnu.so": "3519434b10c8e64002e8ce819de30db6020dc7400e0243ed2f40f84054a0c485",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-313-x86_64-linux-gnu.so": "4c02d9dafcd205493b65d7107aa55c40d1a88654c50da5b6c125a6ecc22de54f",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-313-x86_64-linux-gnu.so": "5ad2a6c3eb360fbf743257d008087a6d2f4814706aaeb278c34017c1e0f8d7f9",
+          "hotpot/cheminfo/structure/_fact_native.cpython-313-x86_64-linux-gnu.so": "8be2c36ff4d113271b4d8198d2974474f45cfde347d03ef565b349682dc09585"
+        }
+      },
+      "raw_receipt": "validation01/cp313/execution.json"
+    },
+    {
+      "abi": "cp314",
+      "argv": [
+        "taskset",
+        "-c",
+        "64-71",
+        "/tmp/hotpot-plan20-20261028/matrix/cp314/env/bin/python",
+        "-B",
+        "-s",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--import-mode=importlib",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "rollback_outcomes",
+        "--rootdir",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/source",
+        "--basetemp",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/pytest-temp",
+        "--junitxml",
+        "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/junit.xml",
+        "tests/test_cheminfo/structure/test_pair_observations.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+        "tests/test_cheminfo/test_stereo_level1_working_copy.py"
+      ],
+      "cwd": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/source",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/source:/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/observer",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "PYTHONNOUSERSITE": "1",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONHASHSEED": "0",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+        "PYTEST_ADDOPTS": "",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "NUMEXPR_NUM_THREADS": "1",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/tmp",
+        "HOTPOT_ROLLBACK_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/process-origins",
+        "HOTPOT_ROLLBACK_OUTCOMES": "/tmp/hotpot_plan20/long/stage12-rollback-repair-20261104/validation01/cp314/outcomes.json",
+        "LD_LIBRARY_PATH": "/tmp/hotpot-plan20-20261028/matrix/cp314/env/lib/python3.14/site-packages/openbabel/lib",
+        "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6"
+      },
+      "unset_environment": [
+        "PYTHONHOME",
+        "PYTHONSTARTUP",
+        "PYTHONUSERBASE"
+      ],
+      "returncode": 0,
+      "counts": {
+        "tests": 72,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "repair": {
+        "path": "hotpot/cheminfo/operations/forcefields/working_copy.py",
+        "sha256": "4b2e2fdcc11bb5e8fe6f711f5eb758ef4b40d8afb94bdc9bc52bbfb67557a4ad"
+      },
+      "wheel": {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "bytes": 7401947,
+        "sha256": "332be643938b287bfa386a58abe5ee9cd53001338fe6923b463d8744eefaec30",
+        "natives": [
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-314-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-314-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-314-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-314-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-314-x86_64-linux-gnu.so",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so"
+        ],
+        "native_sha256": {
+          "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-314-x86_64-linux-gnu.so": "862a85dcf3412478035934c3b6e70ad10f08c093a27891488c62092023e6a618",
+          "hotpot/cheminfo/obWrappers/_ob_native.cpython-314-x86_64-linux-gnu.so": "0d549ae195a2946ab8f9a9ccbf84c6d10441a0c0cce63dc58316d9cc8c2807fc",
+          "hotpot/cheminfo/rdWrappers/_rd_native.cpython-314-x86_64-linux-gnu.so": "557267e9008bdd3e434eb720146460802abdb99094b11695cb21057dd44b3b4d",
+          "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-314-x86_64-linux-gnu.so": "341175efe981999fb3952c9ec327eb6cf8fc52ca3c08bd0771cc6654a28c6381",
+          "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-314-x86_64-linux-gnu.so": "9d0a53b081f2c863d6854857c6593c5959490fdc3859ac1f717e3e44f3d578ed",
+          "hotpot/cheminfo/structure/_fact_native.cpython-314-x86_64-linux-gnu.so": "2ab6520b16c1dbd22ebaedc9365caf28e32fab2c5b0c72e4d6d64b4ade8ec735"
+        }
+      },
+      "raw_receipt": "validation01/cp314/execution.json"
+    }
+  ],
+  "totals": {
+    "passed": 360,
+    "failed": 0,
+    "skipped": 0,
+    "real_allocator_cases": 40
+  },
+  "retries": 0,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/forcefield-rollback-repair/source-focused01.tar.gz",
+    "bytes": 507401,
+    "sha256": "9385219f32bc1a1294b21c0f988de1a33dd1301a8960d31819f1023817ae0e5b",
+    "manifest_path": ".plan20-artifacts/20261104/stage12/forcefield-rollback-repair/manifest.json",
+    "manifest_sha256": "8dc7fcd046f87afe570d2572823674472337c827c980dbeee6c75d46b57125b0",
+    "payload_count": 136
+  },
+  "limits": [
+    "Focused frozen source validation only; new Python bytes are not in previously built wheels.",
+    "141 native/build inputs unchanged between referenced wheel and source checkpoints; actual per-ABI components are separately bound.",
+    "Original full CP310 and CP313 failures retained; unrelated interpreter/checker issues remain separate.",
+    "No performance/global/Stage12/B_exp acceptance follows."
+  ]
+}

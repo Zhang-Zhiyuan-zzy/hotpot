@@ -313,23 +313,21 @@ def _restore_failed_commit(
     snapshot: _MoleculeCommitSnapshot,
 ) -> None:
     atom_high_water, bond_high_water = mol._next_atom_uid, mol._next_bond_uid
-    mol.__dict__.clear()
-    mol.__dict__.update(snapshot.state)
+    # Snapshot dicts already own their buckets; undo must not rebuild them.
+    object.__setattr__(mol, "__dict__", snapshot.state)
     mol._next_atom_uid = max(mol._next_atom_uid, atom_high_water)
     mol._next_bond_uid = max(mol._next_bond_uid, bond_high_water)
     for members, values in snapshot.membership:
         members[:] = values
     for member, state in snapshot.member_state:
-        member.__dict__.clear()
-        member.__dict__.update(state)
+        object.__setattr__(member, "__dict__", state)
     for value, previous in snapshot.cache_state:
         value.clear()
         if isinstance(value, dict):
             value.update(previous)
         else:
             value.extend(previous)
-    mol._conformers.__dict__.clear()
-    mol._conformers.__dict__.update(snapshot.conformer_state)
+    object.__setattr__(mol._conformers, "__dict__", snapshot.conformer_state)
 
 
 def _commit_working_copy(

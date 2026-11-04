@@ -225,12 +225,44 @@ def _axis_action(values, presence, sources, orthogonal):
             sources[row, columns] = ATOM_SOURCE_CODES['geometry']
 
 
-def _operate_crystal(crystal, operation):
+def _transform_crystal_record(record, operation):
+    """Apply the one exact action to an immutable complete molecular capture."""
     import numpy as np
     from dataclasses import replace
     from ..rules.mathematics import symmetry as affine
     from ..rules.chemistry.stereochemistry.algebra import _transform_stereo_isometry
     from ..structure._fields import ATOM_FIELDS
+    cell = record.cell
+    values = np.frombuffer(record.atom_values, dtype='<f8').reshape(-1, len(ATOM_FIELDS)).copy()
+    presence = np.frombuffer(record.atom_presence, dtype='<u4').copy()
+    sources = np.frombuffer(record.atom_sources, dtype='u1').reshape(values.shape).copy()
+    coordinate_columns = tuple(FIELD_INDEX[name] for name in ('x', 'y', 'z'))
+    coordinates = values[:, coordinate_columns]
+    fractional = _to_fractional(coordinates, cell[1])
+    transformed = _to_cartesian(operation.operate(fractional), cell[1])
+    changed = values[:, coordinate_columns] != transformed
+    values[:, coordinate_columns] = transformed
+    for offset, column in enumerate(coordinate_columns):
+        sources[changed[:, offset], column] = ATOM_SOURCE_CODES['geometry']
+    basis = np.asarray(cell[1]).T
+    orthogonal = basis @ np.asarray(operation.R) @ np.linalg.inv(basis)
+    _axis_action(values, presence, sources, orthogonal)
+    stereo = _transform_stereo_isometry(record.stereo_payload, affine._det(operation.R))
+    images = tuple(None if image is None else tuple(map(int, affine._mv(operation.R, image)))
+                   for image in cell[4])
+    origin, atom_origins, bond_origins = cell[6:]
+    if origin is not None and any(entry is not None for entry in (*atom_origins, *bond_origins)):
+        action = _origin_action(origin, operation)
+        atom_origins = _action_origins(atom_origins, action)
+        bond_origins = _action_origins(bond_origins, action)
+    destination_cell = (*cell[:3], _action_relations(cell[3], operation), images,
+                        cell[5], origin, atom_origins, bond_origins)
+    return replace(record, atom_values=values.tobytes(), atom_presence=presence.tobytes(),
+                   atom_sources=sources.tobytes(), cell=destination_cell, stereo_payload=stereo)
+
+
+def _operate_crystal(crystal, operation):
+    from dataclasses import replace
     from ..structure._results import _copy_mca_result
     from ..structure.conformer import _capture_frame_records
     from ..structure.molecule import Molecule
@@ -249,36 +281,13 @@ def _operate_crystal(crystal, operation):
         if group is None or not isinstance(operation, SymmUnit) or operation.context != group:
             raise ValueError('CRYSTAL-CONTEXT-INTEGRITY: operation requires the active known group')
         operation = SymmUnit.from_affine(operation.R, operation.t, context=group)
-        coordinates = _coordinates(molecule)
-        fractional = _to_fractional(coordinates, cell[1])
-        transformed = _to_cartesian(operation.operate(fractional), cell[1])
-        values = np.frombuffer(record.atom_values, dtype='<f8').reshape(-1, len(ATOM_FIELDS)).copy()
-        presence = np.frombuffer(record.atom_presence, dtype='<u4').copy()
-        sources = np.frombuffer(record.atom_sources, dtype='u1').reshape(values.shape).copy()
-        coordinate_columns = tuple(FIELD_INDEX[name] for name in ('x', 'y', 'z'))
-        changed = values[:, coordinate_columns] != transformed
-        values[:, coordinate_columns] = transformed
-        for offset, column in enumerate(coordinate_columns):
-            sources[changed[:, offset], column] = ATOM_SOURCE_CODES['geometry']
-        basis = np.asarray(cell[1]).T
-        orthogonal = basis @ np.asarray(operation.R) @ np.linalg.inv(basis)
-        _axis_action(values, presence, sources, orthogonal)
-        stereo = _transform_stereo_isometry(record.stereo_payload, affine._det(operation.R))
-        images = tuple(None if image is None else tuple(map(int, affine._mv(operation.R, image)))
-                       for image in cell[4])
-        origin, atom_origins, bond_origins = cell[6:]
-        if origin is not None and any(entry is not None for entry in (*atom_origins, *bond_origins)):
-            action = _origin_action(origin, operation)
-            atom_origins = _action_origins(atom_origins, action)
-            bond_origins = _action_origins(bond_origins, action)
-        destination_cell = (*cell[:3], _action_relations(cell[3], operation), images,
-                            cell[5], origin, atom_origins, bond_origins)
+        _coordinates(molecule)
+        transformed = _transform_crystal_record(record, operation)
         frames, _generated, selection = _capture_frame_records(molecule, include_generated=False)
-        prepared = replace(record, atom_values=values.tobytes(), atom_presence=presence.tobytes(),
-                           atom_sources=sources.tobytes(), cell=destination_cell, stereo_payload=stereo,
-                           source_frames=frames, conformer_results=(), frame_selection=selection)
+        prepared = replace(transformed, source_frames=frames,
+                           conformer_results=(), frame_selection=selection)
         result = Molecule._build_molecule(prepared, bond_metadata=metadata)
         result.properties = dict(molecule.properties)
         _copy_mca_result(molecule, result)
-        _invalidate_results(result, ('geometry', 'representation') if stereo != record.stereo_payload else ('geometry',))
+        _invalidate_results(result, ('geometry', 'representation') if transformed.stereo_payload != record.stereo_payload else ('geometry',))
         return result.crystal

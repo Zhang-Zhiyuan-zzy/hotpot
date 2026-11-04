@@ -86,6 +86,18 @@ class Crystal:
         from ..operations.crystal import _operate_crystal
         return _operate_crystal(self, operation)
 
+    def unit_cell(self):
+        from ..operations.crystal_generation import _unit_cell_crystal
+        return _unit_cell_crystal(self)
+
+    def unit_molecules(self):
+        from ..operations.crystal_generation import _finite_molecules
+        return _finite_molecules(self)
+
+    def expand(self, repeats):
+        from ..operations.crystal_generation import _expand_crystal
+        return _expand_crystal(self, repeats)
+
     def copy(self):
         from ..operations.crystal import _copy_crystal
         return _copy_crystal(self)

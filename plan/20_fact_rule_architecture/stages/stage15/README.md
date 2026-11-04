@@ -8,7 +8,9 @@ Connected cell/lifecycle migration is root-accepted at the
 [559-test source/installed CP311 checkpoint](domain/validation/connected_cell_report.md).
 One-placement action is root-accepted at the
 [874-test source/installed CP311 checkpoint](domain/validation/action_report.md).
-Remaining Stage15C generation and15D–F remain open. The
+Cell generation is root-accepted at the
+[1,038-test source/installed CP311 checkpoint](domain/validation/generation_report.md).
+Stage15D–F remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic

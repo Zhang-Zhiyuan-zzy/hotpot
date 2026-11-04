@@ -10106,3 +10106,52 @@ Generation, periodic observations, CIF, integrated delivery and14D remain open.
 The owner's three-unsuccessful-attempt rule applies per bounded issue; retain its
 evidence and upstream impact before advancing unaffected work. No fourth attempt
 on P20-D036 is authorized or performed.
+
+
+## 2026-11-05 — Stage15C generation entry
+
+Action checkpoint0223d1939f86292ddc0f0650e931821ff23436f4 is committed and pushed,
+with all26qualified source/test inputs independently matched to committed bytes.
+Root retains full main/companion alignment and rereads accepted15A/15B/15C plus
+complete generation/matching/periodic contract sections and actual builders,
+stereo remap, topology and immutable Crystal owners. generation.md freezes the
+bounded immutable-record route before production edits. It preserves one active
+chemical/cell/group authority, exact source origins and explicit identification
+only; no proximity deduplication, toolkit or model inference. LocalSol/xhigh
+prepares pure periodic math in its assigned temporary output only. Root owns
+public/carrier and generation integration. No remote helper or new route is used.
+
+
+### Stage15C complete generation qualification and root acceptance
+
+Root integrates pure periodic math and the localSol/xhigh artifact validator,
+retaining one immutable-record action implementation. Source focused189pass,
+then complete affected1038pass/0fail/0error/0skip; actual outside-checkout installed
+CP311 also1038pass,199correct origins,0violations,915site/32support files unchanged.
+All bound source/test bytes remain unchanged. Six native payloads are baseline
+bytes; this is a repack. Seven independent current-source business witnesses pass.
+No remote helper, toolkit, engine or model runs. Prior partial results retain
+scope, including119pass/5deselected before final integration.
+
+Current-only complete cell/finite-unit/2x3x2 medians at8source sites are
+23.212386/123.693887/225.927480ms; at32sites51.837108/216.945084/843.991783ms.
+One warmup/five samples/separate memory probe each, actual Bond displacements
+checked. Loadbefore1.01/0.57/0.54,after1.24/0.64/0.56. Root accepts usable bounded
+cost without comparison/parity/leak claim and continues15D without optimization.
+
+The archive wrapper copied the old output path and overwrote a local prior
+archive. Root restores original185payloads/15200346bytes from unchanged raw
+observations and exact qualified committed source, matching original complete
+SHA2565930735cbde334a1313fd52885379ad193c0bdd02510a82a3f08b7fd16b0b8d3.
+Retain correction evidence; distinct generation output refuses overwrite. Final
+208member/16060014byte generation archiveSHA256
+254885b93894ade06ed8a5788463b18510d3cb35d86058dd5830b0a4294eb410.
+No business input, outcome or historical provenance is changed by that repair.
+
+Generation preserves explicit identification only, known source history and
+actual finite edge-image packets. A whole bijective content result retains
+original charge/spin; changed multiplicity does not invent coupled spin.
+Self/parallel quotient edges remain P20-D038. P20-D036 receives no fourth retry.
+15D matching/periodic findings,15E format closure,15F final domain evidence and
+Stage14D Crystal integration remain open; generation checkpoint/report own
+exact source/wheel/result identities. Root retains integration and acceptance.

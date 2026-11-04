@@ -11,6 +11,7 @@ from .structure.atom import Atom
 from .structure.bond import Bond
 from .structure.bond_kind import BondKind
 from .structure.crystal import Crystal
+from .structure.symmetry import SpaceGroup, SymmUnit
 from .operations.io import MolReader, MolWriter, read_mol
 from .structure.bundle import MolBundle
 from .operations.collections import to_pyg_dataset
@@ -24,7 +25,7 @@ from .operations.search import Searcher, Substructure, Hit, Hits, Query, QueryAt
 from .operations.search import SmartsSemantics, SmartsSyntaxError, UnsupportedSmartsError
 
 __all__ = (
-    "Molecule", "Atom", "Bond", "BondKind", "Crystal", "MolReader", "MolWriter",
+    "Molecule", "Atom", "Bond", "BondKind", "Crystal", "SpaceGroup", "SymmUnit", "MolReader", "MolWriter",
     "read_mol", "MolBundle", "to_pyg_dataset", "is_molecule_input", "to_hotpot_mol",
     "Fragment", "EdgeShoulder", "AtomLink", "AlkylGraft", "BondAdding",
     "AtomReplace", "RingWedge", "AssembleFactory", "Searcher", "Substructure",

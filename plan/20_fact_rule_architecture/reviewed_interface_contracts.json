@@ -223,7 +223,8 @@
       "encode_decode": "Retain the exact existing constructor/field/enum order and only the codecs actually present in the bound source; no invented to_dict or schema normalization.",
       "operation": "Complete construction/from_matrix and Molecule.create_crystal replacement.",
       "invalidation_scope": "Independent old value has no Molecule dirty state; replacing host cell marks only cell dependencies.",
-      "lifecycle": "No Molecule back-reference or retained backend cell. Each explicit to_obcell projection returns a fresh independent external value; ordinary Molecule pickle extra arity6 remains with final None and unconditional legacy-slot ignore."
+      "lifecycle": "No Molecule back-reference or retained backend cell. Each explicit to_obcell projection returns a fresh independent external value; ordinary Molecule pickle extra arity6 remains with final None and unconditional legacy-slot ignore.",
+      "historical_scope": "Bound Stage0-12 six-scalar baseline only; current approved contract is current_public_contract_overlays.crystal (Stage15), superseding the fields above prospectively."
     },
     "bundle": {
       "role": "ordered collection of carrier handles",
@@ -1456,7 +1457,29 @@
         "kekulize_smiles",
         "search_substructure"
       ],
-      "contract": "external_facade"
+      "contract": "external_facade",
+      "historical_scope": "Bound original core.Molecule inventory; current sole Molecule is structure.molecule.Molecule. General Data entries are replaced by current_public_contract_overlays.pyg, with no legacy alias.",
+      "current_entries": [
+        "read_one",
+        "cid",
+        "name",
+        "cas",
+        "get_thermo",
+        "get_partial_charge",
+        "assign_partial_charge",
+        "build3d",
+        "optimize",
+        "to_obmol",
+        "to_rdmol",
+        "to_pybel_mol",
+        "write",
+        "InChi",
+        "smiles",
+        "kekulize_smiles",
+        "search_substructure",
+        "to_pyg",
+        "from_pyg"
+      ]
     },
     {
       "type": "hotpot.cheminfo.core.Molecule",
@@ -4449,7 +4472,13 @@
       "id": "EXPERIMENT",
       "stage": "Stage13A then Stage13B",
       "required": "Complete Stage0-12 under Sections11-14 including existing Decision12/13 deferral rules, tests/scientific reports/final efficiency comparison/final report and committed B_exp. From B_exp create experiment/plan20-kekulize-aromatic-protocol with no mixed predecessor edits; Stage13A defines/tests/commits D_exp without production integration; only then Stage13B integrates existing sole kekulize/aromatic algorithm, validates/compares against B_exp/reports/commits I_exp. No automatic extension to other domains.",
-      "blocks_stage2": false
+      "blocks_stage2": false,
+      "current_status": "CLOSED_STAGE13A_B_ACCEPTED",
+      "B_exp": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+      "D_exp": "5dc0443de17439f0c4d74151e2427a3a834c899c",
+      "I_exp": "cc9470e19f2fac786138d5af0986d726d5e793c7",
+      "evidence": "stages/stage13/integration/validation/checkpoint.json",
+      "scope": "Private aromatic/Kekule binding only; no authorization to generalize to other rules"
     }
   ],
   "excluded_implementation_groups": [
@@ -5012,5 +5041,103 @@
       "checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
       "contract_gate_closed": true
     }
-  ]
+  ],
+  "stage14a_public_contract_decision": {
+    "date": "2026-11-05",
+    "owner": "root",
+    "baseline_commit": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+    "status": "accepted_before_product_authoring",
+    "contract": "stages/stage14/molecule/contracts/decisions.md",
+    "schema": "hotpot.molecule/1",
+    "ordinary_data": true,
+    "current_result_restore": false,
+    "crystal_domain": "deferred to implemented Stage15; Stage14D remains open"
+  },
+  "stage15a_public_contract_decision": {
+    "date": "2026-11-05",
+    "owner": "root",
+    "baseline_commit": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+    "status": "accepted_before_product_authoring",
+    "contract": "stages/stage15/domain/contracts/decisions.md",
+    "exports": [
+      "hotpot.SpaceGroup",
+      "hotpot.SymmUnit"
+    ],
+    "schema": "hotpot.crystal/1",
+    "periodic_topology_domain": "current simple Molecule graph; unrepresentable self/parallel quotient explicitly unavailable",
+    "toolkits_forbidden": [
+      "OpenBabel",
+      "RDKit",
+      "CCDC"
+    ]
+  },
+  "stage14d_current_public_contract_decision": {
+    "date": "2026-11-05",
+    "owner": "root",
+    "status": "accepted14D/E current schema and business delivery; final actual combined delivery accepted",
+    "supersedes": "stage14a_public_contract_decision schema1 selection only; original molecular checkpoint remains historical",
+    "schema": "hotpot.molecule/2",
+    "contracts": [
+      "stages/stage14/molecule/contracts/decisions.md",
+      "stages/stage14/crystal/contracts/decisions.md"
+    ],
+    "public_methods": [
+      "Molecule.to_pyg",
+      "Molecule.from_pyg",
+      "Crystal.to_pyg",
+      "Crystal.from_pyg"
+    ],
+    "ordinary_data": true,
+    "legacy_loader": false,
+    "authoritative_tensors": [
+      "cell_matrix/cell_present",
+      "bond_image/bond_image_present",
+      "occupancy/occupancy_present"
+    ],
+    "exact_context": "Shared hotpot.crystal/1 codec, exact group/setting/current and historical maps; no duplicate tensor facts",
+    "derived_views": "space_group_R and space_group_t agree with exact current group; unknown group has0operations",
+    "presence": "Standalone Crystal differs from Crystal with an empty Molecule; absent facts differ from explicit zero",
+    "historical_observations": "Generic import retains observations as attributable historical annotations, never current MCA/partial-charge attachments",
+    "deployed_models": "MCA/CBond retain their separate unchanged model-owned encoders",
+    "evidence": "stages/stage14/crystal/validation/checkpoint.json"
+  },
+  "current_public_contract_overlays": {
+    "scope": "Accepted Stage14/15 current interfaces supersede the bound historical families only where explicitly named. Baseline inventory and old checkpoints retain their original source scope; no new all-member extractor PASS is claimed (P20-D036).",
+    "crystal": {
+      "contract": "stages/stage15/domain/contracts/decisions.md",
+      "owners": [
+        "structure.crystal.Crystal",
+        "structure.symmetry.SpaceGroup",
+        "structure.symmetry.SymmUnit"
+      ],
+      "cell": "One oriented row basis; independent read-only matrix; a/b/c and alpha/beta/gamma projections and approved legacy setters commit through same owner",
+      "chemistry": "Molecule owns coordinates/topology/chemical facts; Crystal.molecule and Molecule.crystal are one paired association",
+      "group": "Immutable exact SpaceGroup owns setting/translation lattice/group; Crystal.symm_units derives from it",
+      "operations": "operate returns one fresh placement; unit_cell/unit_molecules/expand build fresh supported representations with full origins/images; queries report possible relations/geometry/topology without scientific verdict",
+      "algebra": "Abstract full {R|t} SymmUnit supports operate, compose/@, inverse/~, power/**; exact full translations/carries and same-context closure",
+      "persistence": "Shared hotpot.crystal/1 current portable/CIF/stereo codecs; optional Gemmi0.7.5 syntax only; no OpenBabel/RDKit/CCDC route",
+      "domain": "Finite molecular/image-labelled simple-graph quotients; unsupported self/parallel edges reject complete projection and retain source (P20-D038)",
+      "evidence": "stages/stage15/domain/validation/persistence_checkpoint.json"
+    },
+    "pyg": {
+      "schema": "hotpot.molecule/2",
+      "decision": "stage14d_current_public_contract_decision",
+      "contract": "stages/stage14/crystal/contracts/decisions.md",
+      "interfaces": [
+        "Molecule.to_pyg",
+        "Molecule.from_pyg",
+        "Crystal.to_pyg",
+        "Crystal.from_pyg",
+        "MolBundle.to_pyg_dataset"
+      ],
+      "removed": [
+        "Molecule.to_pyg_data",
+        "general dataset prefix parameter"
+      ],
+      "legacy_alias_loader": false,
+      "molecular_observations": "Historical annotations on general import; no fabricated current model/result attachment",
+      "evidence": "stages/stage14/crystal/validation/checkpoint.json"
+    },
+    "final_integration": "stages/stage15/integration/validation/checkpoint.json"
+  }
 }

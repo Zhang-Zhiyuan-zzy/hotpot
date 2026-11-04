@@ -1,0 +1,71 @@
+{
+  "date": "2026-11-05",
+  "status": "MOLECULAR_CP311_CHECKPOINT_ACCEPTED",
+  "base_commit": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+  "source_tests": {
+    "passed": 281,
+    "failures": 0,
+    "skipped": 0
+  },
+  "installed_cp311": {
+    "passed": 281,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "outside_checkout": true,
+    "origins": 185,
+    "origin_violations": 0,
+    "unchanged_site_files": 905,
+    "unchanged_support_files": 16
+  },
+  "wheel": {
+    "sha256": "92cff8265c41b65dfa3fbad52b12f97b11680f4223843a25dd76763c690dd0af",
+    "native_members_unchanged": 6,
+    "fresh_native_build": false
+  },
+  "cost": {
+    "original_setup_failed": 4,
+    "original_measured": 0,
+    "corrected_setup_passed": 4,
+    "warmups": 8,
+    "measured": 28,
+    "memory_probes": 4,
+    "measurement_failures": 0,
+    "median_wall_ms": [
+      76.825658,
+      47.490477,
+      41.291489,
+      14.27696
+    ],
+    "assessment": "Usable current-only shared-host full transport costs; no comparison/parity/leak claim."
+  },
+  "archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage14/molecular-transport/evidence.tar.gz",
+    "bytes": 7866311,
+    "sha256": "ceab68cc26cea7e7b6436dc9fe5948cf31da60ff5fdb6bd52d0a57287c6bf257",
+    "regular_members": 153,
+    "selected_raw_bytes": 10399246,
+    "all_payloads_verified": true,
+    "excluded": "Derivable installed sites, test tmp/cache and bytecode; identities/guards and actual wheels retained."
+  },
+  "remaining": [
+    "other Python runtime evidence where claimed",
+    "Stage15 connected domain and14D Crystal encoding",
+    "integrated final delivery/docs"
+  ],
+  "real_cuda": {
+    "status": "PASS_BOUNDED_INSTALLED_CP311_CUDA",
+    "archive": ".plan20-artifacts/20261105/stage14/real-cuda/INDEX.json",
+    "gpu": "NVIDIA A800-SXM4-80GB",
+    "graphs": [
+      4,
+      128,
+      0
+    ],
+    "training_steps": 32,
+    "product_origins": 161,
+    "origin_violations": 0,
+    "installed_product_bytes_match_wheel": 895,
+    "scope": "ordinary DataLoader\u2192CUDA\u2192synthetic training\u2192CPU\u2192unbatch\u2192fresh import plus trusted-local save/load; no deployed model inference"
+  }
+}

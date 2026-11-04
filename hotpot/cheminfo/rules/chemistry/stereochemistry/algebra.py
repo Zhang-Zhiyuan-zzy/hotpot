@@ -820,6 +820,94 @@ def _transform_supported_record(
     return _transform_gate5_axial(descriptor, mapped, target)
 
 
+def _transform_stereo_isometry(
+    payload: StereoPayload | None,
+    orientation: int,
+) -> StereoPayload | None:
+    """Apply an exact +/-1 Cartesian orientation with fixed stored references.
+
+    Hotpot descriptor text is current state; source namespace/code remain
+    historical facts. Matching RDKit absence code/descriptor pairs with empty
+    carriers and display NONE are invariant. Specified toolkit codes have no
+    accepted improper projection. Proper actions preserve opaque facts.
+    """
+
+    if payload is None or orientation == 1:
+        return payload
+    if any(fact.display_direction not in (None, "NONE") for fact in payload.bond_facts):
+        raise ValueError(
+            "CRYSTAL-UNSUPPORTED-PROJECTION: improper stereo action cannot "
+            "interpret bond display directions"
+        )
+
+    mirror_site_swaps = {
+        _Level2DescriptorFamily.TRIGONAL_BIPYRAMIDAL: (3, 4),
+        _Level2DescriptorFamily.SQUARE_PYRAMIDAL: (2, 4),
+        _Level2DescriptorFamily.OCTAHEDRAL: (2, 3),
+    }
+    records = []
+    for index, record in enumerate(payload.records):
+        if (
+            record.source_namespace == "rdkit-2026.09.1"
+            and record.descriptor == record.source_code
+            and record.source_code in ("CHI_UNSPECIFIED", "STEREONONE")
+            and not record.carriers
+        ):
+            records.append(record)
+            continue
+        if record.source_namespace in ("rdkit-2026.09.1", "openbabel-stereo/1"):
+            raise ValueError(
+                "CRYSTAL-UNSUPPORTED-PROJECTION: improper stereo action cannot "
+                f"project replay namespace {record.source_namespace!r} "
+                f"at record {index}"
+            )
+        parsed = _parse_level2_descriptor(record.descriptor)
+        if parsed.issues:
+            raise ValueError(
+                "CRYSTAL-UNSUPPORTED-PROJECTION: improper stereo action cannot "
+                f"interpret descriptor {record.descriptor!r} at record {index}"
+            )
+        descriptor = parsed.descriptor
+        family = descriptor.family
+        if family in (
+            _Level2DescriptorFamily.TETRAHEDRAL,
+            _Level2DescriptorFamily.AXIAL,
+        ):
+            descriptor = replace(
+                descriptor,
+                value=_PARITY_VALUES[1 - _PARITY_VALUES.index(descriptor.value)],
+            )
+        elif family in mirror_site_swaps:
+            # J=diag(1,-1,1) exchanges these ideal sites. Representatives map
+            # sites to carrier positions, so the synthetic carrier swap depends
+            # on this descriptor. Only the resulting descriptor is published.
+            representative = _COORDINATION_REPRESENTATIVES[family][
+                int(descriptor.value) - 1
+            ]
+            first_site, second_site = mirror_site_swaps[family]
+            first, second = representative[first_site], representative[second_site]
+            reordered = list(record.carriers)
+            reordered[first], reordered[second] = reordered[second], reordered[first]
+            transformed = _transform_level2_descriptor(
+                descriptor,
+                record.carriers,
+                reordered,
+                source_anchor=record.anchor,
+                reordered_anchor=record.anchor,
+            )
+            if transformed.issues:
+                raise ValueError(
+                    "CRYSTAL-UNSUPPORTED-PROJECTION: improper stereo action "
+                    f"cannot transform record {index}: "
+                    + "; ".join(issue.message for issue in transformed.issues)
+                )
+            descriptor = transformed.descriptor
+        records.append(
+            replace(record, descriptor=_render_level2_descriptor(descriptor))
+        )
+    return replace(payload, records=tuple(records))
+
+
 def _record_atom_indices(record: StereoRecord) -> tuple[int, ...]:
     """Return record atom rows once, in their stored reference order."""
 

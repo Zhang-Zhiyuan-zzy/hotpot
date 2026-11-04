@@ -104,11 +104,14 @@ def _obmol_record(obmol, initial, stereo_payload):
     raw_bonds = np.zeros((len(entries), 3), dtype="<f8")
     raw_bonds[:, 0] = [entry[1]["bond_order"] for entry in entries]
     cell_data = obmol.GetData(ob.UnitCell)
-    cell = initial.cell
+    from ...structure._crystal import _import_crystal_context
+    cell = _import_crystal_context(initial.cell, len(atoms), len(entries))
     if cell_data:
         unit_cell = ob.toUnitCell(cell_data)
-        cell = tuple(getattr(unit_cell, name)() for name in (
-            "GetA", "GetB", "GetC", "GetAlpha", "GetBeta", "GetGamma"))
+        from ...structure._crystal import _record_from_parameters
+        cell = _record_from_parameters(tuple(getattr(unit_cell, name)() for name in (
+            "GetA", "GetB", "GetC", "GetAlpha", "GetBeta", "GetGamma")),
+            len(atoms), len(entries), unknown_images=True)
     record = replace(
         initial, atom_count=len(atoms), atom_values=values.tobytes(),
         atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),

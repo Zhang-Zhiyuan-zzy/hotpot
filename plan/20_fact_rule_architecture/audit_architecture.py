@@ -53,6 +53,8 @@ TYPE_OWNERS = {
     "Bond": "hotpot.cheminfo.structure.bond.Bond",
     "BondKind": "hotpot.cheminfo.structure.bond_kind.BondKind",
     "Crystal": "hotpot.cheminfo.structure.crystal.Crystal",
+    "SpaceGroup": "hotpot.cheminfo.structure.symmetry.SpaceGroup",
+    "SymmUnit": "hotpot.cheminfo.structure.symmetry.SymmUnit",
     "MolBlock": "hotpot.cheminfo.structure._fields.MolBlock",
     "Conformers": "hotpot.cheminfo.structure.conformer.Conformers",
     "NotInSameMolecule": "hotpot.cheminfo.structure.errors.NotInSameMolecule",
@@ -77,6 +79,25 @@ VALUE_INITIALIZERS = {
         "object.__setattr__",
     ("hotpot/cheminfo/rules/mathematics/internal_coordinates.py", "InternalCoordinates", "__init__", "coordinates"):
         "attribute",
+}
+
+
+# Reviewed exact mathematical value dependencies, not scientific execution.
+VALUE_IMPORTS = {
+    "hotpot/cheminfo/structure/_crystal.py": {
+        ("hotpot.cheminfo.rules.mathematics.cell",
+         (("_cell_matrix", None), ("_validate_matrix", None), ("_check_metric", None))),
+        ("hotpot.cheminfo.rules.mathematics", (("symmetry", "_affine"),)),
+    },
+    "hotpot/cheminfo/structure/symmetry.py": {
+        ("hotpot.cheminfo.rules.mathematics", (("symmetry", "_math"),)),
+    },
+}
+TRANSPORT_WRITES = {
+    ("hotpot/cheminfo/adapters/_pyg_molecule.py", "encode", "data"):
+        {"bond_order", "bond_kind", "bond_direction"},
+    ("hotpot/cheminfo/adapters/_pyg_molecule.py", "_foreign", "normalized"):
+        {"bond_order"},
 }
 
 
@@ -195,6 +216,58 @@ def layer_findings(path, source):
                 and isinstance(cls, ast.ClassDef) and cls.name == "Crystal"
                 and parents.get(cls) is tree)
 
+    def value_import(node):
+        return (isinstance(node, ast.ImportFrom) and parents.get(node) is tree
+                and (inventory.imported_module(path, node),
+                     tuple((alias.name, alias.asname) for alias in node.names))
+                in VALUE_IMPORTS.get(path, set()))
+
+    def crystal_operation_import(node):
+        scope = lexical_scope(node)
+        if path != CRYSTAL_PATH or not isinstance(scope, ast.FunctionDef):
+            return False
+        owner = parents.get(scope)
+        if isinstance(owner, ast.ClassDef) and owner.name == "Crystal" and parents.get(owner) is tree:
+            if scope.name != "_matrix_to_params":
+                return True
+            return (exact_import(node, "hotpot.cheminfo.operations.crystal", "_matrix_to_params")
+                    and ast.unparse(scope.args) == "matrix"
+                    and [ast.unparse(item) for item in scope.decorator_list] == ["staticmethod"])
+        # Six scalar properties share one thin factory; neither closure owns
+        # an independent cell or imports an execution backend.
+        delegates = {("read", "crystal"): "_matrix_to_params",
+                     ("write", "crystal, value"): "_set_parameter"}
+        return (isinstance(owner, ast.FunctionDef) and owner.name == "_parameter"
+                and parents.get(owner) is tree and ast.unparse(owner.args) == "index"
+                and not scope.decorator_list
+                and exact_import(node, "hotpot.cheminfo.operations.crystal",
+                                 delegates.get((scope.name, ast.unparse(scope.args)))))
+
+    def initializes_transport(node):
+        if not (isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Store)
+                and isinstance(node.value, ast.Name)):
+            return False
+        scope = lexical_scope(node)
+        if not isinstance(scope, ast.FunctionDef) or parents.get(scope) is not tree:
+            return False
+        name = node.value.id
+        if node.attr not in TRANSPORT_WRITES.get((path, scope.name, name), set()):
+            return False
+        allocations = [item for item in scope.body if isinstance(item, ast.Assign)
+                       and len(item.targets) == 1 and isinstance(item.targets[0], ast.Name)
+                       and item.targets[0].id == name and isinstance(item.value, ast.Call)
+                       and isinstance(item.value.func, ast.Name) and item.value.func.id == "Data"]
+        stores = [item for item in ast.walk(scope) if isinstance(item, ast.Name)
+                  and isinstance(item.ctx, ast.Store) and item.id == name]
+        bindings = [item for item in ast.walk(scope) if isinstance(item, (ast.Import, ast.ImportFrom))
+                    and any((alias.asname or alias.name) == "Data" for alias in item.names)]
+        shadowed = any((isinstance(item, ast.Name) and isinstance(item.ctx, ast.Store) and item.id == "Data")
+                       or (isinstance(item, (ast.FunctionDef, ast.ClassDef)) and item.name == "Data")
+                       for item in ast.walk(scope))
+        return (len(allocations) == len(stores) == len(bindings) == 1 and not shadowed
+                and allocations[0].lineno < node.lineno and bindings[0] in scope.body
+                and exact_import(bindings[0], "torch_geometric.data", "Data"))
+
     def owns_fact(node):
         return any(isinstance(item, ast.Attribute) and item.attr in CANONICAL
                    for item in ast.walk(node))
@@ -229,12 +302,14 @@ def layer_findings(path, source):
                 ):
                     add(node, "internal_upward_facade_import")
                 if layer in {"structure", "views"}:
-                    forbidden = target_layer in {"rules", "adapters"} and not crystal_math_import(node)
+                    forbidden = (target_layer in {"rules", "adapters"}
+                                 and not crystal_math_import(node) and not value_import(node))
+                    native = (any(part.endswith("_native") for part in target_parts)
+                              or any(alias.name.endswith("_native") for alias in node.names))
                     eager = (target_parts[0] in EXTERNAL | {"scipy"}
-                             or target_layer == "operations"
-                             or any(part.endswith("_native") for part in target_parts)
-                             or any(alias.name.endswith("_native") for alias in node.names))
-                    if forbidden or (eager and (path == CRYSTAL_PATH or not local_import(node))):
+                             or target_layer == "operations" or native)
+                    if forbidden or (eager and (path == CRYSTAL_PATH or not local_import(node))
+                                     and not (target_layer == "operations" and not native and crystal_operation_import(node))):
                         add(node, "carrier_implementation_import")
                 if layer == "rules" and (
                     target_parts[0] in EXTERNAL
@@ -254,7 +329,7 @@ def layer_findings(path, source):
             continue
         if isinstance(node, (ast.Attribute, ast.Subscript)) and isinstance(node.ctx, (ast.Store, ast.Del)):
             initialization = (isinstance(node, ast.Attribute) and isinstance(node.ctx, ast.Store)
-                              and initializes_value(node, node.value, node.attr, "attribute"))
+                              and initializes_value(node, node.value, node.attr, "attribute")) or initializes_transport(node)
             if owns_fact(node) and not initialization:
                 add(node, "canonical_fact_write")
         if isinstance(node, ast.Call):

@@ -1,31 +1,21 @@
 # Fact-Carrier and Rule Architecture Refactor
 
-Status: **implementation authorized on 2026-10-28; Stage0–8E owning-stage gates
-complete within their recorded scopes. Stage8C includes canonical search and
-actual MCA workflows; Stage8D includes inference/conformer/artifact migration and
-actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
-assembly, local H/scaffold corrections and explicit exports/resources accepted;
-P20-D024 is closed. [Stage12B H representation](stages/stage12/hydrogen-representation/validation/checkpoint.json) closes P20-D026 within affected CP311 source/installed and rebuilt-RDKit-native scope.
-[Stage12C force-field science](stages/stage12/scientific-hardening/validation/checkpoint.json) accepts the ordinary terminal-frame publication fix and scoped phosphorus evidence; P20-D023 is closed and P20-D022 is an explicit accepted limitation.
-[Stage12D runtime resources](stages/stage12/package-resources/validation/checkpoint.json) closes the original41 D008 package omissions in its CP311 boundary; [Stage11C resources/queries](stages/stage11/legacy-assets/validation/checkpoint.json) closes D029 and completes Decision13 ownership; D028 retains unverified optional research execution.
-Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
-collection completion are accepted at their recorded CP311 source/installed
-boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
-is accepted within its clean CP311 source/sdist/wheel/probe-SDK boundary.
-Stage11A immutable reference assets, [Stage11B commands](stages/stage11/commands/validation/checkpoint.json), and [Stage12A explicit/lazy imports](stages/stage12/lazy-imports/validation/checkpoint.json)
-are accepted at their affected CP311 source/installed boundaries. Other Stage10 release/version obligations,
-remaining Stage11–12, optional scientific activation and global acceptance remain open**.
-The owner added [Stage14 PyG transport](stages/stage14/review.md) and
-[Stage15 Crystal implementation](stages/stage15/review.md) on 2026-11-04 as
-additional branches of this task; see Section18. Their implementation is pending,
-and they do not redefine Stage0–12 acceptance or the Stage13 experiment.
-Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
-source scopes. Current bounded results and remaining semantic/installation limits
-are recorded in [the CP311 core-workflow report](cp311_core_workflow_validation_20261103.md). The architecture, lazy invalidation, scientific-reporting, and
-performance requirements are incorporated. The owner's implementation request
-authorizes the concrete documented route; Stage1 records exact API differences
-and consumer evidence. Unspecified public signatures, return semantics and
-schema changes still require a concrete decision before their dependent step.
+Status: **Stage0–12 main-scope delivery is root accepted and pushed as
+`B_exp=5a7b19396328eee964a8f3c65bc3345c013eaec6`; Stage13A/B, Stage14A–E and
+Stage15A–F are accepted within their recorded domains. Final combined
+Stage13/14/15 source/default/installed delivery is accepted; see
+[the final report](stages/stage15/integration/report.md).** The
+[main-scope report](stages/stage12/final-delivery/report.md),
+[experiment](stages/stage13/README.md), [general PyG](stages/stage14/README.md)
+and [Crystal](stages/stage15/README.md) records retain their exact source,
+scientific, support and cost boundaries. Sections17–18 define the additional
+scope without retroactively changing main-scope acceptance. Current public
+contracts in Section7.2 supersede the earlier six-scalar Crystal/PyG boundary;
+original checkpoint records remain historical. The effective [goal](goal.md)
+governs priorities, minimal defense, evidence reuse and explained usable cost.
+The current integration branch is `experiment/plan20-kekulize-aromatic-protocol`;
+root owns technical acceptance and normal Git delivery. Other dates, branches
+and baseline identities below describe the original planning history.
 
 Planning branch: `refactor/fact-rule-architecture`
 
@@ -260,7 +250,7 @@ Subject to owner approval, the final Molecule-owned state is limited to:
 | Plan 19 `_topology_index` | sole reconstructible structural acceleration index |
 | molecular net charge/spin declarations | explicit P1 facts where present |
 | current Cartesian coordinate frame | logical P1 geometry projected from the table's one coordinate block, never a duplicate persistent frame |
-| optional `Crystal` value | P1 six-parameter unit-cell fact; no Molecule back-reference |
+| optional paired `Crystal` | sole P1 oriented cell basis and declared group/site/image context; one shared Molecule association, no duplicate Atom/Bond facts; six parameters are projections under accepted Stage15 |
 | source coordinate-frame collection | explicitly imported/user-supplied P1 frames with source provenance; distinct from generated results |
 | stereo records plus source-representation ledger | canonical stereo facts and lossless source provenance; never a duplicate current Atom/Bond table |
 | `ConstraintSet` | coordinate constraints keyed by Atom UID, bond constraints by Bond UID, and angle/torsion constraints by ordered Atom-UID tuples |
@@ -436,7 +426,7 @@ Section 16.
 | coordinates and conformers | a `CoordinateFrame` is a value: the selected current Cartesian frame and explicitly supplied source frames are P1; generated/optimized `ConformerEnsembleResult` is P3. `conformer_load(i)` atomically copies one projected frame into current coordinates; adding a source frame does not change current coordinates |
 | stereo/source transport | Stage7E installs the sole stereo-record/schema and immutable source-ledger owners. Current isotope/radical/H declarations belong only to the Atom table; display direction belongs only to Bond, separately from dative direction. `StereoPayload` is assembled on request; no retained assembled-payload mirror remains. Stage6 preserves the present whole-payload layout only until the separately gated Stage7E cutover |
 | stereo and coordinates | Level-1 stereo records preserve explicit/source representation; coordinates may validate or propose Level-2 assignments but never silently overwrite explicit stereo on disagreement |
-| crystal representation | public `Crystal(a, b, c, alpha, beta, gamma)` is the sole persistent cell value and preserves the current API/native ABI; “unit cell” is the concept, not a second carrier type; a lattice matrix is a calculated mathematical view |
+| crystal representation | accepted Stage15 `Crystal` owns one oriented row-basis record plus optional immutable SpaceGroup and declared site/image facts; the paired Molecule owns chemistry and Cartesian coordinates. Existing six-parameter construction/setters and native buffers project that owner; `from_matrix` preserves orientation. No second cell or operator fact store |
 | constraints | Molecule owns one typed `ConstraintSet`: coordinates use Atom UID, bonds use Bond UID, and angles/torsions use ordered Atom-UID tuples; Atom/Bond/Angle/Torsion `.constraint` access, if retained, is only a projection into that set |
 | MCA and other predictions | a typed result record owns values and identity; `Atom.mca` and `Molecule.mca_sites` remain thin projections over the current valid record |
 | MetalCluster and source structure (Plan21) | registered structure definitions and Molecule instances are distinct; a cluster references member facts and external connection mappings without duplicating Atom/Bond/coordinate truth; exact storage remains deferred |
@@ -444,11 +434,13 @@ Section 16.
 Coordinate conventions are explicit: the Molecule current frame and all
 `CoordinateFrame` values contain Cartesian coordinates in angstrom; fractional
 coordinates are calculated/import-export values and are never a second Atom
-fact. `Crystal` stores `(a, b, c, alpha, beta, gamma)` in angstrom/degrees in
-that exact native-buffer order. Matrix row/column and angle conversion behavior
-must first be characterized against the current implementation. It is either
-preserved exactly or corrected in a separately approved semantic change; this
-module move may not silently change it.
+fact. Current Stage15 `Crystal` stores an oriented row-basis matrix in
+angstrom. `(a, b, c, alpha, beta, gamma)` remains the declared native-buffer
+projection order in angstrom/degrees, with numerical projection tolerances.
+The separately accepted Stage15 contract supersedes the Stage0–12 six-scalar
+storage/no-back-reference boundary; earlier ABI observations retain their
+original scope. Neither native packing nor a public scalar view stores a
+second cell.
 
 The public `StereoPayload` schema remains lossless and unchanged, but it is a
 transport value rather than the stored Molecule layout. `set_stereo_payload()`
@@ -665,6 +657,16 @@ More precisely:
 Carrier convenience methods use function-local imports when necessary to
 avoid module-initialization cycles. This is an explicit thin-facade technique,
 not a plugin registry or runtime-selected implementation.
+
+The accepted Stage15 exact value owners `structure/symmetry.py` and
+`structure/_crystal.py` may directly reuse their named pure affine/cell invariant
+primitives from mathematics rules. This is value construction/validation, not
+chemical calculation, adapter execution or a second implementation. Crystal's
+function-local thin operation calls follow the ordinary carrier rule. Adapters
+may initialize their freshly allocated output transport values; the prohibition
+continues to cover writes to authoritative source carriers and foreign buffers.
+The architecture checker records these exact scopes without growing its debt
+allowlist; changed source, imported identity and receiver ownership remain tested.
 
 The standalone wrapper APIs retain their already approved direct-call
 contracts, including any wrapper call that mutates the Molecule object passed
@@ -962,7 +964,7 @@ Molecule
 │   └── mca_sites (typed result projection)
 └── adapters [thin conversion]
     ├── read_one / write
-    ├── to_obmol / to_pybel_mol / to_rdmol / to_pyg_data
+    ├── to_obmol / to_pybel_mol / to_rdmol / to_pyg / from_pyg
     └── smiles / kekulize_smiles / InChi
 ```
 
@@ -1024,14 +1026,43 @@ Bond
 ```
 
 ```text
-Crystal
-├── canonical Crystal(a, b, c, alpha, beta, gamma) [sole cell carrier]
-├── lengths in angstrom; angles in degrees
-├── no public matrix addition [matrix mathematics stays in the one rule; existing from_matrix contract retained]
-├── from_matrix(matrix) [constructor preserving approved convention]
-├── no Molecule back-reference
-└── no Open Babel object, space-group placeholder, or toolkit cache
+Crystal [current accepted Stage15 domain; Stage14 Data facade]
+├── Crystal(a,b,c,alpha,beta,gamma,*,molecule=None,space_group=None,
+│           site_relations=None,bond_images=None) / from_matrix(...)
+├── matrix [sole oriented row basis; independent read-only projection]
+├── a/b/c, alpha/beta/gamma [angstrom/degrees; projections and legacy setters]
+├── molecule [read-only association; Molecule.crystal is the paired cell reference]
+├── space_group -> SpaceGroup | None [active immutable group association]
+├── symm_units [read-only derived group view; no duplicate operation store]
+├── site_relations / bond_images / representation / image_map [current mapped facts/history]
+├── set_cell / set_space_group / set_site_relations [complete named changes]
+├── to_fractional / to_cartesian / volume [Hotpot mathematics]
+├── operate [one fresh placement] / unit_cell / unit_molecules / expand / copy
+├── same_molecule_candidates / molecular_symmetry / linking_number / geometry_findings
+└── from_cif / to_cif [pure current projection] / to_pyg / from_pyg [ordinary Data]
+
+SpaceGroup [immutable sole group/setting/translation-lattice owner]
+├── SpaceGroup(number) / from_operations / change_setting
+├── number / hermann_mauguin / hall / setting / crystal_system / point_group
+├── symm_units / centering_translations / translation_basis / point_rotations
+└── cell_order / point_group_order / identity / lift / contains
+
+SymmUnit [abstract full exact {R|t} element in one immutable group context]
+├── from_affine / from_xyz / identity / R / t / context / xyz / kind
+├── operate / compose / inverse / power / reduce_to_cell
+└── @ / ~ / integer ** / equality / hash [full translations and carries retained]
 ```
+
+The accepted current trees above follow the Stage14/15 contracts. The oriented
+matrix is the sole cell authority; six parameters are derived projections, not a
+second record. Group context stays at SpaceGroup and chemistry/coordinates at
+Molecule. Exact schema `hotpot.molecule/2` is the current general Data contract;
+there is no schema1 loader or `to_pyg_data` alias. Unknown facts, historical
+observations and unsupported periodic quotient edges retain their declared
+boundaries. Detailed signatures, loss/diagnostic contracts and actual source/
+installed evidence are indexed in the [Stage14](stages/stage14/README.md) and
+[Stage15](stages/stage15/README.md) records. This supersedes earlier Stage0–12
+interface selections prospectively; their accepted evidence is not rewritten.
 
 MetalCluster is registered here as a separate domain type related to
 Molecule, Atom and Bond. It represents single- or multi-metal units, including
@@ -3270,3 +3301,12 @@ validation, documentation, reports and coherent Git delivery. Register exact
 side-branch source/commit boundaries at entry. MetalCluster runtime remains
 Plan21; no new general rule protocol or trained-model change follows from this
 registration.
+
+
+Current additional-branch delivery, 2026-11-05: Stage13A/B are accepted at
+`D_exp=5dc0443de17439f0c4d74151e2427a3a834c899c` and
+`I_exp=cc9470e19f2fac786138d5af0986d726d5e793c7`; Stage15A–F at `4407db0` and
+Stage14A–E at `0e536bb5` are published. Their actual combined source/default/installed delivery is accepted in the
+[final integration report](stages/stage15/integration/report.md); no earlier wheel
+is relabelled as a combined build. Current complete API trees and records above reflect those
+accepted contracts. Overall acceptance follows the final integrated record and normal containing commit/push.

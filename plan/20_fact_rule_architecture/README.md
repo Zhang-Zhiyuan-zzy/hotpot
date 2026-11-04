@@ -1,6 +1,15 @@
 # Stage 20 — Fact-Carrier and Rule Architecture
 
-Current milestone,2026-11-05: [Stage0–12 main-scope delivery](stages/stage12/final-delivery/validation/main-scope-acceptance.json) is root accepted; the [final report](stages/stage12/final-delivery/report.md) records complete applicable business/native/version/science/cost evidence and limitations. The coherent normal Git delivery supplies validated `B_exp`. Overall work remains open for separately gated Stage13A/B, Stage14PyG and Stage15Crystal. Historical checkpoints below retain their original source and gate bounds.
+Current milestone,2026-11-05: [Stage0–12 main-scope delivery](stages/stage12/final-delivery/validation/main-scope-acceptance.json)
+is accepted/pushed as `B_exp=5a7b1939`; [Stage13A/B](stages/stage13/README.md),
+[Stage14A–E](stages/stage14/README.md) and [Stage15A–F](stages/stage15/README.md)
+are accepted within their recorded domains. Final combined source/default/five-ABI installed qualification is accepted;
+[the final integration report](stages/stage15/integration/report.md) binds actual delivery and limitations. The current branch is
+`experiment/plan20-kekulize-aromatic-protocol`. Historical checkpoints below
+retain their original source, counts and limitations; their former remaining
+work does not override this current index.
+
+## Historical checkpoint chronology
 
 Status: implementation authorized on2026-10-28. Stage0–8E owning gates are
 complete within their recorded scopes. The latest [Stage8E checkpoint](stages/stage08/assembly/validation/checkpoint.json)
@@ -33,7 +42,8 @@ Owner-directed additional task branches are registered as
 [Stage15 — Crystal symmetry and molecular expansion](stages/stage15/README.md),
 including the SpaceGroup/SymmUnit design and [230-type catalogue](stages/stage15/space_group_catalogue.md). Their detailed
 stage plans and main-plan Section18 preserve existing mainline acceptance
-boundaries; runtime implementation has not started.
+boundaries; runtime implementation and stage-owned delivery are accepted, with
+final combined integration recorded separately.
 
 All public chemical types follow a common protocol for fact ownership, interface mapping, permissions, dependencies, buffer ownership and lifecycle. Atom's unified fact table is one concrete implementation. MetalCluster runtime remains Plan21 scope. Existing historical checkpoints below retain their own source and evidence bounds.
 

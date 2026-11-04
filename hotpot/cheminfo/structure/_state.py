@@ -22,6 +22,7 @@ def _capture_molecule_pickle(mol):
                  '_conformer_results', '_frame_result'}
         state = {key: value for key, value in mol.__dict__.items() if key not in owned}
         state['properties'] = dict(mol.properties)
+        state['_crystal'] = mol._crystal
         graph_memo = {id(mol): mol, **{id(atom): atom for atom in mol._atoms},
                       **{id(bond): bond for bond in bonds}}
         atom_state = tuple({key: value for key, value in atom.__dict__.items()
@@ -40,7 +41,7 @@ def _capture_molecule_pickle(mol):
 def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, dependencies):
     mol = cls()
     mol._owner_token = owner
-    mol._install_factual_record(record, dependency_state=dependencies, _install_frames=False)
+    mol._install_factual_record(record, dependency_state=dependencies, _install_frames=False, _install_crystal=False)
     bonds = tuple(mol._bonds)
     atom_cells = tuple(atom._constraint_values[atom._uid] for atom in mol._atoms)
     bond_cells = tuple(bond._constraint_values[bond._uid] for bond in bonds)
@@ -59,6 +60,8 @@ def _restore_molecule_raw(cls, record, owner, atom_uids, bond_uids, high_water, 
     mol._next_atom_uid, mol._next_bond_uid = high_water
     _install_stereo_storage(mol, record.stereo_payload if record.stereo_payload is not None
                             else _StereoPayload(1, (), (), ()))
+    from ._crystal import _install_crystal_record
+    _install_crystal_record(mol, record.cell)
     _install_frame_records(mol, record.source_frames, record.conformer_results, record.frame_selection)
     return mol
 

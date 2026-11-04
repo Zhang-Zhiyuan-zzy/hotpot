@@ -13,5 +13,6 @@ from ._declarations import _complete_type_names
 _complete_type_names()
 
 from .crystal import Crystal
+from .symmetry import SpaceGroup, SymmUnit
 
-__all__ = ("Molecule", "Atom", "Bond", "BondKind", "Crystal")
+__all__ = ("Molecule", "Atom", "Bond", "BondKind", "Crystal", "SpaceGroup", "SymmUnit")

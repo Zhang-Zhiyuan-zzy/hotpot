@@ -319,18 +319,11 @@ class Molecule:
     def crystal(self):
         return self._crystal
 
-    def create_crystal(self, a, b, c, alpha, beta, gamma):
-        from .crystal import Crystal
-        crystal = Crystal(a, b, c, alpha, beta, gamma)
-        names = ('a', 'b', 'c', 'alpha', 'beta', 'gamma')
-        current = tuple(getattr(crystal, name) for name in names)
-        with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
-            previous = None if self._crystal is None else tuple(getattr(self._crystal, name) for name in names)
-            if previous != current:
-                transaction.touch_topology()
-                _invalidate_results(self, ('cell',), transaction)
-                self._crystal = crystal
-            return self._crystal
+    def create_crystal(self, a, b, c, alpha, beta, gamma, *, space_group=None,
+                       site_relations=None, bond_images=None):
+        from ..operations.crystal import _create_crystal
+        return _create_crystal(self, (a, b, c, alpha, beta, gamma),
+                               space_group, site_relations, bond_images)
 
     def setattr(self, **attrs):
         """
@@ -439,6 +432,8 @@ class Molecule:
                     tuple(id(bond) for bond in self._topology_index[id(atom)][1]))
                 if changed:
                     _mark_topology_dirty(self, changed)
+            from ._crystal import _prune_crystal_members
+            _prune_crystal_members(self)
 
 
     def _add_atom(self, atom):
@@ -1476,6 +1471,8 @@ class Molecule:
         self._topology_index = _build_topology_index(self._atoms, self._bonds)
         _filter_constraint_members(self)
         self._remap_stereo_after_atom_removal(source_atoms, payload)
+        from ._crystal import _prune_crystal_members
+        _prune_crystal_members(self)
 
     def remove_atom(self, atom: Union[int, "Atom"]) -> None:
         """
@@ -1773,9 +1770,16 @@ class Molecule:
 
 
 
-    def to_pyg_data(self, prefix: str = "", with_batch: bool = True):
-        from ...plugins.PyG.data.utils import mol_to_pyg_data
-        return mol_to_pyg_data(self, prefix, with_batch)
+    def to_pyg(self):
+        """Return independent useful molecular tensors and structured observations."""
+        from ..operations.conversion import _to_pyg
+        return _to_pyg(self)
+
+    @classmethod
+    def from_pyg(cls, data, *, field_map=None):
+        """Build molecular facts from the current declared PyG fields."""
+        from ..operations.conversion import _from_pyg
+        return _from_pyg(cls, data, field_map=field_map)
 
     def to_obmol(self) -> "ob.OBMol":
         """Return a fresh Open Babel projection of the current molecular facts."""
@@ -1876,6 +1880,7 @@ class Molecule:
         from ._builder import _make_molecule_record
         from ._selection import _selected_bonds
         from ..operations.chemistry import _remap_stereo_transport
+        from ._crystal import _capture_crystal_record
         with self._mutation_lock:
             whole_capture = rows is None and selection is None
             rows = tuple(range(len(self._atoms))) if rows is None else tuple(rows)
@@ -1924,7 +1929,7 @@ class Molecule:
                 bond_aromatic=tuple(bond._is_aromatic for bond in bonds),
                 charge=(True, self._charge_value, self._charge_source) if whole and self._charge_present else (False, None, None),
                 spin_mult=(True, self._spin_value, self._spin_source) if whole and self._spin_present else (False, None, None),
-                cell=None if self._crystal is None else tuple(getattr(self._crystal, name) for name in ('a', 'b', 'c', 'alpha', 'beta', 'gamma')),
+                cell=None if self._crystal is None else _capture_crystal_record(self._crystal, atoms, bonds),
                 stereo_payload=payload, source_frames=source_frames,
                 conformer_results=conformer_results, frame_selection=frame_selection,
                 angle_constraints=constraints(self._constraints.angles), torsion_constraints=constraints(self._constraints.torsions),
@@ -1937,7 +1942,7 @@ class Molecule:
 
 
     def _install_factual_record(self, record, *, atom_bindings=None, bond_bindings=None,
-                                 dependency_state=None, bond_metadata=None, _install_frames=True):
+                                 dependency_state=None, bond_metadata=None, _install_frames=True, _install_crystal=True):
         from .atom import _detach_atom, _new_atom_handle
         from .bond import _detach_bond, _initialize_bond_handle, _new_bond_handle
         from ._builder import _thaw_canonical
@@ -2050,8 +2055,9 @@ class Molecule:
                             if uid in old_hydrogen_inputs and old_hydrogen_inputs[uid] != inputs)
             if changed:
                 _seed(self, GROUP_INDEX['IMPLICIT_H'], changed)
-        from .crystal import Crystal
-        self._crystal = None if record.cell is None else Crystal(*record.cell)
+        if _install_crystal:
+            from ._crystal import _install_crystal_record
+            _install_crystal_record(self, record.cell)
         if _install_frames:
             _install_frame_records(self, record.source_frames, record.conformer_results, record.frame_selection)
         _install_partial_charge_record(self, record.partial_charge_result)

@@ -1,9 +1,20 @@
 # Stage14 implementation plan — General chemical information ↔ PyG Data
 
-Status: owner-directed scope registered on 2026-11-04; concrete implementation
-plan prepared, runtime authoring not started. This is additional current-task
-scope. Stage0–12 acceptance and `B_exp`, and Stage13's `D_exp`/`I_exp`, retain
-their existing meanings. The main agent owns entry decisions and acceptance.
+Current completion overlay, 2026-11-05: root accepts Stage14A–E within the
+declared useful general Molecule/Crystal transport domain. The [Crystal delivery
+report](crystal/validation/report.md) and [checkpoint](crystal/validation/checkpoint.json)
+bind source02 1880 passes, installed CP310–314 1880 passes each, documentation,
+fresh sdist, attributed wheel repacks, actual mixed Crystal CUDA and accepted
+bounded current-only costs. Original review/test/comparator failures are retained.
+
+The [current Crystal/Data contract](crystal/contracts/decisions.md) publishes
+`hotpot.molecule/2` as a hard cut with ordinary Data; no schema1 loader remains.
+Historical14A/schema1 and molecular checkpoints retain their original scopes.
+The original plan body below preserves its inspected-source context and design;
+current runtime/interface status follows this overlay and the current contract.
+Stage0–12 acceptance and `B_exp`, and Stage13's `D_exp`/`I_exp`, are unchanged.
+Final combined13/14/15 delivery is separately accepted in the
+[final integration report](../stage15/integration/report.md); the records below retain their original stage scope.
 
 ## 1. Required outcome and present boundary
 

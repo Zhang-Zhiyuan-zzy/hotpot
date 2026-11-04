@@ -1,4 +1,4 @@
-"""Six factual cell scalars, external transport and the retained pickle envelope."""
+"""Prepared six-scalar external projection and the current full-cell pickle envelope."""
 import copy
 import pickle
 
@@ -33,29 +33,29 @@ def _molecule():
     return mol
 
 
-def test_crystal_has_only_six_initial_ordinary_writable_values():
+def test_crystal_has_one_cell_state_and_ordinary_user_annotations():
     cell = Crystal(*VALUES)
     assert cell.__module__ == 'hotpot.cheminfo.structure.crystal'
-    assert tuple(vars(cell)) == NAMES
-    assert _parameters(cell) == VALUES
+    assert set(vars(cell)) == {'_state', '_molecule'}
+    assert _parameters(cell) == pytest.approx(VALUES)
     cell.a = 12.
     cell.note = 'ordinary user attribute'
     assert cell.a == 12. and cell.note == 'ordinary user attribute'
-    assert not any(hasattr(cell, name) for name in ('mol', '_obcell', 'obcell', 'matrix'))
+    assert not any(hasattr(cell, name) for name in ('mol', '_obcell', 'obcell'))
     with pytest.raises(TypeError):
         Crystal(*VALUES, mol=object())
 
 
-def test_oblique_row_angle_convention_and_subclass_dispatch_are_preserved():
+def test_standard_oblique_angles_and_subclass_preserve_full_basis():
     matrix = np.array(((1., 0., 0.), (.5, np.sqrt(3.) / 2., 0.), (0., 0., 2.)))
-    np.testing.assert_allclose(_parameters(Crystal.from_matrix(matrix)), (1., 1., 2., 60., 90., 90.), atol=1e-12)
+    np.testing.assert_allclose(_parameters(Crystal.from_matrix(matrix)), (1., 1., 2., 90., 90., 60.), atol=1e-12)
     class Specialized(Crystal):
         @staticmethod
         def _matrix_to_params(value):
             return *np.diag(value), 80., 85., 95.
     cell = Specialized.from_matrix(np.diag((2., 3., 5.)))
     assert type(cell) is Specialized
-    assert _parameters(cell) == (2., 3., 5., 80., 85., 95.)
+    assert _parameters(cell) == (2., 3., 5., 90., 90., 90.)
 
 
 def test_ob_unit_cells_are_fresh_and_keep_exact_unrenamed_angle_order():
@@ -65,7 +65,7 @@ def test_ob_unit_cells_are_fresh_and_keep_exact_unrenamed_angle_order():
     getters = ('GetA', 'GetB', 'GetC', 'GetAlpha', 'GetBeta', 'GetGamma')
     assert tuple(getattr(second, name)() for name in getters) == pytest.approx(VALUES)
     first.SetData(1., 2., 3., 90., 90., 90.)
-    assert _parameters(cell) == VALUES
+    assert _parameters(cell) == pytest.approx(VALUES)
     assert tuple(getattr(second, name)() for name in getters) == pytest.approx(VALUES)
 
 
@@ -76,9 +76,9 @@ def test_ob_molecule_cell_roundtrip_uses_factual_cell_without_attached_backend()
     assert tuple(getattr(unit, name)() for name in ('GetA', 'GetB', 'GetC', 'GetAlpha', 'GetBeta', 'GetGamma')) == pytest.approx(VALUES)
     restored = conversion.obmol2mol(value, type(mol)())
     assert _parameters(restored.crystal) == pytest.approx(VALUES)
-    assert tuple(vars(restored.crystal)) == NAMES
+    assert set(vars(restored.crystal)) == {'_state', '_molecule'}
     unit.SetData(1., 1., 1., 90., 90., 90.)
-    assert _parameters(mol.crystal) == VALUES
+    assert _parameters(mol.crystal) == pytest.approx(VALUES)
     assert _parameters(restored.crystal) == pytest.approx(VALUES)
 
 
@@ -88,7 +88,7 @@ def test_cell_copy_and_pickle_preserve_complete_facts_and_no_host_backend_state(
     restored = clone(mol)
     assert _facts(restored) == _facts(mol)
     assert restored.crystal is not mol.crystal
-    assert tuple(vars(restored.crystal)) == NAMES
+    assert set(vars(restored.crystal)) == {'_state', '_molecule'}
     assert not {'_obmol', '_row2idx'} & restored.__dict__.keys()
 
 
@@ -98,8 +98,9 @@ def test_molecule_pickle_extra_keeps_four_slots_and_cell_in_factual_record():
     extra = state[-1]
     assert len(extra) == 4
     attributes, metadata, atom_state, bond_state = extra
-    assert state[0].cell == VALUES
-    assert '_crystal' not in attributes
+    assert state[0].cell[0] == 'hotpot.crystal/1'
+    np.testing.assert_array_equal(state[0].cell[1], mol.crystal.matrix)
+    assert attributes['_crystal'] is mol.crystal
     assert immutable_snapshot(metadata) == immutable_snapshot(mol._capture_factual_record()[1])
     assert len(atom_state) == len(mol.atoms)
     assert len(bond_state) == len(mol.bonds)
@@ -110,6 +111,6 @@ def test_molecule_pickle_extra_keeps_four_slots_and_cell_in_factual_record():
     _restore_molecule_extra(restored, restored.__getstate__()[-1])
     assert _facts(restored) == before
     assert restored.crystal is cell
-    assert _parameters(restored.crystal) == VALUES
-    assert tuple(vars(restored.crystal)) == NAMES
+    assert _parameters(restored.crystal) == pytest.approx(VALUES)
+    assert set(vars(restored.crystal)) == {'_state', '_molecule'}
     assert not {'_obmol', '_row2idx'} & restored.__dict__.keys()

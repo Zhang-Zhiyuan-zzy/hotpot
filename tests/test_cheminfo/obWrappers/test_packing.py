@@ -138,9 +138,11 @@ def test_pack_molecule_represents_empty_bond_table_and_optional_unit_cell():
     assert with_cell.unit_cell is not None
     assert with_cell.unit_cell.dtype == np.float64
     assert with_cell.unit_cell.flags.c_contiguous
-    assert np.array_equal(
+    np.testing.assert_allclose(
         with_cell.unit_cell,
         np.asarray((10.0, 11.0, 12.0, 90.0, 100.0, 120.0)),
+        rtol=0,
+        atol=1e-12,
     )
 
 

@@ -13,6 +13,6 @@ class MolBundle:
     def __init__(self, list_mol: tp.Iterable[Molecule]):
         self.list_mol = list(list_mol)
 
-    def to_pyg_dataset(self, dataset_root: os.PathLike, prefix: str = ''):
+    def to_pyg_dataset(self, dataset_root: os.PathLike):
         from ..operations.collections import _export_pyg_dataset
-        _export_pyg_dataset(self.list_mol, dataset_root, prefix=prefix)
+        _export_pyg_dataset(self.list_mol, dataset_root)

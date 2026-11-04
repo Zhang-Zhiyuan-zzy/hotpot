@@ -4,7 +4,7 @@
 与[主规划](fact_rule_architecture_implementation_plan.md)及 2026-11-03 已批准激活的
 [goal](goal.md) 共同规范实施。
 所有新增、删除、改名、读写权限、返回类型和公开路径变化均须逐项审阅；
-本文记录已指定的规划目标及待审细节，没有创建生产接口。Atom 的列式事实表是
+本文记录共同协议及已审接口；Stage14/15 的当前实现与证据见对应阶段记录。Atom 的列式事实表是
 该协议的一项具体实现；MetalCluster 在此登记类型关联，具体实施归 Plan21。
 
 ## 1. 适用范围与类型角色
@@ -39,8 +39,8 @@ MetalCluster 的当前登记仅记录类型骨架和未来
 
 每个类型将唯一事实、公开表达和派生值分开。一个事实只保存一次：
 atomic_number 与 symbol 是同一事实的两种表达；Atom/Molecule 坐标入口指向
-同一当前坐标；Bond 的 kind/order 表达一套受约束的键表示；Crystal 的六参数
-是约定的晶胞值，矩阵由数学规则计算；结果的对象投影不另存一份预测数组。
+同一当前坐标；Bond 的 kind/order 表达一套受约束的键表示；当前 Stage15 Crystal
+只持有一个有方向的行基矩阵，六参数由其投影，矩阵数学归规则层；结果投影不另存预测数组。
 来源、presence 和有效性是解释值所需的元数据，不能演变成第二份当前事实。
 
 私有声明按类型和领域组织，共用定义结构，不建立一个携带所有可选字段的总表：
@@ -82,7 +82,7 @@ method，由 chemistry/physics/mathematics
 | `Atom.formal_charge`、`implicit_hydrogens` | 明确形式电荷/隐式H计数声明 | 建议保留唯一事实的赋值，来源与依赖同步更新；冲突不靠默认值覆盖 |
 | `Bond.bond_kind` / `Bond.bond_order` | 一套耦合键表示 | 保留经批准入口；不能因可映射就给当前只读 kind 新增 setter |
 | `Molecule.charge` | 分子净电荷声明 | 与原子形式电荷分开；覆盖完整时重新确认总量一致性，不自动分摊差额 |
-| `Crystal(a,b,c,alpha,beta,gamma)`、`Crystal.from_matrix()` | 同一六参数晶胞值 | 构造/转换完整确定值；参数可写性按值对象合约审阅，不自动增设矩阵 setter |
+| `Crystal(...)`、`Crystal.from_matrix()`、`matrix` | 一个有方向的行基矩阵；六参数是投影 | matrix 是只读 property，返回独立数组；set_cell 完整更新，六个既有 setter 走同一 owner；关联 Molecule，SpaceGroup 持有群及 setting |
 | `Bond.length`、`Angle.degrees`、`Torsion.degrees` | 当前几何的派生计算 | 只读；不能由单个读数唯一反推整套原子坐标 |
 | `Ring.is_aromatic` | 完整芳香赋值的视图 | 建议只读；移除现有 setter 的变更须审阅，写入从 Molecule 完整操作发起 |
 | `conformer_add/get/load/clear` | 源帧/生成结果、当前坐标及集合选择 | 添加不隐式选中；load 完整更新当前坐标；clear 的范围显式记录 |
@@ -90,7 +90,11 @@ method，由 chemistry/physics/mathematics
 | `Atom.mca`、`Molecule.mca_sites`、`Atom.partial_charge` | 当前选定科学结果 | 只读投影；有效性归选定结果 owner，已返回历史值保持自身内容 |
 | stereo 与 wrapper 的公开值/报告 | 已审输入输出 schema | 维持字段、单位、顺序及缓冲保证；不因为统一协议改变现有 ABI |
 
-`Crystal.matrix` 仍是主规划中的候选接口，不能在上述现状表中冒充现有 property。
+`Crystal.matrix` 已由 Stage15 发布为只读 property，返回独立数组；此前六参数/无反向关联约束仅属
+Stage0–12 历史范围。Crystal 的 molecule 与 Molecule.crystal 维护同一关联，
+SpaceGroup 是群/setting 的唯一 owner，symm_units 只派生读取。普通 PyG 转换使用
+当前 `to_pyg/from_pyg`、schema2，部署模型保持各自特征入口。完整树与生命周期
+见 [Stage15](stages/stage15/README.md) 和 [Stage14](stages/stage14/README.md)。
 `atomic_numbr` 不作为新增别名，现有拼写为 `atomic_number`。需要新增 method
 时先列出完整签名和权限，未列入审阅表的公开入口不设立。
 

@@ -330,3 +330,82 @@ def test_retired_native_owners_cannot_return(module, label, entry):
         "hotpot/cheminfo/operations/consumer.py", entry.format(module=module))
     assert {row["rule"] for row in findings} == {f"active_legacy_{label}_reference"}
     assert audit.active_core_findings(module.replace(".", "/") + "/__init__.py", "")
+
+
+@pytest.mark.parametrize("path,source", [
+    ("hotpot/cheminfo/structure/symmetry.py", "from ..rules.mathematics import symmetry as _math"),
+    ("hotpot/cheminfo/structure/_crystal.py", "from ..rules.mathematics import symmetry as _affine"),
+    ("hotpot/cheminfo/structure/_crystal.py", "from ..rules.mathematics.cell import _cell_matrix, _validate_matrix, _check_metric"),
+])
+def test_exact_crystal_value_imports_are_not_scientific_execution(path, source):
+    assert audit.layer_findings(path, source) == []
+    assert audit.layer_findings(path.replace('.py', '_other.py'), source)
+    assert audit.layer_findings(path, 'def nested():\n    ' + source)
+    assert audit.layer_findings(path, source.replace('mathematics', 'chemistry'))
+    assert audit.layer_findings(path, source.replace('import ', 'import other, '))
+
+
+def test_current_crystal_thin_operation_facade_retains_external_and_eager_boundaries():
+    source = "class Crystal:\n    def expand(self):\n        from ..operations.crystal_generation import _expand_crystal\n        return _expand_crystal(self, (2, 1, 1))\n"
+    path = 'hotpot/cheminfo/structure/crystal.py'
+    assert audit.layer_findings(path, source) == []
+    assert audit.layer_findings(path, 'from ..operations.crystal_generation import _expand_crystal')
+    assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from openbabel import openbabel'))
+    assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from . import _fact_native'))
+    assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from ..operations.forcefields._native import calculate'))
+    assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from ..operations.forcefields import _forcefields_native'))
+    assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from ..adapters.crystal import expand'))
+    assert audit.layer_findings(path, _CRYSTAL_DELEGATE.replace('..rules.mathematics.cell', '..operations.crystal')) == []
+
+
+@pytest.mark.parametrize("method,arguments,operation", [
+    ("read", "crystal", "_matrix_to_params"),
+    ("write", "crystal, value", "_set_parameter"),
+])
+def test_crystal_scalar_property_factory_has_exact_local_operation_scope(method, arguments, operation):
+    path = "hotpot/cheminfo/structure/crystal.py"
+    statement = f"from ..operations.crystal import {operation}"
+    source = f"def _parameter(index):\n    def {method}({arguments}):\n        {statement}\n"
+    assert audit.layer_findings(path, source) == []
+    # Ordinary carriers already allow local operation imports; Crystal's
+    # stricter property-factory scope does not change that independent rule.
+    assert audit.layer_findings(path.replace("crystal.py", "other.py"), source) == []
+    invalid = [
+        (path, source.replace("def _parameter(index)", "def other(index)")),
+        (path, source.replace("def _parameter(index)", "def _parameter(other)")),
+        (path, source.replace(f"def {method}(", "def other(")),
+        (path, source.replace(f"({arguments})", "(other)")),
+        (path, source.replace("        from", "        def nested():\n            from")),
+        (path, source.replace(statement, f"from ..operations.crystal import {operation}, other")),
+        (path, source.replace("..operations.crystal", "..operations.chemistry")),
+        (path, source.replace(statement, "from openbabel import openbabel")),
+        (path, source.replace(statement, "from ..adapters.crystal import value")),
+        (path, source.replace(statement, "from . import _fact_native")),
+        (path, statement),
+    ]
+    for changed_path, changed_source in invalid:
+        assert audit.layer_findings(changed_path, changed_source), changed_source
+
+
+@pytest.mark.parametrize('method,receiver,field', [
+    ('encode', 'data', 'bond_order'), ('encode', 'data', 'bond_kind'),
+    ('encode', 'data', 'bond_direction'), ('_foreign', 'normalized', 'bond_order'),
+])
+def test_only_fresh_reviewed_pyg_transport_receivers_can_initialize_fields(method, receiver, field):
+    path = 'hotpot/cheminfo/adapters/_pyg_molecule.py'
+    source = f'def {method}(subject):\n    from torch_geometric.data import Data\n    {receiver} = Data()\n    {receiver}.{field} = 1\n'
+    assert audit.layer_findings(path, source) == []
+    invalid = [
+        (path.replace('.py', '_other.py'), source),
+        (path, source.replace(f'def {method}(', 'def other(')),
+        (path, source.replace(f'{receiver} = Data()', f'{receiver} = subject')),
+        (path, source.replace(f'{receiver} = Data()', f'{receiver} = Data()\n    {receiver} = subject')),
+        (path, source.replace('from torch_geometric.data import Data', 'from other import Data')),
+        (path, source.replace(f'{receiver} = Data()', f'Data = fake\n    {receiver} = Data()')),
+        (path, source.replace(f'{receiver}.{field} =', f'subject.{field} =')),
+        (path, source.replace(f'{receiver}.{field} = 1', f'{receiver}.{field}[:] = 1')),
+        (path, source.replace(f'{receiver}.{field} = 1', f'del {receiver}.{field}')),
+        (path, source.replace(f'{receiver}.{field} = 1', f'def nested():\n        {receiver}.{field} = 1')),
+    ]
+    for changed_path, changed_source in invalid:
+        assert audit.layer_findings(changed_path, changed_source), changed_source

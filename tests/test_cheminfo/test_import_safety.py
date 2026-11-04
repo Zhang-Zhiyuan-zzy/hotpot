@@ -10,7 +10,7 @@ import pytest
 
 
 _ROOT_EXPORTS = (
-    "Molecule", "Atom", "Bond", "BondKind", "Crystal", "MolReader", "MolWriter",
+    "Molecule", "Atom", "Bond", "BondKind", "Crystal", "SpaceGroup", "SymmUnit", "MolReader", "MolWriter",
     "read_mol", "MolBundle", "to_pyg_dataset", "is_molecule_input", "to_hotpot_mol",
     "Fragment", "EdgeShoulder", "AtomLink", "AlkylGraft", "BondAdding",
     "AtomReplace", "RingWedge", "AssembleFactory", "Searcher", "Substructure",

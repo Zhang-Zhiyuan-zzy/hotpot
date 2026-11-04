@@ -159,6 +159,8 @@ def _rdmol_record(rdmol, initial):
     bonds = tuple(rdmol.GetBonds())
     raw_bonds = np.zeros((len(bonds), 3), dtype="<f8")
     raw_bonds[:, 0] = [bond.GetBondTypeAsDouble() for bond in bonds]
+    from ...structure._crystal import _import_crystal_context
+    cell = _import_crystal_context(initial.cell, len(atoms), len(bonds))
     record = replace(
         initial, atom_count=len(atoms), atom_values=values.tobytes(),
         atom_presence=presence.tobytes(), atom_sources=sources.tobytes(),
@@ -171,7 +173,7 @@ def _rdmol_record(rdmol, initial):
                               else None for bond in bonds),
         bond_sources=("rdkit",) * len(bonds),
         bond_metadata=tuple(_freeze_value(source_bond_metadata[bond.GetIdx()]) for bond in bonds),
-        charge=(True, Chem.GetFormalCharge(rdmol), "rdkit"),
+        charge=(True, Chem.GetFormalCharge(rdmol), "rdkit"), cell=cell,
         stereo_payload=initial.stereo_payload,
         source_frames=(), conformer_results=(), frame_selection=(0, None),
         partial_charge_result=None,

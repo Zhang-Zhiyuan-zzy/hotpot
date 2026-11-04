@@ -1,21 +1,34 @@
 # Stage15 implementation plan — Crystal spatial symmetry and molecular expansion
 
-Status: owner-directed planning revision, 2026-11-04. Runtime authoring has not
-started. Crystal's primary job is to apply crystallographic spatial symmetry
-and copy/expand molecular units, with useful geometry/topology observations.
-The following surface is a concrete **proposal for Stage15A**, not a released
-API or scientific approval. The parent owns acceptance, main-plan registration,
-interface/schema decisions and runtime entry under §16.4.
+Status: accepted15A–F domain delivered2026-11-05. Crystal's primary job is
+crystallographic spatial symmetry and copying/expanding molecular units, with
+useful bounded geometry/topology observations. The accepted tree below and
+entry decisions define the current implementation; Stage14 owns its additional
+PyG facade/integration. Root retains overall acceptance and combined delivery.
 
-## 1. Complete proposed public tree — before implementation
+## Current implementation checkpoint
+
+Root accepted the standalone exact domain on2026-11-05; see
+[the report](domain/validation/exact_symmetry_report.md). Connected cell/lifecycle
+15B is accepted at [559 source/installed CP311 checks](domain/validation/connected_cell_report.md).
+One-placement action is accepted at [874 source/installed CP311 checks](domain/validation/action_report.md).
+Generation15C is accepted at [1,038 source/installed CP311 checks](domain/validation/generation_report.md).
+Placed relations15D1 are accepted at[1,068 source/installed CP311 checks](domain/validation/relation_report.md).
+Finite-loop linking15D2a is accepted at[1,128 source/installed CP311 checks](domain/validation/linking_report.md).
+Periodic contact/surface observations15D2b are accepted at[1,246 source/installed CP311 checks](domain/validation/geometry_report.md).
+Formats15E and delivery15F are accepted at[1,715source/five-version installed checks](domain/validation/persistence_report.md).
+Stage14D/E is accepted; final combined integration/delivery is accepted in the owning integration record. The accepted
+[15A decision](domain/contracts/decisions.md) resolves the proposal choices below.
+
+## 1. Complete accepted public tree
 
 This is one coherent surface. `Crystal`, immutable `SpaceGroup`, and the abstract
-`SymmUnit` are the proposed public types. `Array`, `Int3`, `Q3`, `Setting`,
+`SymmUnit` are the accepted public types. `Array`, `Int3`, `Q3`, `Setting`,
 `ImageKey`, `Candidate` and `Finding` below denote value layouts, not additional
 exported classes. Stage14 owns its selected `to_pyg`/`from_pyg` names/encoding.
 The owner's latest directions fix fresh-placement `operate`, group magic
 methods, the single SpaceGroup owner and the complete 230-type catalogue;
-the exact new signatures/exports below remain concrete §16.4 proposals.
+the exact signatures/exports below follow the accepted §16.4 contract.
 
 ```text
 Crystal
@@ -57,6 +70,9 @@ Crystal
 │   └── geometry_findings(*, coincidence_tolerance, close_contact_cutoff,
 │                        ring_scope="full_graph", max_ring_size=None)
 │                        -> tuple[Finding, ...]
+├── pure persistence (accepted15A, implemented15E)
+│   ├── from_cif(source, *, block=None) -> Crystal          [classmethod; optional syntax parser]
+│   └── to_cif() -> str                                    [current supported fact projection]
 └── Stage14D consumer additions, after the domain is published
     ├── to_pyg() -> Data
     └── from_pyg(data, *, field_map=None) -> Crystal          [classmethod]

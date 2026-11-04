@@ -1,12 +1,13 @@
 # Stage record catalog
 
-The main plan and normative companions remain in the project root (Plan21
-remains in its own project). This catalog organizes Stage0–15. Stage0–8E owning
-gates are complete within their recorded source/installed/scientific scopes;
-remaining final delivery/version/science/performance obligations stay open.
-Stage9A–C and the complete15-row migration crosswalk have recorded CP311
-source/installed acceptance. Stage10–12 main-scope delivery is [root accepted](stage12/final-delivery/validation/main-scope-acceptance.json); Stage13 and the owner-directed Stage14/15 branches remain open. Current navigation
-points to stage-owned records; historical snapshots keep their original bounds.
+The main plan and normative companions remain in the project root; Plan21
+remains separate. This catalog organizes Stage0–15. Stage0–12 main-scope delivery
+is [root accepted](stage12/final-delivery/validation/main-scope-acceptance.json).
+Stage13A/B and the owner-directed Stage14A–E/Stage15A–F branches are accepted
+within their declared domains; their [final combined delivery](stage15/integration/report.md)
+is also accepted. Stage-owned historical checkpoints retain their original
+source, runtime, scientific and support boundaries; their former remaining-work
+statements do not override the current acceptance records.
 
 ## Markdown types
 
@@ -58,9 +59,9 @@ merely to fill a directory.
 | Stage10 | [stage10](stage10/README.md) | Native/build migration and final affected five-ABI/SDKdelivery accepted |
 | Stage11 | [stage11](stage11/README.md) | Commands/reference/query ownership delivered; optional research-runtime limits retained |
 | Stage12 | [stage12](stage12/README.md) | Main-scope final report/15criteria accepted with explicit limitations |
-| Stage13 | [stage13](stage13/README.md) | Planned: kekulize/aromatic experimental rule-interface protocol |
-| Stage14 | [stage14](stage14/README.md) | Planned: general PyG training information and Molecule/Crystal query/review |
-| Stage15 | [stage15](stage15/README.md) | Planned: Crystal/SpaceGroup/SymmUnit trees, 230-type operation catalogue, group algebra, molecular expansion and periodic geometry/topology tools |
+| Stage13 | [stage13](stage13/README.md) | Accepted: private aromatic/Kekulé definition and integration, source/default/five-ABI delivery and retained paired costs |
+| Stage14 | [stage14](stage14/README.md) | Accepted: schema2 ordinary PyG, molecular/Crystal training and inspection, CPU/CUDA/support/cost delivery |
+| Stage15 | [stage15](stage15/README.md) | Accepted: exact Crystal/SpaceGroup/SymmUnit, generation, geometry/topology and current CIF; [final combined delivery accepted](stage15/integration/report.md) |
 
 Read the current main plan and normative companions as required by the plan,
 then the selected stage README, its entry assessment, relevant review/decisions

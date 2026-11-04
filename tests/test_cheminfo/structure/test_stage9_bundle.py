@@ -33,56 +33,25 @@ def pyg_runtime():
     return torch, data.Data
 
 
-def _assert_chemical_graph(graph, name, prefix, runtime):
+def _assert_chemical_graph(graph, name, runtime):
     torch, data_type = runtime
     assert isinstance(graph, data_type)
-    prefix = prefix.rstrip("_") + "_" if prefix else ""
-    x = graph[prefix + "x"]
-    columns = tuple(graph[prefix + "x_names"])
+    assert graph.hotpot_schema == ["hotpot.molecule/2"]
     count = 3 if name == "ethanol" else 6
-    assert x.shape == (count, 16)
-    assert x.dtype == torch.float32
-    expected = {
-        "atomic_number": [6, 6, 8] if name == "ethanol" else [6] * 6,
-        "formal_charge": [0] * count,
-        "is_aromatic": [0] * count if name == "ethanol" else [1] * count,
-        "implicit_hydrogens": [3, 2, 1] if name == "ethanol" else [1] * count,
-        "is_metal": [0] * count,
-    }
-    for field, values in expected.items():
-        assert x[:, columns.index(field)].tolist() == values
-    assert torch.isfinite(x).all()
-    assert graph[prefix + "batch"].tolist() == [0] * count
-
-    edges = graph[prefix + "edge_index"]
-    attributes = graph[prefix + "edge_attr"]
-    names = tuple(graph[prefix + "edge_attr_names"])
+    assert graph.num_nodes == count
+    assert graph.z.dtype == torch.int64
+    assert graph.z.tolist() == ([6, 6, 8] if name == "ethanol" else [6] * 6)
+    assert graph.formal_charge.tolist() == [0] * count
+    assert graph.total_h.tolist() == ([3, 2, 1] if name == "ethanol" else [1] * count)
+    assert graph.aromatic.tolist() == ([False] * count if name == "ethanol" else [True] * count)
     bonds = {(0, 1), (1, 2)} if name == "ethanol" else {
         (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (0, 5),
     }
-    directed = bonds | {(b, a) for a, b in bonds}
-    assert edges.dtype == torch.int64
-    assert edges.shape == (2, len(directed))
-    assert {tuple(row) for row in edges.T.tolist()} == directed
-    assert attributes.shape == (len(directed), 3)
-    assert attributes[:, names.index("is_aromatic")].tolist() == (
-        [0] * 4 if name == "ethanol" else [1] * 12
-    )
-    assert attributes[:, names.index("is_metal_ligand_bond")].tolist() == [0] * len(directed)
-    assert sorted(attributes[:, names.index("bond_order")].tolist()) == (
-        [1] * 4 if name == "ethanol" else [1] * 6 + [2] * 6
-    )
-    assert graph[prefix + "mol_rings_nums"].tolist() == ([0] if name == "ethanol" else [1])
-    assert graph[prefix + "rings_node_nums"].tolist() == ([] if name == "ethanol" else [6])
-    assert set(graph[prefix + "rings_node_index"].tolist()) == (
-        set() if name == "ethanol" else set(range(6))
-    )
-    rings = graph[prefix + "rings_attr"]
-    assert rings.shape == ((0, 2) if name == "ethanol" else (1, 2))
-    if name == "benzene":
-        assert tuple(graph[prefix + "rings_attr_names"]) == ("is_aromatic", "has_metal")
-        assert rings.tolist() == [[1, 0]]
-    assert all(key.startswith(prefix) for key in graph.keys())
+    assert {tuple(sorted(row)) for row in graph.edge_index.T.tolist()} == bonds
+    assert graph.edge_index.shape == (2, len(bonds))
+    assert graph.bond_aromatic.tolist() == ([False] * 2 if name == "ethanol" else [True] * 6)
+    assert sorted(graph.bond_order.tolist()) == ([1] * 2 if name == "ethanol" else [1] * 3 + [2] * 3)
+    assert "x" not in graph and "edge_attr" not in graph
 
 
 def test_public_collection_and_operation_have_one_current_owner():
@@ -96,7 +65,7 @@ def test_public_collection_and_operation_have_one_current_owner():
     assert MolBundle.__qualname__ == "MolBundle"
     assert to_pyg_dataset.__module__ == operation.__name__
     assert Path(inspect.getfile(MolBundle)).resolve() == Path(owner.__file__).resolve()
-    assert structure.__all__ == ("Molecule", "Atom", "Bond", "BondKind", "Crystal")
+    assert structure.__all__ == ("Molecule", "Atom", "Bond", "BondKind", "Crystal", "SpaceGroup", "SymmUnit")
     legacy = "hotpot.cheminfo.bundle"
     assert legacy not in sys.modules
     assert importlib.util.find_spec(legacy) is None
@@ -104,10 +73,10 @@ def test_public_collection_and_operation_have_one_current_owner():
 
 @pytest.mark.parametrize("function,names,annotations", [
     (MolBundle.__init__, ("self", "list_mol"), {"list_mol": tp.Iterable[Molecule]}),
-    (MolBundle.to_pyg_dataset, ("self", "dataset_root", "prefix"),
-     {"dataset_root": os.PathLike, "prefix": str}),
-    (to_pyg_dataset, ("list_mol", "dataset_root", "prefix"),
-     {"list_mol": tp.Iterable[Molecule], "dataset_root": os.PathLike, "prefix": str}),
+    (MolBundle.to_pyg_dataset, ("self", "dataset_root"),
+     {"dataset_root": os.PathLike}),
+    (to_pyg_dataset, ("list_mol", "dataset_root"),
+     {"list_mol": tp.Iterable[Molecule], "dataset_root": os.PathLike}),
 ])
 def test_public_signatures_keep_eager_annotations_and_defaults(function, names, annotations):
     signature = inspect.signature(function)
@@ -115,7 +84,7 @@ def test_public_signatures_keep_eager_annotations_and_defaults(function, names, 
     assert all(p.kind is inspect.Parameter.POSITIONAL_OR_KEYWORD
                for p in signature.parameters.values())
     assert {name: p.default for name, p in signature.parameters.items()
-            if p.default is not inspect.Parameter.empty} == ({"prefix": ""} if "prefix" in names else {})
+            if p.default is not inspect.Parameter.empty} == {}
     assert function.__annotations__ == annotations
     assert tp.get_type_hints(function) == annotations
     assert signature.return_annotation is inspect.Signature.empty
@@ -196,21 +165,20 @@ print(json.dumps({"package": str(package), "module": str(Path(module.__file__).r
     assert json.loads(result.stdout.splitlines()[-1])["package"] == str(package)
 
 
-@pytest.mark.parametrize("prefix", ["", "m", "m_"])
 @pytest.mark.parametrize("entrypoint", ["method", "function"])
 def test_real_pyg_roundtrip_has_independent_ethanol_and_benzene_semantics(
-        tmp_path, molecules, pyg_runtime, prefix, entrypoint):
+        tmp_path, molecules, pyg_runtime, entrypoint):
     root = tmp_path / "graphs"
     if entrypoint == "method":
-        result = MolBundle(molecules).to_pyg_dataset(root, prefix=prefix)
+        result = MolBundle(molecules).to_pyg_dataset(root)
     else:
-        result = to_pyg_dataset(iter(molecules), root, prefix=prefix)
+        result = to_pyg_dataset(iter(molecules), root)
     assert result is None
     assert {p.name for p in root.iterdir()} == {"ethanol.pt", "benzene.pt"}
     torch, _ = pyg_runtime
     for name in ("ethanol", "benzene"):
         graph = torch.load(root / (name + ".pt"), weights_only=False)
-        _assert_chemical_graph(graph, name, prefix, pyg_runtime)
+        _assert_chemical_graph(graph, name, pyg_runtime)
 
 
 def test_export_binds_serializer_once_then_converts_and_saves_in_member_order(
@@ -220,26 +188,26 @@ def test_export_binds_serializer_once_then_converts_and_saves_in_member_order(
     ethanol, benzene = molecules
     root = tmp_path / "graphs"
     events = []
-    convert = Molecule.to_pyg_data
+    convert = Molecule.to_pyg
 
     def serializer():
         assert root.is_dir()
         events.append("serializer")
         return torch.save
 
-    def observed_conversion(self, prefix="", with_batch=True):
+    def observed_conversion(self):
         events.append(self.identifier)
         if self is benzene:
             _assert_chemical_graph(torch.load(root / "ethanol.pt", weights_only=False),
-                                   "ethanol", "ordered", pyg_runtime)
-        return convert(self, prefix=prefix, with_batch=with_batch)
+                                   "ethanol", pyg_runtime)
+        return convert(self)
 
     monkeypatch.setattr(pyg, "_torch_save", serializer)
-    monkeypatch.setattr(Molecule, "to_pyg_data", observed_conversion)
-    assert to_pyg_dataset([ethanol, benzene], root, prefix="ordered") is None
+    monkeypatch.setattr(Molecule, "to_pyg", observed_conversion)
+    assert to_pyg_dataset([ethanol, benzene], root) is None
     assert events == ["serializer", "ethanol", "benzene"]
     _assert_chemical_graph(torch.load(root / "benzene.pt", weights_only=False),
-                           "benzene", "ordered", pyg_runtime)
+                           "benzene", pyg_runtime)
 
 
 def test_empty_collection_creates_only_the_leaf_and_returns_none(tmp_path, pyg_runtime):
@@ -284,25 +252,24 @@ def test_duplicate_identifier_overwrites_with_the_later_real_graph(
     assert result is None
     assert {p.name for p in tmp_path.iterdir()} == {"same.pt"}
     _assert_chemical_graph(torch.load(tmp_path / "same.pt", weights_only=False),
-                           "benzene", "", pyg_runtime)
+                           "benzene", pyg_runtime)
 
 
-@pytest.mark.parametrize("prefix", ["", "m", "m_"])
 @pytest.mark.parametrize("entrypoint", ["method", "function"])
 def test_empty_identifiers_save_real_graphs_with_member_ordinals(
-        tmp_path, molecules, pyg_runtime, prefix, entrypoint):
+        tmp_path, molecules, pyg_runtime, entrypoint):
     torch, _ = pyg_runtime
     for mol in molecules:
         mol.identifier = ""
     if entrypoint == "method":
-        result = MolBundle(molecules).to_pyg_dataset(tmp_path, prefix=prefix)
+        result = MolBundle(molecules).to_pyg_dataset(tmp_path)
     else:
-        result = to_pyg_dataset(iter(molecules), tmp_path, prefix=prefix)
+        result = to_pyg_dataset(iter(molecules), tmp_path)
     assert result is None
     assert {p.name for p in tmp_path.iterdir()} == {"0.pt", "1.pt"}
     for ordinal, name in enumerate(("ethanol", "benzene")):
         graph = torch.load(tmp_path / f"{ordinal}.pt", weights_only=False)
-        _assert_chemical_graph(graph, name, prefix, pyg_runtime)
+        _assert_chemical_graph(graph, name, pyg_runtime)
 
 
 @pytest.mark.parametrize("entrypoint", ["method", "function"])
@@ -311,14 +278,14 @@ def test_mixed_identifiers_keep_names_and_count_all_members_for_ordinals(
     torch, _ = pyg_runtime
     molecules[1].identifier = ""
     if entrypoint == "method":
-        result = MolBundle(molecules).to_pyg_dataset(tmp_path, prefix="mixed_")
+        result = MolBundle(molecules).to_pyg_dataset(tmp_path)
     else:
-        result = to_pyg_dataset(iter(molecules), tmp_path, prefix="mixed_")
+        result = to_pyg_dataset(iter(molecules), tmp_path)
     assert result is None
     assert {p.name for p in tmp_path.iterdir()} == {"ethanol.pt", "1.pt"}
     for filename, name in (("ethanol.pt", "ethanol"), ("1.pt", "benzene")):
         _assert_chemical_graph(torch.load(tmp_path / filename, weights_only=False),
-                               name, "mixed_", pyg_runtime)
+                               name, pyg_runtime)
 
 
 @pytest.mark.parametrize("identifiers,filename", [(("1", ""), "1.pt"), (("", "0"), "0.pt")])
@@ -329,13 +296,13 @@ def test_named_and_ordinal_collision_keeps_the_later_real_graph(
     for mol, identifier in zip(molecules, identifiers):
         mol.identifier = identifier
     if entrypoint == "method":
-        result = MolBundle(molecules).to_pyg_dataset(tmp_path, prefix="collision")
+        result = MolBundle(molecules).to_pyg_dataset(tmp_path)
     else:
-        result = to_pyg_dataset(iter(molecules), tmp_path, prefix="collision")
+        result = to_pyg_dataset(iter(molecules), tmp_path)
     assert result is None
     assert {p.name for p in tmp_path.iterdir()} == {filename}
     _assert_chemical_graph(torch.load(tmp_path / filename, weights_only=False),
-                           "benzene", "collision", pyg_runtime)
+                           "benzene", pyg_runtime)
 
 
 @pytest.mark.parametrize("empty", [False, True])
@@ -356,28 +323,28 @@ def test_later_conversion_failure_propagates_and_keeps_earlier_saved_graph(
         tmp_path, molecules, pyg_runtime, monkeypatch, entrypoint):
     torch, _ = pyg_runtime
     ethanol, benzene = molecules
-    convert = Molecule.to_pyg_data
+    convert = Molecule.to_pyg
     ethanol.identifier = ""
     failure = ValueError("later conversion failed")
     visited = []
 
-    def observed_conversion(self, prefix="", with_batch=True):
+    def observed_conversion(self):
         visited.append(self)
         if self is benzene:
             raise failure
-        return convert(self, prefix=prefix, with_batch=with_batch)
+        return convert(self)
 
-    monkeypatch.setattr(Molecule, "to_pyg_data", observed_conversion)
+    monkeypatch.setattr(Molecule, "to_pyg", observed_conversion)
     with pytest.raises(ValueError) as caught:
         if entrypoint == "method":
-            MolBundle([ethanol, benzene, ethanol]).to_pyg_dataset(tmp_path, prefix="saved")
+            MolBundle([ethanol, benzene, ethanol]).to_pyg_dataset(tmp_path)
         else:
-            to_pyg_dataset(iter((ethanol, benzene, ethanol)), tmp_path, prefix="saved")
+            to_pyg_dataset(iter((ethanol, benzene, ethanol)), tmp_path)
     assert caught.value is failure
     assert visited == [ethanol, benzene]
     assert {p.name for p in tmp_path.iterdir()} == {"0.pt"}
     _assert_chemical_graph(torch.load(tmp_path / "0.pt", weights_only=False),
-                           "ethanol", "saved", pyg_runtime)
+                           "ethanol", pyg_runtime)
 
 
 @pytest.mark.parametrize("entrypoint", ["method", "function"])
@@ -399,14 +366,14 @@ def test_later_save_failure_propagates_and_keeps_earlier_saved_graph(
     monkeypatch.setattr(torch, "save", observed_save)
     with pytest.raises(OSError) as caught:
         if entrypoint == "method":
-            MolBundle([ethanol, benzene, ethanol]).to_pyg_dataset(tmp_path, prefix="saved")
+            MolBundle([ethanol, benzene, ethanol]).to_pyg_dataset(tmp_path)
         else:
-            to_pyg_dataset(iter((ethanol, benzene, ethanol)), tmp_path, prefix="saved")
+            to_pyg_dataset(iter((ethanol, benzene, ethanol)), tmp_path)
     assert caught.value is failure
     assert visited == ["0.pt", "benzene.pt"]
     assert {p.name for p in tmp_path.iterdir()} == {"0.pt"}
     _assert_chemical_graph(torch.load(tmp_path / "0.pt", weights_only=False),
-                           "ethanol", "saved", pyg_runtime)
+                           "ethanol", pyg_runtime)
 
 
 @pytest.mark.parametrize("entrypoint", ["method", "function"])
@@ -414,16 +381,16 @@ def test_export_preserves_entrypoint_member_materialization(
         tmp_path, molecules, pyg_runtime, monkeypatch, entrypoint):
     ethanol, benzene = molecules
     bundle = MolBundle([ethanol])
-    convert = Molecule.to_pyg_data
+    convert = Molecule.to_pyg
     visited = []
 
-    def observed_conversion(self, prefix="", with_batch=True):
+    def observed_conversion(self):
         visited.append(self)
         if self is ethanol:
             bundle.list_mol.append(benzene)
-        return convert(self, prefix=prefix, with_batch=with_batch)
+        return convert(self)
 
-    monkeypatch.setattr(Molecule, "to_pyg_data", observed_conversion)
+    monkeypatch.setattr(Molecule, "to_pyg", observed_conversion)
     if entrypoint == "method":
         result = bundle.to_pyg_dataset(tmp_path)
         assert visited == [ethanol, benzene]

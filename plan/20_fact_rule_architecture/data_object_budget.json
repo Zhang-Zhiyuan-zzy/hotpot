@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0–12 main-scope accepted in declared source/installed/native/scientific/cost boundaries. Current505Pythonfiles/771classes/355dataclasses/8direct+4genericProtocols/2TypedDicts; oneadditionalprivateNamedTuplecodec. Stage13–15/overallcompletionremainopen.",
+  "status": "Stage0-12 and separate Stage13/14/15 domain checkpoints accepted. Actual final combined census526Python files/776classes/355dataclasses/8direct+4genericProtocols/2TypedDicts; oneadditionalprivateNamedTuplecodec retained. Final combined validation accepted; normal containing commit/push supplies Git delivery; historical Stage12census unchanged.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -980,7 +980,7 @@
       "ConstraintIdentity",
       "SourceFramesIdentity"
     ],
-    "stage13": "separate experimental branch/budget; no definitions created early",
+    "stage13": "Accepted private aromatic/Kekule alias and one import substitution; class/dataclass/protocol/TypedDict/enum/native-ABI delta0; exact B_exp/D_exp/I_exp in stage13_experiment",
     "native_execution_types": {
       "new_internal_struct_definitions": 14,
       "new_internal_enum_definitions": 1,
@@ -1408,7 +1408,7 @@
     "reviewed_families": 43,
     "report": "stages/stage12/final-delivery/report.md",
     "private_inventory_checker": "P20-D036 acceptedlimitation; no successfulfinalchecker claim",
-    "remaining": "Stage13–15 separate; actualB_exp identity resolved after normal finalreport/delivery commit."
+    "remaining": "Historical Stage0-12 snapshot; B_exp resolved as5a7b19396328eee964a8f3c65bc3345c013eaec6. Stage13/14/15 current counts and final delivery are recorded separately."
   },
   "stage13_experiment": {
     "B_exp": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
@@ -1419,5 +1419,40 @@
     "D_exp": "5dc0443de17439f0c4d74151e2427a3a834c899c",
     "integration": "stages/stage13/integration/report.md",
     "integration_class_dataclass_protocol_typeddict_enum_abi_delta": 0
+  },
+  "stage15b_exact_symmetry": {
+    "status": "root-accepted standalone domain; three necessary ordinary classes, zero dataclasses;297source/installed tests per ABI",
+    "ordinary_classes_added": [
+      "hotpot.cheminfo.structure.symmetry.SpaceGroup",
+      "hotpot.cheminfo.structure.symmetry.SymmUnit",
+      "hotpot.cheminfo.structure.symmetry._AffineSymmUnit"
+    ],
+    "dataclasses_added": 0,
+    "rationale": "One immutable group fact owner, required public abstract operation family, one private full affine implementation. No per-kind types/DTO or generic registry.",
+    "contract": "stages/stage15/domain/contracts/decisions.md",
+    "checkpoint": "stages/stage15/domain/validation/exact_symmetry_checkpoint.json"
+  },
+  "final_combined_census": {
+    "date": "2026-11-05",
+    "source": "Actual no-commit union of I_expcc9470e and Stage14/15commit0e536bb5; frozen product bindings in final integration evidence",
+    "counts": {
+      "python_files": 526,
+      "class_definitions": 776,
+      "dataclass_definitions": 355,
+      "direct_protocols": 8,
+      "generic_protocols": 4,
+      "typed_dict_definitions": 2
+    },
+    "method": "AST class definitions including nested classes; dataclass decorator names, direct/subscript Protocol and class TypedDict bases; no product imports",
+    "delta_from_stage12": {
+      "python_files": 21,
+      "class_definitions": 5,
+      "dataclass_definitions": 0,
+      "direct_protocols": 0,
+      "generic_protocols": 0,
+      "typed_dict_definitions": 0
+    },
+    "interpretation": "New exact group/affine and Crystal fact/codec implementation types support the separately approved Stage15 scope. General PyG uses ordinary Data, no subclass or duplicate durable chemical owner. No consolidation credit from line moves/names/counts.",
+    "evidence": "stages/stage15/integration/validation/checkpoint.json; final archive FINAL_CENSUS.json"
   }
 }

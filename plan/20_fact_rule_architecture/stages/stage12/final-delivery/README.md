@@ -67,9 +67,16 @@ mandatoryD032: neutral acid returns an anionic SMILES with charge0. The
 [direct SMILES source correction](validation/smiles-conversion-repair.json) removes
 the proved MOL2 hydrogen/charge loss;131distinct CP311selected cases have passing
 evidence, including37new cases. The original129passes/two private-wrapper failures
-and exactly-two passing rechecks remain separately recorded. Installed and actual
-model metadata qualification remain open. IndependentD033covers native OB stereo
-import/projection and is not repaired by this leaf. Instrumented correctness
+and exactly-two passing rechecks remain separately recorded. The followup
+[stereo/metadata qualification](validation/native-stereo-conversion.json) passes
+976distinct affected source cases (83new), one new source actual-model regression
+and997outside-checkout installed cases without failures or skips. Four installed
+actual-model tests retain neutral-acid charge/H, opposite-enantiomer identity and
+complete Atom/site joins. Root verifies167raw archive members,511wheel Python
+members, six unchanged CP311natives and85original model files. D032/D033close
+within this registered CP311scope; native SP-to-RDKit remains explicitly unsupported
+and raw native records retain unresolved Level2 semantics. No clean native rebuild,
+current GPU, other-version or global acceptance follows. Instrumented correctness
 timings are not performance evidence.
 
 Root owns the final source freeze, one-sdist/five-ABI build, provider-specific

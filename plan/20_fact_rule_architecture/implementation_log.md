@@ -9079,3 +9079,106 @@ HOLD with prior65invocations retained; final release, model/GPU/science/cost,
 Stage13entry and overall gates remain open. This coherent business checkpoint
 is prepared for normal commit/push; it changes no main objective or acceptance
 criteria.
+
+
+### 2026-11-04 — D033 native stereo codec and bounded repair release
+
+Continue Stage12 from committed/pushed e3b616b, not a new later-stage entry.
+Effective goal and main Stage7A/7E, Stage12 and11.3 remain aligned; canonical
+stereo decisions E1–E4 retain existing owners, immutable raw records, source-only
+ledger and zero new types/ABI. Current tracked worktree is clean. Actual prior
+OB diagnosis/prototypes and fresh bindings02 show both native import loss and
+projection loss/inversion; GetAllData(StereoData)/native casts expose TH, CT and
+SP configs, normalized ViewFrom/ShapeU, persistent IDs and specified flags. A
+real sulfoxide fixture has ImplicitRef with H0, proving lone-pair references must
+not be relabeled as H. No chemistry/model call is credited to these probes.
+
+Root Sol/max settles the bounded private codec in adapters/openbabel/README.md:
+openbabel-stereo/1, existing StereoRecord, normalized TH/winding/specified and
+CT-or-SP/U/specified codes, exact ordered carriers and native ID-to-row mapping.
+Sparse native extraction performs no perception. The fresh OB projection writes
+registered native/RDKit TH/CT records (native SP round trips retained), then
+sets chirality perceived to prevent accidental coordinate replacement. RDKit
+projection gets explicit native TH/CT translation without an OB toolkit import;
+unsupported SP/enhanced/other namespaces/families fail locally at the projection
+boundary. Raw descriptors are not promoted to Level2 or CIP claims. Current
+Atom H/isotope ownership and canonical record/remap/storage remain unchanged.
+
+Root owns this contract and maintained records. A local Sol/high subagent first
+reviews connected consumers and test boundaries read-only; a subsequent bounded
+implementation may own the OB stereo leaf, OB extraction seam, conversion
+operation, RDKit stereo dispatch and one focused test module. All workers share
+the worktree and preserve others' edits; no external helper or nested child is
+used. Before a source checkpoint require independent opposite-isomer controls,
+native unknown/SP/LP/noncontiguous-ID cases, remap/copy/component/pickle and
+source immutability, original failure evidence, affected CP311 stereo/conversion/
+H/MCA source tests and unchanged trained-feature controls. Installed/actual-model
+qualification, clean final release and final global/version/GPU/science/cost
+work remain separate. Performance execution stays HOLD. No acceptance gate or
+main objective is changed by this local repair decision.
+
+
+### 2026-11-04 — Owner-approved full-element SymmUnit boundary
+
+Root records the owner's accepted abstraction in Stage15 Section2 and the main
+plan's Section18 reference: SymmUnit is one complete contextual {R|t} element,
+not a fixed786-type enum or a generator-only family. Generator selection stays
+with SpaceGroup; factorization in a larger affine group does not establish
+selected-group membership. The P2_1 square retains its integer translation and
+complete row lists enumerate separate orbit images. This is planning-only;
+Stage15 production still waits for validated B_exp and its own entry decisions.
+No Stage12 source or acceptance gate is changed.
+
+Clarification to the preceding D033 probe wording: bindings02 parsed native
+chemical objects to inspect actual stereo configurations; no engine or model
+computation ran. Current D033 code/tests remain exclusively with the active
+local Sol/high implementation agent; root retains design, review, installed/
+model qualification, commits/push and acceptance ownership.
+
+
+### 2026-11-04 — Root-reviewed native stereo and installed MCA metadata closure
+
+Local Sol/high implements four production files plus83new OB tests under the
+root-settled codec. Root inspects native extraction/projection, RDKit parity and
+CT directions, H/LP arity, canonical ownership and explicit support boundaries.
+Final source runs pass121+855disjoint cases:976distinct,83new/893existing,0fail/
+0skip. Baseline60failures and subsequent indentation/fixture/arity failures stay
+retained; five extra-H rejections were reproduced before repair. Existing
+source-focused38RDKit test hashes are supplemental; the same frozen bytes later
+pass in the installed selection. No generic guard, new public DTO/schema/ABI,
+feature encoding or native/scientific algorithm is introduced.
+
+Root adds one real-model acid/opposite-enantiomer metadata regression without
+invented numeric goldens. A local Luna/low agent mechanically prepares existing
+package/origin machinery; root reviews it, includes the new adapter README and
+complete imported test support, then executes prepare_inputs.py and CP311
+run_qualification.py under /tmp/hotpot_plan20/long/stage12-stereo-installed-20261104/
+integration01. Exact child argv/environment, affinities and before/after guards
+are in *-execution.json and CONTROLLER.json. The new source model test passes;
+limited setuptools packaging reuses six unchanged frozen binaries (no compiler),
+then997tests in33modules pass outside the checkout with actual original MCA
+models enabled. No failures, skips or retries occur. Source4and installed9saved
+predictions preserve complete chemical metadata and Atom/site values; neutral
+acid has charge0/H4 and lactic-acid enantiomers retain charge0/H6 and distinct
+stereochemistry under independent parsing, allowing canonical atom reordering.
+
+Root independently verifies all1542frozen source/support files, six native bytes,
+85original model files,511wheel Python members, both final source JUnit sets,
+source/installed outcomes and all recorded main/child origins with0violations.
+It also re-verifies all167raw archive members/18717021rawbytes, archive SHA256
+265af42b2fcce118f8f759b0285d6bd320281d736f6729900c2c22018e089304, via
+python .plan20-artifacts/20261104/stage12/native-stereo-conversion/verify_root.py.
+Full evidence/commands remain in that archive and ROOT_REVIEW.json; maintained
+validation/native-stereo-conversion.json joins the attribution and remaining work.
+
+D032/D033close within their registered affected CP311 source/installed/actual-
+model scopes. All917historical acid-metadata failures remain failures. Native SP
+roundtrips through OB but explicitly rejects RDKit projection; higher unsupported
+families/groups and raw Level2 interpretations remain explicit limits. The new
+codec/direct consumers add no opposite-toolkit import; the whole OB adapter's
+pre-existing RDKit initialization-order guard remains unchanged. External helper
+service is not used. Final clean same-sdist/version/GPU/scientific/performance
+work and B_exp remain open; the65historical timing invocations retain their
+own attribution and no timing release occurs. This coherent business checkpoint
+includes the owner-approved Stage15 full-element clarification for normal commit/
+push; no stage or overall acceptance is declared.

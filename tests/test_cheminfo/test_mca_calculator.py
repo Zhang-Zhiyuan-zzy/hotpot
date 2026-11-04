@@ -88,3 +88,42 @@ def test_molecule_mca_sites_supports_empty_and_multiple_results(tmp_path):
     assert no_sites.mca_sites == {}
     assert len(multiple_sites.mca_sites) == 2
     assert {atom.symbol for atom in multiple_sites.mca_sites} == {"C", "O"}
+
+
+def test_actual_model_preserves_acid_and_stereoisomer_metadata(tmp_path):
+    from rdkit import Chem
+
+    smiles = ("CC(=O)O", "CC(=O)O", "C[C@H](O)C(=O)O", "C[C@@H](O)C(=O)O")
+    inputs = [read_mol(smiles[0]), smiles[1], read_mol(smiles[2]), read_mol(smiles[3])]
+    predictions = predict_mca_cpu(inputs, cpu_count=1, conformer_seed=2026)
+    (tmp_path / "acid_stereo_predictions.json").write_text(
+        json.dumps({
+            "backend": "cpu",
+            "cpu_count": 1,
+            "conformer_seed": 2026,
+            "input_forms": ["hotpot", "smiles", "hotpot", "hotpot"],
+            "input_smiles": smiles,
+            "predictions": [prediction.to_dict() for prediction in predictions],
+        }, indent=2) + "\n"
+    )
+
+    canonical = []
+    for source, prediction, hydrogens in zip(smiles, predictions, (4, 4, 6, 6), strict=True):
+        expected = Chem.MolFromSmiles(source)
+        observed = Chem.MolFromSmiles(prediction.smiles)
+        assert prediction.formal_charge == Chem.GetFormalCharge(observed) == 0
+        assert sum(atom.GetTotalNumHs() for atom in observed.GetAtoms()) == hydrogens
+        canonical.append(Chem.MolToSmiles(observed, isomericSmiles=True))
+        assert canonical[-1] == Chem.MolToSmiles(expected, isomericSmiles=True)
+        assert [atom.atom_index for atom in prediction.atom_predictions] == list(
+            range(expected.GetNumAtoms())
+        )
+        assert [atom.element for atom in prediction.atom_predictions] == [
+            atom.GetSymbol() for atom in expected.GetAtoms()
+        ]
+        for site in prediction.sites:
+            atom = prediction.atom_predictions[site.atom_index]
+            assert site.element == atom.element
+            assert site.mca_kj_mol == atom.mca_kj_mol
+    assert canonical[0] == canonical[1]
+    assert canonical[2] != canonical[3]

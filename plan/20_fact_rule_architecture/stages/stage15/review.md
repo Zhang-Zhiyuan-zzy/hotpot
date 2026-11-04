@@ -209,6 +209,24 @@ explicit validated common-group rebind; familiar crystallographic kinds or a
 compatible metric alone do not prove common-lattice/group membership. Arbitrary
 mixed isometries have no promised crystallographic closure.
 
+Owner-approved abstraction (2026-11-04): a `SymmUnit` is one **complete group
+element** `{R|t}` in its declared context. It is neither one of 786 fixed
+operation types nor restricted to an elementary generator. A generator is an
+ordinary `SymmUnit` selected as part of a group-level generating set; generating
+sets need not be unique. Decomposing an affine operation in a larger group does
+not imply that its factors belong to the selected SpaceGroup. For example, in
+`P2_1`, `g={2_y|(0,1/2,0)}` is a member and `g**2=T_(0,1,0)`, while the pure
+rotation `{2_y|0}` and the half-cell translation `T_(0,1/2,0)` are not separately
+members. Keep the full element and translation carry in the common algebra.
+
+Complete representative lists enumerate separate orbit images. For a fourfold
+axis, the identity, 90°, 180° and 270° representatives all act on the input;
+composing two rows gives another group element rather than replacing their two
+images. SpaceGroup owns membership, setting, lattice and complete cell
+representatives; a generator-based construction is another group-level input or
+derivation route, not a second fact owner or SymmUnit family. The 786-pair
+cross-group catalogue union is neither closed nor a generator/type limit.
+
 For declared representatives `r_i`, preserve exact carries:
 
 ```text

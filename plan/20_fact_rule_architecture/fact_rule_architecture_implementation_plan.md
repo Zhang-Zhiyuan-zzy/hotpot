@@ -3240,6 +3240,12 @@ Stage0–13 mainline, define their work:
 | Stage14 | General Molecule/Crystal ↔ PyG Data: `to_pyg()` maximizes useful new-model training information; `from_pyg()` structures encoded chemistry for query/review with minimal supported information loss. Deployed models own demand-driven, efficient custom feature interfaces. Directly retire `to_pyg_data()` without a legacy-output route or documentation. | [PyG implementation plan](stages/stage14/review.md) |
 | Stage15 | Crystal spatial symmetry and molecular expansion: complete Crystal/SpaceGroup/SymmUnit trees; SpaceGroup-owned group/setting/operations and a complete 230-type symbolic catalogue; closed affine algebra and Python group operators; cell/supercell generation, whole-molecule coordinate + graph/site matching and periodic geometry/topology tools. Crystal symmetry views are read-only derivatives. No OpenBabel/RDKit/CCDC Python API calls in this Crystal route. | [Crystal implementation plan](stages/stage15/review.md), [operation table](stages/stage15/operation_table.md) and [230-type catalogue](stages/stage15/space_group_catalogue.md) |
 
+The accepted Stage15 abstraction is one full `{R|t}` group element per
+`SymmUnit`, with full translation carries and same-group closure. Generators
+are selected ordinary elements owned by SpaceGroup's construction, not a more
+primitive SymmUnit family; the 786-pair cross-group catalogue union is not a
+closed operation domain. Details and the `P2_1` example are in Stage15 Section2.
+
 Planning and bounded read-only preparation may proceed during Stage12 without
 changing its frozen product bytes. Production implementation starts from the
 validated main-scope `B_exp`. Stage13 remains its separately branched experiment

@@ -9,6 +9,7 @@ from ...structure.stereo import AtomTransportRecord, HydrogenTransportState
 from ...rules.chemistry.elements import _is_metal
 from . import perception as _perception
 from . import crystal as _crystal
+from . import stereo_transport as _stereo
 
 
 _PARTIAL_CHARGE_PRESENCE = "_hotpot_partial_charge_presence"
@@ -119,7 +120,9 @@ def _obmol_record(obmol, initial, stereo_payload):
         bond_sources=("openbabel",) * len(entries),
         bond_metadata=tuple(_freeze_value(attrs["bond_source_metadata"]) for _, attrs in entries),
         charge=(True, obmol.GetTotalCharge(), "openbabel"), cell=cell,
-        stereo_payload=replace(stereo_payload, atom_facts=tuple(atom_facts)),
+        stereo_payload=replace(stereo_payload,
+            records=stereo_payload.records + _stereo._extract_stereo_records(obmol),
+            atom_facts=tuple(atom_facts)),
         source_frames=(), conformer_results=(), frame_selection=(0, None),
         partial_charge_result=None,
     )

@@ -5,6 +5,7 @@ import numpy as np
 
 from ..adapters import conversion as _input
 from ..adapters.openbabel import conversion as _openbabel
+from ..adapters.openbabel import stereo_transport as _ob_stereo
 from ..adapters.rdkit import conversion as _rdkit
 from ..adapters.rdkit import stereo_transport as _stereo
 from ..structure._commit import _FactTransaction
@@ -93,6 +94,7 @@ def mol2obmol(mol):
         obmol, row_to_idx = _openbabel._factual_obmol(obmol, atom_rows, bond_rows, cell)
         isotopes = tuple(getattr(atom, "isotope", None) for atom in mol.atoms)
         _openbabel._set_atom_inventory(obmol, row_to_idx, hydrogens, isotopes)
+        _ob_stereo._apply_stereo_payload(obmol, _get_stereo_payload(mol), row_to_idx, hydrogens)
         return obmol, row_to_idx
 
 

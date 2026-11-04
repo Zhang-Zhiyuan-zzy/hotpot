@@ -1,5 +1,5 @@
 {
-  "status": "ROOT_ACCEPTED_BOUNDED_CP311_SOURCE_CORRECTION_INSTALLATION_AND_REAL_MODEL_PENDING",
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_SOURCE_CORRECTION_FOLLOWUP_INSTALLED_AND_MODEL_PASSED",
   "scope": "P20-D032 shared SMILES H/charge correction; CP311 checkout-source evidence only",
   "source_commit_before_checkpoint": "107a7a771e1ae2d3627276db8ee381a472158b5a",
   "frozen_product_source": "436e027690a0b0f4125c11e3bf3259423c716573",
@@ -111,14 +111,12 @@
   "failure_accounting": "Original baseline 15 failures and initial candidate two spawn-wrapper failures remain. Corrected private wrapper reran exactly the two affected cases; duplicate child reentries receive no coverage credit.",
   "separate_stereo_defect": {
     "id": "P20-D033",
-    "status": "S0_IN_PROGRESS",
-    "scope": "Native Open Babel import and Hotpot-to-Open-Babel projection both lose declared stereo. Independent six-case diagnosis and 12-case feasibility prototypes are archived under ob-stereo-private/; prototypes are not product fixes or acceptance."
+    "status": "CLOSED_BOUNDED_CP311",
+    "initial_diagnosis_scope": "Native Open Babel import and Hotpot-to-Open-Babel projection both lose declared stereo. Independent six-case diagnosis and 12-case feasibility prototypes are archived under ob-stereo-private/; prototypes are not product fixes or acceptance.",
+    "followup": "native-stereo-conversion.json"
   },
   "commands_record": "implementation01/COMMANDS.json in the immutable archive; repeated in ROOT_REVIEW.json",
   "remaining": [
-    "Affected outside-checkout installed CP311 tests",
-    "Actual neutral-acid MCA prediction with original model and consistent metadata",
-    "D033 explicit native stereo translation and affected source/installed/model evidence",
     "Final clean same-sdist release and other required version/GPU/scientific/performance gates"
   ],
   "limits": [
@@ -130,5 +128,14 @@
     "Only README wording changed after tests; all product and test bytes remain as validated.",
     "Root retains commit, rebuilt-wheel, installed/model qualification and acceptance ownership; timing remains HOLD."
   ],
-  "gate_closed": false
+  "gate_closed": false,
+  "source_checkpoint_limits_scope": "The limits above describe the initial source checkpoint; later installed/model/stereo evidence is separately attributed below.",
+  "followup_installed_and_actual_model_qualification": {
+    "record": "native-stereo-conversion.json",
+    "installed_passed": 997,
+    "actual_model_functions": 4,
+    "neutral_acid_and_enantiomer_metadata_passed": true,
+    "original917failures_retained": true,
+    "scope": "affected current CP311 boundary; no clean-native/GPU/global acceptance"
+  }
 }

@@ -324,7 +324,7 @@ def _transported_atom_carriers(record):
     return tuple(tokens)
 
 
-def _native_atom_carriers(rdmol, atom):
+def _native_atom_carriers(rdmol, atom, *, lone_pair=False):
     bracket_explicit_hydrogens = atom.GetNumExplicitHs()
     implicit_hydrogens = atom.GetNumImplicitHs()
     if bracket_explicit_hydrogens > 1 or implicit_hydrogens > 1:
@@ -341,6 +341,8 @@ def _native_atom_carriers(rdmol, atom):
         + bracket_explicit_hydrogens
         + implicit_hydrogens
         != 4
+        and not (lone_pair and atom.GetDegree() == 3
+                 and not bracket_explicit_hydrogens and not implicit_hydrogens)
     ):
         raise ValueError(
             "RDKit tetrahedral atom stereo requires exactly four graph or "
@@ -398,7 +400,7 @@ def _apply_atom_stereo(rdmol, atom, record):
         )
 
     transported = _transported_atom_carriers(record)
-    native = _native_atom_carriers(rdmol, atom)
+    native = _native_atom_carriers(rdmol, atom, lone_pair=len(transported) == 3)
     if len(native) not in (3, 4) or len(transported) not in (3, 4):
         raise ValueError(
             "RDKit tetrahedral atom stereo requires three or four carriers"
@@ -460,6 +462,71 @@ def _apply_bond_stereo(rdmol, bond, record):
     )
 
 
+def _apply_native_ob_stereo(rdmol, record):
+    from rdkit import Chem
+    from ..openbabel.stereo_transport import _native_code
+
+    family, value, specified = _native_code(record)
+    if family == 'SP':
+        raise ValueError('RDKit square-planar SP projection has no registered native permutation translation')
+    if record.group is not None:
+        raise ValueError('Native Open Babel stereo cannot carry enhanced groups')
+    if family == 'TH':
+        if record.anchor.kind is not StereoAnchorKind.ATOM or len(record.anchor.atom_indices) != 1:
+            raise ValueError('Native Open Babel TH requires an atom anchor')
+        atom = rdmol.GetAtomWithIdx(record.anchor.atom_indices[0])
+        native = _native_atom_carriers(rdmol, atom, lone_pair=any(
+            carrier.kind is StereoCarrierKind.LONE_PAIR for carrier in record.carriers))
+        if len(native) == 3:
+            kind = (StereoCarrierKind.IMPLICIT_H if atom.GetNumExplicitHs() or atom.GetNumImplicitHs()
+                    else StereoCarrierKind.LONE_PAIR)
+            native += ((kind, None),)
+        transported = tuple((carrier.kind, carrier.atom) for carrier in record.carriers)
+        if len(transported) != 4:
+            raise ValueError('Native Open Babel TH requires four ordered carriers')
+        odd = _odd_permutation(transported, native)
+        if not specified or value == 'UNKNOWN':
+            atom.SetChiralTag(Chem.ChiralType.CHI_UNSPECIFIED)
+        else:
+            clockwise = (value == 'CW') != odd
+            atom.SetChiralTag(Chem.ChiralType.CHI_TETRAHEDRAL_CW if clockwise
+                             else Chem.ChiralType.CHI_TETRAHEDRAL_CCW)
+        return False
+
+    if record.anchor.kind is not StereoAnchorKind.BOND or len(record.carriers) != 4:
+        raise ValueError('Native Open Babel CT requires a bond and four ordered carriers')
+    begin, end = record.anchor.atom_indices
+    bond = _bond_for_anchor(rdmol, (begin, end))
+    if bond.GetBondType() != Chem.BondType.DOUBLE:
+        raise ValueError('Native Open Babel CT anchor requires a double bond')
+    selected = []
+    positions = []
+    for side, (center, other) in enumerate(((begin, end), (end, begin))):
+        atom = rdmol.GetAtomWithIdx(center)
+        expected = tuple((StereoCarrierKind.ATOM, neighbor.GetIdx())
+                         for neighbor in atom.GetNeighbors() if neighbor.GetIdx() != other)
+        hydrogens = atom.GetNumExplicitHs() + atom.GetNumImplicitHs()
+        if hydrogens > 1 or len(expected) + hydrogens > 2:
+            raise ValueError('Native Open Babel CT has unsupported graph or virtual neighbor count')
+        if len(expected) == 1:
+            kind = (StereoCarrierKind.IMPLICIT_H if hydrogens
+                    else StereoCarrierKind.LONE_PAIR)
+            expected += ((kind, None),)
+        pair = record.carriers[2 * side:2 * side + 2]
+        transported = tuple((carrier.kind, carrier.atom) for carrier in pair)
+        if len(expected) != 2 or set(transported) != set(expected) or len(set(transported)) != 2:
+            raise ValueError('Native Open Babel CT carriers do not match ordered anchor sides')
+        position = next(index for index, carrier in enumerate(pair) if carrier.kind is StereoCarrierKind.ATOM)
+        selected.append(pair[position].atom)
+        positions.append(2 * side + position)
+    if bond.GetBeginAtomIdx() != begin:
+        selected.reverse()
+    bond.SetStereoAtoms(*selected)
+    bond.SetStereo(Chem.BondStereo.STEREOANY if not specified else
+                   Chem.BondStereo.STEREOTRANS if sum(positions) % 2 == 0 else Chem.BondStereo.STEREOCIS)
+    return True
+
+
 def _display_direction_for_target(bond, fact):
     direction = fact.display_direction
     if direction is None or bond.GetBeginAtomIdx() == fact.atom_indices[0]:
@@ -487,7 +554,11 @@ def _apply_stereo_payload(rdmol, payload):
     if payload.records:
         rdmol.UpdatePropertyCache(strict=False)
     groups = {}
+    native_alkene = False
     for record in payload.records:
+        if record.source_namespace == 'openbabel-stereo/1':
+            native_alkene = _apply_native_ob_stereo(rdmol, record) or native_alkene
+            continue
         if record.source_namespace != _RDKIT_STEREO_NAMESPACE:
             raise ValueError(
                 "RDKit export cannot represent stereo namespace: "
@@ -509,6 +580,8 @@ def _apply_stereo_payload(rdmol, payload):
         if record.group is not None:
             groups.setdefault(record.group, []).append(group_item)
 
+    if native_alkene:
+        Chem.SetDoubleBondNeighborDirections(rdmol)
     seen_bond_facts = set()
     for fact in payload.bond_facts:
         bond_key = frozenset(fact.atom_indices)

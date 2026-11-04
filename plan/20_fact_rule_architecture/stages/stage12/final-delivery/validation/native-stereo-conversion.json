@@ -1,0 +1,182 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_SOURCE_AND_INSTALLED_REPAIR",
+  "scope": "P20-D032/D033 registered SMILES/stereo conversion and actual MCA metadata/joins; current CP311 source and outside-checkout installed boundary",
+  "source_commit_before_checkpoint": "e3b616b14059885ff7cf7f746a01230c8991604a",
+  "source_files": {
+    "hotpot/cheminfo/adapters/openbabel/stereo_transport.py": {
+      "sha256": "7b4afc89045f40ae2720ce594f7fb7a9960e3c1d5ded9729843115056ae031ff",
+      "size": 11104,
+      "lines": 213
+    },
+    "hotpot/cheminfo/adapters/openbabel/conversion.py": {
+      "sha256": "0d0e38d9dfd87d973499a9e950f5284dc1f8d35d16019d8f25e706134a5f8296",
+      "size": 8826,
+      "lines": 231
+    },
+    "hotpot/cheminfo/operations/conversion.py": {
+      "sha256": "b437dcf75b463490b974a2bd6d93ec6c9a61862d3c62bc44cd7ed01992920dc1",
+      "size": 9381,
+      "lines": 223
+    },
+    "hotpot/cheminfo/adapters/rdkit/stereo_transport.py": {
+      "sha256": "04c597c1f770e35930c96fc175b002d67c950acc65a1b8f95a8af481fb8bdd27",
+      "size": 24884,
+      "lines": 648
+    },
+    "tests/test_cheminfo/test_obconvert_stereo_level1.py": {
+      "sha256": "ad0e114131b919571898ed28e84312f5099a9f1de8be613ccc3d4d23f5817f5d",
+      "size": 20456,
+      "lines": 442
+    }
+  },
+  "contract": "adapters/openbabel/README.md: openbabel-stereo/1 native TH/CT/SP transport; existing canonical owner, no new public type/schema/ABI/model encoding",
+  "source_tests": {
+    "distinct_passed": 976,
+    "new": 83,
+    "existing": 893,
+    "final_runs_disjoint": true,
+    "failed": 0,
+    "skipped": 0
+  },
+  "new_source_actual_model": {
+    "passed": 1,
+    "failed": 0,
+    "skipped": 0,
+    "inputs": [
+      "Hotpot neutral acid",
+      "SMILES neutral acid",
+      "Hotpot lactic-acid enantiomer1",
+      "Hotpot lactic-acid enantiomer2"
+    ],
+    "observations": [
+      {
+        "smiles": "CC(=O)O",
+        "formal_charge": 0,
+        "model_variant": "fp16"
+      },
+      {
+        "smiles": "CC(=O)O",
+        "formal_charge": 0,
+        "model_variant": "fp16"
+      },
+      {
+        "smiles": "OC(=O)[C@@H](O)C",
+        "formal_charge": 0,
+        "model_variant": "fp16"
+      },
+      {
+        "smiles": "OC(=O)[C@H](O)C",
+        "formal_charge": 0,
+        "model_variant": "fp16"
+      }
+    ]
+  },
+  "installed_tests": {
+    "passed": 997,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "modules": 33,
+    "actual_model_test_functions": 4
+  },
+  "actual_models": {
+    "original_files_unchanged": 85,
+    "variant": "fp16",
+    "route": "explicit CPU public API",
+    "observed_counts": {
+      "source-model01": {
+        "saved_predictions": 4,
+        "atom_values": 20,
+        "site_values": 14
+      },
+      "installed01": {
+        "saved_predictions": 9,
+        "atom_values": 43,
+        "site_values": 19
+      }
+    },
+    "business_oracles": [
+      "independently parsed charge0 and total H4 for neutral acetic acid",
+      "independently parsed charge0 and total H6 for both lactic-acid enantiomers",
+      "opposite input stereoisomers remain distinct, permitting different canonical atom orders",
+      "complete all-Atom rows, element identity and site-to-atom value joins"
+    ],
+    "not_required": "No invented MCA numeric golden or forced equality between stereoisomers"
+  },
+  "delivery": {
+    "guarded_files": 1542,
+    "original_model_files": 85,
+    "unchanged_cp311_natives": 6,
+    "wheel_python_members_verified": 511,
+    "wheel_name": "hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "wheel_sha256": "9e65334878d37378b6258b4efc3a1ddae9afdb6b48af7992a15d127b19af81f5",
+    "native_compilation": false
+  },
+  "origins": {
+    "source-model01": {
+      "origin_observations": 431,
+      "attributed_processes": 4,
+      "process_origin_violations": 0
+    },
+    "installed01": {
+      "origin_observations": 555,
+      "attributed_processes": 14,
+      "process_origin_violations": 0
+    }
+  },
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/native-stereo-conversion/raw-evidence.tar.gz",
+    "manifest": ".plan20-artifacts/20261104/stage12/native-stereo-conversion/MANIFEST.json",
+    "sha256": "265af42b2fcce118f8f759b0285d6bd320281d736f6729900c2c22018e089304",
+    "manifest_sha256": "bd1303546395385ceffcfeb7c7371ca90f34b32344945cc6c5e7553626fb84d6",
+    "members_independently_verified": 167,
+    "raw_bytes": 18717021
+  },
+  "root_review": {
+    "path": ".plan20-artifacts/20261104/stage12/native-stereo-conversion/ROOT_REVIEW.json",
+    "sha256": "d21bdf6db943e6575cf17e1b381a9cb090ce2386580a5956c89839956343ab28",
+    "verification_command": "python .plan20-artifacts/20261104/stage12/native-stereo-conversion/verify_root.py"
+  },
+  "execution_index": "integration/ROOT_EXECUTION_RELEASE.json, CONTROLLER.json, source-model01/*-execution.json and installed01/*-execution.json; ob-implementation/COMMANDS.json",
+  "commands": [
+    "python /tmp/hotpot_plan20/long/stage12-stereo-installed-20261104/integration01/prepare_inputs.py",
+    "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -s -B /tmp/hotpot_plan20/long/stage12-stereo-installed-20261104/integration01/run_qualification.py"
+  ],
+  "runtime": {
+    "python": "3.11.16",
+    "openbabel": "3.2.1",
+    "rdkit": "2026.09.1",
+    "qualification_cpu_affinity": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "native_compilation": false
+  },
+  "failure_accounting": [
+    "All60original baseline source failures and subsequent implementation/fixture/arity failures remain in the archive; final121+855cases are disjoint.",
+    "Five missing extra-H rejections were reproduced before the bounded inventory repair. Explicit virtual-H records cannot silently become lone pairs.",
+    "All917historical actual MCA neutral-acid metadata failures remain failures; new passing predictions do not rewrite their provenance."
+  ],
+  "issue_disposition": {
+    "P20-D032": "CLOSED in affected CP311 source/installed and actual-model metadata scope",
+    "P20-D033": "CLOSED for registered native TH/CT/SP OB transport and TH/CT RDKit projection, with explicit support limits"
+  },
+  "limits": [
+    "Current CP311/OB3.2.1/RDKit2026.09.1 scope, with existing native binaries.",
+    "The whole OB adapter retains its pre-existing RDKit initialization-order import guard; only the new codec/direct consumers prove opposite-toolkit isolation.",
+    "Raw native codes retain existing unresolved Level2 semantics; no CIP interpretation or new public type/schema/ABI/model encoding.",
+    "Original source failures and all917historical acid-metadata failures remain failures; new observations do not rewrite them.",
+    "No current GPU, other-Python, clean native rebuild, performance, main-scope or overall acceptance claim.",
+    "Native SP-to-RDKit and unregistered families/groups fail explicitly; raw toolkit records retain existing unresolved Level2 semantics.",
+    "Existing namespace-independent component/remap/merge tests pass; new native fixtures directly exercise copy/pickle/reorder/H materialization, without claiming a separate native-component corpus.",
+    "The source-focused38existing RDKit tests have supplemental handoff hashing; the unchanged same test bytes also pass under the fully frozen installed qualification."
+  ],
+  "remaining": [
+    "Final current-source freeze, applicable clean same-sdist/five-ABI delivery and affected qualification",
+    "Final model/GPU/scientific/performance evidence reuse or necessary followup under declared business scope",
+    "Final issue dispositions, main-scope report and validated B_exp"
+  ],
+  "gate_closed": false
+}

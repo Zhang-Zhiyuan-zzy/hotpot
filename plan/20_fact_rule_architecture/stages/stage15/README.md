@@ -14,7 +14,9 @@ Placed relations have a bounded
 [1,068-test CP311 checkpoint](domain/validation/relation_report.md).
 Explicit finite-loop linking has a bounded
 [1,128-test CP311 checkpoint](domain/validation/linking_report.md).
-Remaining Stage15D periodic contact/surface findings and15E–F remain open. The
+Periodic contact/surface observations have a bounded
+[1,246-test CP311 checkpoint](domain/validation/geometry_report.md).
+Remaining15E–F remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic

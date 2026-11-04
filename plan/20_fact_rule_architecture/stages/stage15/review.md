@@ -19,7 +19,8 @@ One-placement action is accepted at [874 source/installed CP311 checks](domain/v
 Generation15C is accepted at [1,038 source/installed CP311 checks](domain/validation/generation_report.md).
 Placed relations15D1 are accepted at[1,068 source/installed CP311 checks](domain/validation/relation_report.md).
 Finite-loop linking15D2a is accepted at[1,128 source/installed CP311 checks](domain/validation/linking_report.md).
-Remaining periodic contact/surface observations15D2b, formats15E and delivery15F remain open. The accepted
+Periodic contact/surface observations15D2b are accepted at[1,246 source/installed CP311 checks](domain/validation/geometry_report.md).
+Formats15E and delivery15F remain open. The accepted
 [15A decision](domain/contracts/decisions.md) resolves the proposal choices below.
 
 ## 1. Complete proposed public tree — before implementation

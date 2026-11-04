@@ -10244,3 +10244,37 @@ bounded usability without comparison/leak/large-ring throughput claim. Archive
 at .plan20-artifacts/20261105/stage15/finite-linking. Exact source/wheel/checks
 and limits are in linking_checkpoint.json/linking_report.md.15D2b/E/F/14D and
 overall completion remain open; no unrelated owner work is staged.
+
+
+### 2026-11-05 — Stage15D2b periodic geometry qualification
+
+Prepared exact-metric Cartesian periodic bins now feed contact and complete-unit
+neighborhood work; pure helpers retain actual full-image keys and directed Bond
+images. Current-row placement relations, actual-image adjacency, existing cycle
+selection/native surface batches and separate finite-loop observations are
+integrated. Unknown/lift/chemistry limits remain local and retain reasons;
+findings are immutable before RuntimeWarnings and no source is repaired.
+Independent localSol/xhigh review reproduced1failed/8passed:unsupported complete
+stereo-map reasons were dropped on contact assembly. Root partitioned a two-file
+repair; first attempt153focused/9unchangedwitnesses passed. Root reviewed the
+common-unit/common-translation index, supported-map precedence and regressions.
+No external helper or forbidden pending agent was used.
+
+Original fixture-shadowing, node-ID-wrapper and identity-threshold failures are
+preserved. Identity/translation now preserves source Cartesian points, avoiding
+an artificial threshold perturbation. Finalfull02 CP311source1246pass/0fail/
+0error/0skip(19.446s); actual outside-checkout installedqualification02 same
+1246pass(45.984s),205correctorigins/0violations,920site/43support unchanged.
+Six native payloads unchanged;attributed repack,not fresh native build.
+
+Current-only public query medians:inversiondimer4.305437ms,boundarysurface
+8.179175ms,bridgedHopf23.445208ms;sparse64/256/1024sites93.999794/388.714593/
+1861.170750ms. Onewarmup/fivesamples/separate tracedmemory;actualhardware/load
+recorded(sharedinitial1.12/0.82/0.99). Root accepts measured bounded usability;
+no parity/speedup/leak/exclusivehost/dense-network claim. Archive353verified
+payloads/15904626bytes,SHA256a0b9865175bd87befd5f4a3bfdc67dfc2c8d6cd603e3e4f991622db2493e0890,
+.plan20-artifacts/20261105/stage15/periodic-geometry. geometry_checkpoint/report
+bind exact commands,source,wheel,failures,observations and remaining limits.
+15E/F,14D and final integration stay open; no fourth P20-D036 retry or unrelated
+owner file access/staging. The local child now prepares only an isolated pure
+portable-cell candidate while root retains worktree/acceptance/Git control.

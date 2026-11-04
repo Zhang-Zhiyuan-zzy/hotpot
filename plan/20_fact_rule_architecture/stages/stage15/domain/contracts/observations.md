@@ -102,3 +102,45 @@ state and failure observations. No required D2 or15E/F/14D work is closed by D1.
 After three unsuccessful attempts on one bounded issue, preserve its evidence
 and downstream impact, then advance independent tasks rather than a fourth try.
 Root retains integration, acceptance and normal small business commits/pushes.
+
+
+## D2b concrete query projection and finding contents
+
+Geometry queries use transient current-row/group placements, not a second
+chemical carrier and not historical generated origins. Every active group
+representative acts on the current rows and actual directed Bond images.
+Contacts use prepared Cartesian periodic bins; whole finite relation search
+uses the same neighbor preparation on unit centres/bounds. Full-image subjects
+are canonical under one common integer translation. Numeric coincidence alone
+never identifies sites. Actual bonded image pairs are excluded from ordinary
+close-contact reports, but coincident bonded sites remain observable. Complete
+coincident whole-unit relations are reported separately and prevent an
+independence claim; unknown required chemistry/lifts retain an explicit reason
+with contact measurements. Orbit membership alone exempts no nearby pair.
+
+Relevant cycles use the existing full_graph/ligand_skeleton selector and native
+cycle foundation. Only actual zero-voltage cycle lifts are finite. A missing
+image or nonzero cycle gives a local unavailable observation, while independent
+rings/contacts continue. Native segment/cycle batches prepare each cycle once,
+retaining surface-model, feature, intersection and indeterminacy evidence.
+Shared actual image vertices are excluded from nonincident surface tests; an
+equal original row at a different image is not excluded. CRYSTAL-INTERPENETRATION
+means a selected cycle boundary meets another selected cycle surface, not a
+scientific impossibility or infinite-network classification.
+
+Automatic loop observations compare distinct image-disjoint selected finite
+cycles whose bounds can overlap, including nonzero self-image translations.
+Explicit linking_number retains its own user-oriented cycles and complete
+applicability diagnosis. Automatic queries omit pairs that share actual graph
+vertices or are whole coincident molecular placements; a direct explicit
+request still reports their finite-invariant limitation. Gauss zero stays
+silent; nonzero or unavailable values retain their exact image subjects.
+
+Every Finding is(code,subjects,tuple(name,value)), recursively immutable.
+Contact measurements contain actual Angstrom distance, caller cutoff, complete
+relation state/reason when discovered; surface measurements retain the existing
+predicate's actual state/features/indeterminacy/intersections and enumeration
+evidence; link measurements retain the integer or exact unavailable reason and
+numerical enclosure. Known method conventions remain here rather than adding
+per-value confidence/status envelopes. Prepare the complete tuple before
+emitting RuntimeWarnings; per-code breaks never edit inputs or finding content.

@@ -5053,7 +5053,7 @@
     },
     "stage15": {
       "contract": "stages/stage15/domain/contracts/decisions.md",
-      "status": "15A/B/C,15D1 and finite-linking15D2a CP311 accepted;15D2b/E/F open",
+      "status": "15A/B/C/D CP311 bounded checkpoints accepted;15E/F open",
       "checks": [
         "exact230group/4425operator algebra and changed-index settings",
         "standard oriented cell and complete lifecycle",
@@ -5065,7 +5065,6 @@
         "complete-work costs/resources"
       ],
       "remaining": [
-        "15D2b prepared neighborhoods and periodic contact/surface findings",
         "15E format closure",
         "15F current delivery/cost/support",
         "Stage14D integration"
@@ -5075,7 +5074,8 @@
       "action_checkpoint": "stages/stage15/domain/validation/action_checkpoint.json",
       "generation_checkpoint": "stages/stage15/domain/validation/generation_checkpoint.json",
       "relation_checkpoint": "stages/stage15/domain/validation/relation_checkpoint.json",
-      "linking_checkpoint": "stages/stage15/domain/validation/linking_checkpoint.json"
+      "linking_checkpoint": "stages/stage15/domain/validation/linking_checkpoint.json",
+      "geometry_checkpoint": "stages/stage15/domain/validation/geometry_checkpoint.json"
     }
   },
   "migration_inventory_file": "baseline_inventory/migration_inventory.json",

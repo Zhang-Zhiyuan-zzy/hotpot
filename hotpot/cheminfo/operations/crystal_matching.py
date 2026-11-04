@@ -1,7 +1,6 @@
 """Read-only relations between complete, already placed molecular units."""
 
 from dataclasses import replace
-from itertools import combinations
 import warnings
 
 import numpy as np
@@ -15,7 +14,7 @@ from ..rules.chemistry.crystal_matching import (
 )
 from ..rules.mathematics import symmetry as affine
 from ..rules.mathematics.cell import _to_fractional
-from ..rules.mathematics.periodic import _finite_component_lifts, _lattice_images, _wrap_fractional
+from ..rules.mathematics.periodic import _finite_component_lifts, _lattice_images, _periodic_pairs, _wrap_fractional
 from ..structure._builder import _freeze_value
 from ..structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX
 from ..structure.symmetry import SymmUnit
@@ -151,20 +150,27 @@ def _same_molecule_data(crystal, tolerance):
     candidates, unresolved = [], [('CRYSTAL-MOLECULAR-LIFT-UNAVAILABLE', rows, reason)
                                       for rows, reason in unavailable]
     targets = {}
-    for first_index, second_index in combinations(range(len(placements)), 2):
+    if placements:
+        centres = np.array([item['coordinates'].mean(axis=0) for item in placements])
+        radii = tuple(float(np.linalg.norm(item['coordinates'] - centre, axis=1).max())
+                      for item, centre in zip(placements, centres))
+        neighbors = _periodic_pairs(centres, matrix, 2 * max(radii) + tolerance)
+    else:
+        neighbors = ()
+    for first_index, second_index, image, distance in neighbors:
         first, second = placements[first_index], placements[second_index]
-        if len(first['rows']) != len(second['rows']):
+        if (len(first['rows']) != len(second['rows'])
+                or distance > radii[first_index] + radii[second_index] + tolerance):
             continue
         if second['record'] is not None and second_index not in targets:
             targets[second_index] = _NativeTarget(_pack_matching_target(second['record']))
-        for image in _overlap_images(first, second, matrix, tolerance):
-            shifted = _shift_placement(second, image, matrix)
-            matches, reason = _placed_matches(first, shifted, tolerance, targets.get(second_index))
-            if reason is not None:
-                unresolved.append(('CRYSTAL-UNSUPPORTED-PROJECTION', (first['keys'], shifted['keys']), reason))
-            for mapping, distance in matches:
-                pairs = tuple((first['keys'][row], shifted['keys'][target]) for row, target in enumerate(mapping))
-                candidates.append((~shifted['action'] @ first['action'], pairs, distance))
+        shifted = _shift_placement(second, image, matrix)
+        matches, reason = _placed_matches(first, shifted, tolerance, targets.get(second_index))
+        if reason is not None:
+            unresolved.append(('CRYSTAL-UNSUPPORTED-PROJECTION', (first['keys'], shifted['keys']), reason))
+        for mapping, distance in matches:
+            pairs = tuple((first['keys'][row], shifted['keys'][target]) for row, target in enumerate(mapping))
+            candidates.append((~shifted['action'] @ first['action'], pairs, distance))
     return tuple(candidates), tuple(dict.fromkeys(unresolved)), record, units, placements
 
 

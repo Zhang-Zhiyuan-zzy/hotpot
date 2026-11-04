@@ -110,6 +110,12 @@ class Crystal:
         from ..operations.crystal_geometry import _linking_number
         return _linking_number(self, first_cycle, second_cycle, tolerance)
 
+    def geometry_findings(self, *, coincidence_tolerance, close_contact_cutoff,
+                          ring_scope='full_graph', max_ring_size=None):
+        from ..operations.crystal_geometry import _geometry_findings
+        return _geometry_findings(self, coincidence_tolerance, close_contact_cutoff,
+                                  ring_scope, max_ring_size)
+
     def copy(self):
         from ..operations.crystal import _copy_crystal
         return _copy_crystal(self)

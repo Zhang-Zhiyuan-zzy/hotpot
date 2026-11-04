@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "status": "ACCEPTED_CP311_LAZY_IMPORTS",
+  "nodes": {
+    "source": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/freeze.json",
+      "bytes": 357664,
+      "sha256": "f4c9248e5241f47fbc4dab9844c6e74db623de24e389f3274cd9cf216a41f143"
+    },
+    "metadata_rebind": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/metadata-recheck/freeze.json",
+      "bytes": 357898,
+      "sha256": "7ef856dc287b9ba28a5ede0b7c4012e9a29b59d197e7b3750deee4039001cba6"
+    },
+    "format_rebind": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/allowlist-format-rebind.json",
+      "bytes": 501,
+      "sha256": "29b795114a24ddd43222573af5203abbc272b6c72dec7d0616dd6b4b9f2bd424"
+    },
+    "final_bindings": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/final-bindings.json",
+      "bytes": 232210,
+      "sha256": "38039e8402f6e7273f95868d97b728dc8dc3c0215ec58e3ffedf5c4922bfe59b"
+    },
+    "package": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/package-attempt01/archive-identity.json",
+      "bytes": 232114,
+      "sha256": "6b31b5953894fd1267d5360ee34d8c7902cc3723c9db0f1d8ffc8c7216e7659c"
+    },
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/artifacts/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6419598,
+      "sha256": "c02d527985bbff01a889bea0956468142ab420bfd4b8ce507e24ec9cbf13e24d"
+    },
+    "sdist": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/artifacts/hotpot_zzy-0.5.4.5.tar.gz",
+      "bytes": 2154177,
+      "sha256": "0a8e6829785fe17f5ee1524e46f842ae39d6e24f97ecd92a410338e6dec9c8b8"
+    },
+    "manifest": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/manifest.json",
+      "bytes": 54572,
+      "sha256": "6400e69cbd26b17a78c64836470bbb682ad62b129b963d75b5f74d3413906f91"
+    },
+    "root_review": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/root-verification.json",
+      "bytes": 1841,
+      "sha256": "6c769e046af280147fca655613bcb757d02b5491dc658eb836f18db11c442589"
+    },
+    "fresh-source/source-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/fresh-source/source-attempt01/execution.json",
+      "bytes": 4373,
+      "sha256": "744dbeb8437f2041394bd8ff061c99eb061d5104fefd525918d9cfff51347c57"
+    },
+    "source-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/source-attempt01/execution.json",
+      "bytes": 6034,
+      "sha256": "11d8701be61ee0dcc8e26dc4e2d851c37172534e67ca894d83859527f880d006"
+    },
+    "installed-attempt01": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/installed-attempt01/execution.json",
+      "bytes": 7232,
+      "sha256": "488a40df8c8b114f28b6630eed91d1bebb58f71c8387f4404319ef35baa4749b"
+    },
+    "metadata-recheck/metadata-attempt02": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/metadata-recheck/metadata-attempt02/execution.json",
+      "bytes": 4553,
+      "sha256": "880e06943ca8fec3cb4c3768083e0a0d71ee180f6fb7494fec7bc197aea0fc90"
+    }
+  },
+  "edges": [
+    [
+      "source",
+      "source-attempt01"
+    ],
+    [
+      "source",
+      "installed-attempt01"
+    ],
+    [
+      "source",
+      "package"
+    ],
+    [
+      "source",
+      "metadata_rebind"
+    ],
+    [
+      "metadata_rebind",
+      "metadata-recheck/metadata-attempt02"
+    ],
+    [
+      "metadata_rebind",
+      "format_rebind"
+    ],
+    [
+      "format_rebind",
+      "final_bindings"
+    ],
+    [
+      "package",
+      "wheel"
+    ],
+    [
+      "package",
+      "sdist"
+    ],
+    [
+      "manifest",
+      "root_review"
+    ],
+    [
+      "final_bindings",
+      "root_review"
+    ]
+  ],
+  "interpretation": "Follow only needed nodes. Exact hashes attribute files and unchanged deterministic transport; chemical observations are in the execution records. Root-review files are explicit additions outside the original immutable manifest."
+}

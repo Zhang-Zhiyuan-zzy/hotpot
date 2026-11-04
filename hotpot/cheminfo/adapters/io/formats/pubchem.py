@@ -6,7 +6,7 @@ def _read_source(src):
     from . import openbabel
 
     openbabel._initialize_logging()
-    from openbabel import pybel as pb
+    from ...openbabel._runtime import pybel as pb
 
     smi = pubchem_service.name_to_smi(src)
     reader = [pb.readstring('smi', smi)]

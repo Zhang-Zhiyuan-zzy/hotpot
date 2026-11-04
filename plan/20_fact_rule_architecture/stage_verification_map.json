@@ -4966,6 +4966,7 @@
       "predecessor": "Stage11",
       "existing_test_files": [
         "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_lazy_ccdc_resources.py",
         "tests/test_packaging/test_audit_rdwrapper_wheel.py",
         "tests/test_packaging/test_github_workflows.py",
         "tests/test_packaging/test_rdwrapper_build.py",
@@ -4979,6 +4980,7 @@
         "-q",
         "--import-mode=importlib",
         "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/test_lazy_ccdc_resources.py",
         "tests/test_packaging/test_audit_rdwrapper_wheel.py",
         "tests/test_packaging/test_github_workflows.py",
         "tests/test_packaging/test_rdwrapper_build.py",

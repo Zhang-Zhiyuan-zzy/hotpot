@@ -1,32 +1,26 @@
-"""
-python v3.9.0
-@Project: hp5
-@File   : __init__.py
-@Auther : Zhiyuan Zhang
-@Data   : 2024/6/5
-@Time   : 16:55
-"""
-import os
-import sys
+"""Public chemistry facade without external toolkit initialization."""
 
-from os.path import join, dirname
+from .__version__ import __version__
+from .cheminfo import (
+    Molecule, Atom, Bond, BondKind, Crystal, MolReader, MolWriter, read_mol,
+    MolBundle, to_pyg_dataset, is_molecule_input, to_hotpot_mol,
+    Fragment, EdgeShoulder, AtomLink, AlkylGraft, BondAdding, AtomReplace,
+    RingWedge, AssembleFactory, Searcher, Substructure, Hit, Hits,
+    Query, QueryAtom, QueryBond, SmartsSemantics, SmartsSyntaxError,
+    UnsupportedSmartsError,
+)
 
-# The Open Babel 3.2 PyPI wheels load ``pybel`` native libraries eagerly.
-# Load RDKit first to keep the two extension stacks in a stable order.
-from rdkit import Chem as _rdkit_chem  # noqa: F401
+
+__all__ = (
+    "Molecule", "Atom", "Bond", "BondKind", "Crystal", "MolReader", "MolWriter",
+    "read_mol", "MolBundle", "to_pyg_dataset", "is_molecule_input", "to_hotpot_mol",
+    "Fragment", "EdgeShoulder", "AtomLink", "AlkylGraft", "BondAdding",
+    "AtomReplace", "RingWedge", "AssembleFactory", "Searcher", "Substructure",
+    "Hit", "Hits", "Query", "QueryAtom", "QueryBond", "SmartsSemantics",
+    "SmartsSyntaxError", "UnsupportedSmartsError", "version",
+)
 
 
 def version():
-    _version = {}
-    with open(join(dirname(__file__), '__version__.py'), 'r') as f:
-        exec(f.read(), _version)
-
-    return _version['__version__']
-
-
-# add package root
-package_root = os.path.abspath(os.path.dirname(__file__))
-tempdir = os.path.abspath(os.path.join(package_root, '..', 'tmp'))
-sys.path.append(package_root)
-
-from .cheminfo import *  # noqa: E402,F403
+    """Return the package's single declared version."""
+    return __version__

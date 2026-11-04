@@ -1,0 +1,38 @@
+{
+  "date": "2026-11-04",
+  "status": "AUTHORING_RELEASED",
+  "source_commit": "8c61532e429e368deec32793f7033b9c4a6a953b",
+  "predecessor": "Stage9/Stage10A and Stage11A accepted at their recorded CP311 boundaries. Remaining Decisions12/13 may defer independently; no remaining tail choice blocks this toolkit-import boundary.",
+  "objective": "Complete the already planned stable explicit root facade, retire package path/temp side effects, and move known RDKit/Open Babel safe load ordering to the actual adapter boundary.",
+  "scope": [
+    "hotpot.__init__ explicit exports/version; no RDKit preload/sys.path/tempdir/package_root",
+    "lazy shared Open Babel Python runtime load seam and actual adapter/wrapper plus existing works.convert pybel entry consumers",
+    "package-resource CCDC solvent access and sole example package_root caller",
+    "fresh source/installed import-order, public identity/version, resource and native-coexistence observations"
+  ],
+  "excluded": [
+    "H count normalization/P20-D026",
+    "other Stage11 command/legacy dataset decisions",
+    "other-version/release and global acceptance",
+    "scientific algorithm/model/native encoding changes"
+  ],
+  "alignment": [
+    "governance/stage/validation skills and both governance references",
+    "current goal: targeted ongoing alignment, CP311-first, minimal defense, direct business evidence",
+    "main plan \u00a7\u00a72,6.1,7.1,9.3-9.4,Stage10-12,11.3,14,16 Decisions12/13/21",
+    "Stage11A checkpoint/root review/pushed source and current Stage12 verification map",
+    "actual root/chemistry exports, lazy adapter/native code, package_root users and fresh-process test setup"
+  ],
+  "public_review": "Root accepts exact Decision21 route in contracts/decisions.md before authoring: retain existing chemistry exports/version callable and class identities; remove named path/temp conveniences; CCDC two exported values become on-demand with existing value types.",
+  "validation": [
+    "source/installed fresh no-toolkit import and unchanged sys.path",
+    "both Hotpot adapter-use orders and native-wrapper coexistence, ordinary ethanol graph/charge observations",
+    "exact reviewed root exports/identity/version and relevant existing interface/architecture tests",
+    "CCDC lazy resource adapter test with explicit fake SDK, real SDK only if available; missing real evidence remains qualified",
+    "actual wheel/sdist resources and affected installed tests outside checkout; six native binaries may be reused unchanged",
+    "cold works.convert managed load order and real CN SDF-to-SMILES conversion; no command relocation"
+  ],
+  "gate_closed": false,
+  "overall_acceptance": false,
+  "root_review_amendment": "Independent static boundary review found existing works.convert direct pybel import. Root includes that single routing fix and fresh actual conversion case before runtime release; Decision12 relocation remains deferred."
+}

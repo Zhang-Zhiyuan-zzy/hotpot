@@ -5,7 +5,7 @@ from ...structure._builder import _freeze_value
 
 
 def _retrieve_bonds_attrs_from_obmol(obmol: "ob.OBMol", i2r: dict[int, int]) -> dict[tuple[int, int], dict[str, Any]]:
-    from openbabel import openbabel as ob
+    from ._runtime import ob
 
     bond_attrs = {}
     for obb in ob.OBMolBondIter(obmol):
@@ -51,7 +51,7 @@ def _connect_the_dots(obmol):
 
 
 def _perceive_bond_orders(obmol, idx_to_row):
-    from openbabel import openbabel as ob
+    from ._runtime import ob
 
     obmol.PerceiveBondOrders()
     return (tuple(bool(atom.IsAromatic()) for atom in ob.OBMolAtomIter(obmol)),

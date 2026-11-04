@@ -11,8 +11,11 @@ accepts the physical class/consumer hard cut and current pickle/native identitie
 at CP311 source/installed boundaries. The [Stage9C checkpoint](stages/stage09/collections/validation/checkpoint.json)
 accepts MolBundle/PyG completion and the15-row migration crosswalk, completing
 Stage9 within the recorded CP311 scope.
-Clean-native, version adaptation, final scientific/performance and full-plan
-acceptance remain open. The owner-approved [goal](goal.md) governs execution;
+[Stage10A](stages/stage10/native-migration/validation/checkpoint.json) accepts the
+bounded clean CP311 native migration; [Stage11A](stages/stage11/reference-assets/validation/checkpoint.json)
+accepts immutable reference assets, and [Stage12A](stages/stage12/lazy-imports/validation/checkpoint.json)
+accepts explicit/lazy imports. Other native/release/version obligations, remaining
+Stage11/12, final scientific/performance and full-plan acceptance remain open. The owner-approved [goal](goal.md) governs execution;
 [goal_v1](goal_v1.md) is historical.
 
 All public chemical types follow a common protocol for fact ownership, interface mapping, permissions, dependencies, buffer ownership and lifecycle. Atom's unified fact table is one concrete implementation. MetalCluster runtime remains Plan21 scope. Existing historical checkpoints below retain their own source and evidence bounds.

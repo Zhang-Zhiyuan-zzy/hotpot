@@ -1,0 +1,170 @@
+{
+  "schema_version": 1,
+  "stage": "Stage12A explicit facade and lazy imports",
+  "status": "ACCEPTED_CP311_LAZY_IMPORTS",
+  "root_acceptance_pending": false,
+  "bounded_stage12a_gate": true,
+  "stage12_gate": false,
+  "main_scope_gate": false,
+  "overall_gate": false,
+  "source_commit": "8c61532e429e368deec32793f7033b9c4a6a953b",
+  "source_freeze": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/freeze.json",
+    "bytes": 357664,
+    "sha256": "f4c9248e5241f47fbc4dab9844c6e74db623de24e389f3274cd9cf216a41f143"
+  },
+  "metadata_rebind_freeze": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/metadata-recheck/freeze.json",
+    "bytes": 357898,
+    "sha256": "7ef856dc287b9ba28a5ede0b7c4012e9a29b59d197e7b3750deee4039001cba6"
+  },
+  "format_only_rebind": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/allowlist-format-rebind.json",
+    "bytes": 501,
+    "sha256": "29b795114a24ddd43222573af5203abbc272b6c72dec7d0616dd6b4b9f2bd424"
+  },
+  "final_bindings": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/final-bindings.json",
+    "bytes": 232210,
+    "sha256": "38039e8402f6e7273f95868d97b728dc8dc3c0215ec58e3ffedf5c4922bfe59b"
+  },
+  "selected_runs": {
+    "fresh-source/source-attempt01": {
+      "counts": {
+        "tests": 8,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 8,
+        "xfail": 0
+      },
+      "elapsed_seconds": 5.1997143886983395,
+      "origin_receipts": 10,
+      "origin_leaks": [],
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/fresh-source/source-attempt01/execution.json",
+        "bytes": 4373,
+        "sha256": "744dbeb8437f2041394bd8ff061c99eb061d5104fefd525918d9cfff51347c57"
+      },
+      "nodeids": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/fresh-source/source-attempt01/collected-nodeids.json",
+        "bytes": 994,
+        "sha256": "0d3f69b48174c93281eae2e112adff8b70795cbfc72ecfea7e8c00e67f387833"
+      }
+    },
+    "source-attempt01": {
+      "counts": {
+        "tests": 178,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 178
+      },
+      "elapsed_seconds": 3.3263862505555153,
+      "origin_receipts": 5,
+      "origin_leaks": [],
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/source-attempt01/execution.json",
+        "bytes": 6034,
+        "sha256": "11d8701be61ee0dcc8e26dc4e2d851c37172534e67ca894d83859527f880d006"
+      },
+      "nodeids": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/source-attempt01/collected-nodeids.json",
+        "bytes": 23124,
+        "sha256": "48df7e5e7432e8c3d00529bf2ab6e717f2db977a90fa84c89512bc2e9d7d37c5"
+      }
+    },
+    "installed-attempt01": {
+      "counts": {
+        "tests": 186,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 186
+      },
+      "elapsed_seconds": 10.304284231737256,
+      "origin_receipts": 13,
+      "origin_leaks": [],
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/installed-attempt01/execution.json",
+        "bytes": 7232,
+        "sha256": "488a40df8c8b114f28b6630eed91d1bebb58f71c8387f4404319ef35baa4749b"
+      },
+      "nodeids": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/installed-attempt01/collected-nodeids.json",
+        "bytes": 24115,
+        "sha256": "15abf40c9b0e6d6dc4564845f070d893f18343a2190fc390d38eb11ebbb82d59"
+      }
+    },
+    "metadata-recheck/metadata-attempt02": {
+      "counts": {
+        "tests": 199,
+        "failure": 0,
+        "error": 0,
+        "skipped": 0,
+        "passed": 199
+      },
+      "elapsed_seconds": 13.467999128624797,
+      "origin_receipts": 2,
+      "origin_leaks": [],
+      "execution": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/metadata-recheck/metadata-attempt02/execution.json",
+        "bytes": 4553,
+        "sha256": "880e06943ca8fec3cb4c3768083e0a0d71ee180f6fb7494fec7bc197aea0fc90"
+      },
+      "nodeids": {
+        "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/metadata-recheck/metadata-attempt02/collected-nodeids.json",
+        "bytes": 38227,
+        "sha256": "8d41eabf22dc0b8578dc55d64e6adf0404a247eeae505b8a393df05f56eb5130"
+      }
+    }
+  },
+  "ordered_source_installed_nodeids_match": true,
+  "package": {
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/artifacts/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "bytes": 6419598,
+      "sha256": "c02d527985bbff01a889bea0956468142ab420bfd4b8ce507e24ec9cbf13e24d"
+    },
+    "sdist": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/artifacts/hotpot_zzy-0.5.4.5.tar.gz",
+      "bytes": 2154177,
+      "sha256": "0a8e6829785fe17f5ee1524e46f842ae39d6e24f97ecd92a410338e6dec9c8b8"
+    },
+    "product_members": 891,
+    "sdist_files": 926,
+    "native_compilation": false,
+    "unchanged_native_count": 6,
+    "unchanged_license_count": 7,
+    "identity": {
+      "path": ".plan20-artifacts/20261104/stage12/lazy-imports/raw/package-attempt01/archive-identity.json",
+      "bytes": 232114,
+      "sha256": "6b31b5953894fd1267d5360ee34d8c7902cc3723c9db0f1d8ffc8c7216e7659c"
+    }
+  },
+  "retained_failures": [
+    "root AST checker alias normalization error; corrected before runtime",
+    "launcher refused missing release before candidate start",
+    "metadata-attempt01: 198 passed/1 failed; three obsolete allowances retired"
+  ],
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/manifest.json",
+    "bytes": 54572,
+    "sha256": "6400e69cbd26b17a78c64836470bbb682ad62b129b963d75b5f74d3413906f91"
+  },
+  "root_verification": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/root-verification.json",
+    "bytes": 1841,
+    "sha256": "6c769e046af280147fca655613bcb757d02b5491dc658eb836f18db11c442589"
+  },
+  "limits": [
+    "CP311 only; other planned versions/release remain open.",
+    "CCDC uses explicit fake/missing SDK tests; real SDK chemistry is unverified.",
+    "Six accepted Stage10 binaries and seven licenses reused; no new native compilation or ABI/SDK qualification.",
+    "H/P20-D026, remaining Stage11/12, Plan12 and global scientific/performance/final delivery gates remain open."
+  ],
+  "root_acceptance": {
+    "date": "2026-11-04",
+    "review": "root-verification.json"
+  }
+}

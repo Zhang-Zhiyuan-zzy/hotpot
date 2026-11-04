@@ -13,7 +13,7 @@ _PARTIAL_CHARGE_PRESENCE = "_hotpot_partial_charge_presence"
 
 
 def _new_obmol():
-    from openbabel import openbabel as ob
+    from ._runtime import ob
 
     obmol = ob.OBMol()
     obmol.BeginModify()
@@ -46,7 +46,7 @@ def _factual_obmol(obmol, atom_rows, bond_rows, cell):
     charge_presence = tuple(atom[2] is not None for atom in atom_rows)
     obmol.SetPartialChargesPerceived(any(charge_presence))
     if not all(charge_presence):
-        from openbabel import openbabel as ob
+        from ._runtime import ob
         # Open Babel has no per-Atom charge presence. This copyable map records
         # supplied rows so its default zero never becomes an imported fact.
         data = ob.OBPairData()
@@ -59,7 +59,7 @@ def _factual_obmol(obmol, atom_rows, bond_rows, cell):
 
 
 def _obmol_record(obmol, initial, stereo_payload):
-    from openbabel import openbabel as ob
+    from ._runtime import ob
 
     atoms = tuple(ob.OBMolAtomIter(obmol))
     idx_to_row = {atom.GetIdx(): row for row, atom in enumerate(atoms)}
@@ -112,12 +112,12 @@ def extract_obatom_coordinate(obatom: "ob.OBMol"):
 
 
 def extract_obmol_coordinates(obmol: "ob.OBMol") -> np.ndarray:
-    from openbabel import openbabel as ob
+    from ._runtime import ob
     return np.array([(oba.GetX(), oba.GetY(), oba.GetZ()) for oba in ob.OBMolAtomIter(obmol)])
 
 
 def set_obmol_coordinates(obmol: "ob.OBMol", coords):
-    from openbabel import openbabel as ob
+    from ._runtime import ob
     coords = np.array(coords)
     assert coords.ndim == 2
     assert coords.shape[1] == 3
@@ -131,7 +131,7 @@ def set_obmol_coordinates(obmol: "ob.OBMol", coords):
 
 
 def to_arrays(obmol):
-    from openbabel import openbabel as ob
+    from ._runtime import ob
     # Populate the idx_to_row dictionary to map OBMol atom indices to the reordered indices
     idx_to_row = {oba.GetIdx():i for i, oba in enumerate(ob.OBMolAtomIter(obmol))}
 
@@ -164,7 +164,7 @@ def to_arrays(obmol):
 
 
 def _to_pybel(obmol):
-    from openbabel import pybel as pb
+    from ._runtime import pybel as pb
     return pb.Molecule(obmol)
 
 
@@ -177,7 +177,7 @@ def _inchi(obmol):
 
 
 def _smiles(obmol, kekulize):
-    from openbabel import pybel as pb
+    from ._runtime import pybel as pb
 
     molecule = pb.readstring('mol2', _to_pybel(obmol).write('mol2'))
     if kekulize:
@@ -186,12 +186,12 @@ def _smiles(obmol, kekulize):
 
 
 def _charge_model(model):
-    from openbabel import openbabel as ob
+    from ._runtime import ob
     return ob.OBChargeModel.FindType(model)
 
 
 def _compute_charges(charge_model, obmol, model_args):
-    from openbabel import openbabel as ob
+    from ._runtime import ob
 
     copied = ob.OBMol(obmol)
     if model_args is None:
@@ -206,5 +206,5 @@ def _partial_charges(charge_model):
 
 
 def _charge_model_version():
-    from openbabel import openbabel as ob
+    from ._runtime import ob
     return ob.OBReleaseVersion()

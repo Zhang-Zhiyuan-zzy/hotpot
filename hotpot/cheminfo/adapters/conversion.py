@@ -9,7 +9,7 @@ def _classify_input(value, molecule_type):
     from rdkit import Chem
     if isinstance(value, Chem.Mol):
         return "rdkit"
-    from openbabel import openbabel as ob, pybel
+    from .openbabel._runtime import ob, pybel
     if isinstance(value, ob.OBMol):
         return "openbabel"
     if isinstance(value, pybel.Molecule):

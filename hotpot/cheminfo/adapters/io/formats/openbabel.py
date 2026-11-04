@@ -6,7 +6,7 @@ _LOGGING_INITIALIZED = False
 def _initialize_logging():
     global _LOGGING_INITIALIZED
     if not _LOGGING_INITIALIZED:
-        from openbabel import openbabel as ob, pybel as pb
+        from ...openbabel._runtime import ob, pybel as pb
 
         ob_log_handler = ob.OBMessageHandler()
         ob_log_handler.SetOutputLevel(0)
@@ -17,7 +17,7 @@ def _initialize_logging():
 
 def get_ob_conversion(fmt='smi', **kwargs):
     _initialize_logging()
-    from openbabel import openbabel as ob
+    from ...openbabel._runtime import ob
 
     conv = ob.OBConversion()
     conv.SetOutFormat(fmt)
@@ -37,7 +37,7 @@ def write_obmol_to_string(obmol: "ob.OBMol", fmt='smi', **kwargs):
 
 def _read_source(src, src_type, fmt, ob_opt):
     _initialize_logging()
-    from openbabel import openbabel as ob, pybel as pb
+    from ...openbabel._runtime import ob, pybel as pb
 
     if isinstance(src, bytes):
         src = src.decode('utf-8')

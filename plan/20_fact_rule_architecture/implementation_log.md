@@ -7208,3 +7208,88 @@ This completes bounded Stage11A, not remaining Decisions12/13 or whole Stage11.
 Other Python versions/release, Stage12/P20-D026, integrated Plan12 and global
 scientific/performance gates remain open. No new native compilation/default-suite
 or performance result is claimed. Root prepares a coherent business commit/push.
+
+
+### 2026-11-04 — Stage12A lazy-import entry; independent Stage11 tail scheduled
+
+Stage11A business commit 8c61532e429e368deec32793f7033b9c4a6a953b is pushed and its996product/test/support
+bindings remain unchanged. Current goal/skills/references, affected plan
+scope/dependency/public/outer-package/Stage12/verification/final/Decision21 sections,
+Stage12 map and actual import/resource consumers were aligned. Root accepts the
+exact explicit facade and lazy external-runtime route before authoring at
+stages/stage12/lazy-imports. This removes already-planned package-root/temp/sys.path
+side effects while retaining ordinary chemical exports/version and class identity.
+
+Existing known PyPI Open Babel load-order handling moves from eager root import to
+its private adapter runtime entry. The CCDC consumer becomes package-resource/on-
+demand, with no silent empty result if the SDK is absent; the one example source
+output path uses its own location. Fresh source/installed order, identity/version,
+actual molecule/native and resource evidence is required. No H/model/native schema
+or scientific algorithm change is selected. Root owns design/acceptance; local
+Sol/medium executes only this settled bounded implementation.
+
+Under existing independent Decisions12/13 deferral, remaining Stage11 command,
+legacy-template/MolProps/dataset distribution choices are scheduled as P20-D028.
+They remain unfinished with current paths intact; final exceptions are not granted
+here. This prevents independent peripheral choices from blocking mandatory H,
+import and integrated final business work. Whole Stage11/12, P20-D026, other
+versions/release, Plan12 and global evidence stay open.
+
+
+### 2026-11-04 — Stage12A connected legacy conversion import correction
+
+Independent local read-only review found one actual managed-runtime bypass:
+`works/convert.py` directly imports pybel on cold module import. Its old route
+relied on the root RDKit preload. Root expands the entry to reroute that import
+through the same private runtime leaf and requires a fresh-process load-order
+and real CN SDF-to-SMILES observation. No crash was executed or observed by the
+static review. This does not release Decision12 command relocation or alter the
+conversion algorithm. Existing14-file authoring static bindings were independently
+checked; six conversion bodies match AST after import-name normalization. The
+root's first AST checker omitted old/new alias normalization and failed; its
+corrected check passes, with the original checker failure retained. No candidate
+runtime, package or chemical acceptance follows from these static checks.
+
+
+### 2026-11-04 — Stage12A explicit facade/lazy imports accepted at CP311
+
+Root accepts stages/stage12/lazy-imports/validation/checkpoint.json after actual
+source8fresh+178affected passes, outside-checkout installed186passes with the
+identical ordered nodeids, and final source architecture/version199passes. There
+are no final failures/errors/skips or origin leaks. Fresh observations retain
+31exports/version/class identities, unchanged sys.path, no eager toolkit/model
+runtime, ethanol6/6/8graph/two single bonds/zero charges in both toolkit orders,
+selected native module origins, and actual CN SDF-to-SMILES graph/charge. CCDC
+uses74packaged solvent resources with explicit fake/missing SDK tests only.
+
+Actual commands: root fresh_source.py; Stage12A EXECUTE.sh source01, metadata01,
+package, prepare-installed, installed01; root metadata_recheck.py. Exact argv,
+interpreter/environment, timings/resources, source/artifact identities, results
+and observations are archived. Source8 ran5.200s; affected178ran3.326s; installed
+186ran10.304s; final metadata199ran13.468s. These are execution observations, not
+a controlled performance-parity result. Actual setuptools wheel/sdist and pip
+installation pass; wheel891products/sdist926files differ from Stage11A only at
+ten declared existing products and one new runtime leaf. Six Stage10 binaries
+and seven licenses were reused without native compilation.
+
+The initial metadata199run passed198/failed1on three obsolete root allowances;
+all new-debt/layer/legacy findings were empty. Retiring exactly those three
+changed only one of1512bindings; all1511others, including runtime production/tests,
+remained equal. The199-pass recheck is separate. Restoring original JSON key order
+then preserved exactly the validated parsed data while reducing the Git diff to
+26deletions; explicit byte/semantic rebind records preserve both identities. Root's
+prior AST alias-checker and missing-release launcher failures remain retained;
+neither was a chemical/runtime failure. No unchanged business suite was rerun.
+
+Durable archive: .plan20-artifacts/20261104/stage12/lazy-imports,181manifested
+payloads/14166618bytes; manifest SHA6400e69cbd26b17a78c64836470bbb682ad62b129b963d75b5f74d3413906f91.
+Wheel SHA c02d527985bbff01a889bea0956468142ab420bfd4b8ce507e24ec9cbf13e24d;
+sdist SHA0a8e6829785fe17f5ee1524e46f842ae39d6e24f97ecd92a410338e6dec9c8b8.
+Independent local review found no concrete evidence defect. Root verified all181
+archived payloads and1513current/rebound bindings. Explicit root-review additions
+are indexed outside the immutable manifest. Source entry remains8c61532; validated
+business commit/push follows. Source/test, runtime, native and evidence limits
+are precise in the checkpoint; this is neither full Stage12 nor global closure.
+P20-D026, P20-D027/028, other versions/release, Plan12 and final science/performance
+obligations remain open. Terra/Luna's mechanical-task allowance is already in the
+committed model_allocation.md; substantive work retains its Sol/effort rules.

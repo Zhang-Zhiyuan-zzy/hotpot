@@ -1,0 +1,56 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12A",
+  "source_commit": "8c61532e429e368deec32793f7033b9c4a6a953b",
+  "verified_archived_payloads": 181,
+  "manifest": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/manifest.json",
+    "bytes": 54572,
+    "sha256": "6400e69cbd26b17a78c64836470bbb682ad62b129b963d75b5f74d3413906f91"
+  },
+  "current_rebound_bindings": 1513,
+  "mismatches": [],
+  "allowlist_format_only_rebind": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/allowlist-format-rebind.json",
+    "bytes": 501,
+    "sha256": "29b795114a24ddd43222573af5203abbc272b6c72dec7d0616dd6b4b9f2bd424"
+  },
+  "three_retired_allowances": [
+    {
+      "line": 16,
+      "local": "_rdkit_chem",
+      "path": "hotpot/__init__.py",
+      "rule": "carrier_or_root_eager_toolkit_import",
+      "scope": "",
+      "stage": "Stage12",
+      "target": "rdkit.Chem"
+    },
+    {
+      "line": 30,
+      "path": "hotpot/__init__.py",
+      "rule": "sys_path_mutation",
+      "scope": "",
+      "stage": "Stage12",
+      "target": "sys.path.append(package_root)"
+    },
+    {
+      "line": 32,
+      "local": "*",
+      "path": "hotpot/__init__.py",
+      "rule": "wildcard_package_export",
+      "scope": "",
+      "stage": "Stage12",
+      "target": "hotpot.cheminfo.*"
+    }
+  ],
+  "runtime_product_tests_unchanged_after_runs": true,
+  "ordered_source_installed_nodeids_match": true,
+  "wheel_products": 891,
+  "sdist_files": 926,
+  "native_compilation": false,
+  "independent_review": {
+    "path": ".plan20-artifacts/20261104/stage12/lazy-imports/root-review/independent-findings.md",
+    "bytes": 2609,
+    "sha256": "8de5a1a08dc4fef8dfe80b6abec1f66f2cd2f9006996d7d673ec833165748892"
+  },
+  "scope": "Explicit root facade and lazy toolkit/resource boundary only; root retains all later decisions."
+}

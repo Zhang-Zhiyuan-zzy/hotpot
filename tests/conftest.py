@@ -1,7 +1,7 @@
 """Process-wide test initialization and explicit test-tier switches."""
 
 # PyPI Open Babel 3.2.1 can crash if pybel loads before RDKit in one process.
-# Hotpot enforces the same deterministic order in its package entry point.
+# Hotpot applies this order at its lazy Open Babel adapter boundary.
 from rdkit import Chem as _rdkit_chem  # noqa: F401
 
 

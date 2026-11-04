@@ -17,7 +17,7 @@ from pathlib import Path
 import multiprocessing as mp
 from tqdm import tqdm
 
-from openbabel import pybel as pb
+from ..cheminfo.adapters.openbabel._runtime import pybel as pb
 import hotpot as hp
 
 

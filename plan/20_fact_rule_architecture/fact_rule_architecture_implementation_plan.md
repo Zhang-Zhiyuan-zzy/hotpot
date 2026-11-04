@@ -9,9 +9,9 @@ P20-D024 is closed. P20-D026 generic H export/materialization remains open.
 Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
 boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
-is accepted within its clean CP311 source/sdist/wheel/probe-SDK boundary. Other
-Stage11A immutable reference assets are accepted at their affected CP311
-source/installed resource boundary. Other Stage10 release/version obligations,
+is accepted within its clean CP311 source/sdist/wheel/probe-SDK boundary.
+Stage11A immutable reference assets and [Stage12A explicit/lazy imports](stages/stage12/lazy-imports/validation/checkpoint.json)
+are accepted at their affected CP311 source/installed boundaries. Other Stage10 release/version obligations,
 remaining Stage11–12, optional scientific activation and global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
 source scopes. Current bounded results and remaining semantic/installation limits
@@ -2441,6 +2441,13 @@ manifest checks.
 
 ### Stage 12 — Explicit exports, documentation, and final hardening
 
+The [Stage12A lazy-import decision](stages/stage12/lazy-imports/contracts/decisions.md)
+and [checkpoint](stages/stage12/lazy-imports/validation/checkpoint.json)
+accept the explicit root facade and actual toolkit-load/resource consumers at
+their tested CP311 source/installed boundary.
+Remaining independent Decisions12/13 retain their deferral rules; H normalization
+(P20-D026), final docs, other versions/release and global validation remain open.
+
 1. Replace wildcard exports with the approved `__all__` lists.
 2. Remove the top-level RDKit preload and verify lazy RDKit/Open Babel load
    order in both directions from an installed wheel.
@@ -2978,7 +2985,7 @@ approvals. Stage1 can collect baselines while public decisions are pending.
 | 18 | conversion calls return fresh external objects; task-local reuse | observable identity change pending review |
 | 19 | copy/components/merge remap facts, constraints, source frames/stereo/cell; drop generated results and runtime contexts | exact lifecycle behavior below remains a review proposal |
 | 20 | remove incomplete statistics and use explicit assembly exports | exact exports/removals below pending review |
-| 21 | lazy backend import; remove sys.path/tempdir/package_root side effects, resource consumers use importlib.resources | affected public convenience values pending review; fresh-process/wheel evidence required |
+| 21 | lazy backend import; remove sys.path/tempdir/package_root side effects, resource consumers use importlib.resources | root-reviewed exact route and CP311 source/installed evidence accepted in [Stage12A](stages/stage12/lazy-imports/validation/checkpoint.json); remaining final/version obligations stay open |
 | 22 | selected PartialChargeSet is the sole value owner; proposed Optional[float] read-only property and full-set assignment | public setter/return-type change pending review |
 | 23 | **replace old blocking success/failure-pair rule** with O0 seeds42/43/44 scientific reports, dynamic eligibility, all monitors/outcomes and explained changes; no fixed182 or historical equality verdict | reporting direction owner-directed; technical invariants remain independently tested |
 | 24 | MetalCluster type, Molecule association and future `Molecule.metal_clusters -> list[MetalCluster]`; internal graph/point cloud, external multi-attachment superatom, registered kinds | owner-specified planning target; Plan20 design registration only, Plan21 implementation/details deferred |

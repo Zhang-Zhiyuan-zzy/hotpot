@@ -9998,3 +9998,44 @@ Root accepts this isolated definition boundary, pending its separate `D_exp`
 commit. No production integration/defaultsuite/wheel/version/performance
 claim; Stage13B owns them after its next entry alignment. Updated affected
 verification targets and recorded zero-type delta without rerunning D036.
+
+
+## 2026-11-05 — Stage13B entry after committed, pushed D_exp
+
+Actual `D_exp=5dc0443de17439f0c4d74151e2427a3a834c899c` contains only the
+private definition, its15passingactual-rulecontracts and records; production
+`chemistry.py` remained identicalB_exp. Original `git push -u origin
+experiment/plan20-kekulize-aromatic-protocol` returned0. Reassessed this
+separately gated entry against the full governing/main-plan/companion reads
+performed minutes earlier, exact current13Acontract/actualevidence and the
+completed source/consumer scout. No public/scientific/architectural route change
+or missing upstream gate is identified; existing main-scope findings remain.
+`stages/stage13/integration/entry_review.json` records the bounded release.
+
+Release only the operation-local calculator import substitution for both
+explicit and lazy calls, retaining all original policy/selection/sourcecheck/
+transaction/diagnostic behavior. EstablishedlocalSol/xhighsubagent exclusively
+owns `operations/chemistry.py` and new `test_protocol_integration.py`; no other
+source/test/maintained/Git/config change or nested delegation. Root owns key
+review, affected/default/installed evidence reconciliation, predeclared paired
+B_expcosts, records, acceptance andGit. Every scientific limitation/strictxfail,
+None/exception, mapping and rollback remains meaningful. No automaticretry;
+after3unsuccessfulboundedattemptsrecordscope/dependencyandadvanceindependentwork.
+Stage14/15 have no dependence on13B and remain separate eligible work.
+
+
+### Stage13B key review and remaining validation release — 2026-11-05T00:58:09.915764+08:00
+
+Root inspected the sole import substitution, complete new integration cases, exact535input freeze and actual JUnit: focused01 retained7pass/2fixturefailures; focused02 9pass; affected01 332pass/3originalstrictxfails with zero failure/error. Current source matches the worker freeze; both production call bodies, scientific algorithm, defaults and native payloads are unchanged. Root releases CP311 default attempt01 at `/tmp/hotpot_plan20/medium/stage13b-default-20261105`; exact argv/environment/pre-post inputs and actual results are recorded there. Local established Sol/xhigh owns disjoint temporary outside-checkout wheel/affected delivery and the already frozen7-cell pairedcost recipe on CPUs64–71; root default uses40–47. There is no external helper. No source mutation during these checks; no automatic retry and no acceptance/retention conclusion before actual remaining evidence. Owner three-attempt rule applies per bounded issue; independent Stage14/15 may progress only after checking upstream independence.
+
+
+### Stage14A independent contract entry — 2026-11-05T01:04:44.410165+08:00
+
+Root starts bounded read-only concrete schema probes after accepted `B_exp`; Stage13B frozen product bytes stay untouched. Root reuses the unchanged fully read goal/mainplan/fourcompanions, freshly reads governingreferences, fullStage14plan, field/consumerinventory and currentSection18, and checks currentdocumentidentities against Stage13Bentry. Inputs/limits/independence are recorded in `/tmp/hotpot_plan20/medium/stage14a-contract-probes-20261105/entry_review.json`. This entry settles no schema yet and authorizes no product publication. Crystal14D waits15C/affected15E; Moleculartransport does not depend on Stage13privateprotocol.
+
+
+### Stage13B root acceptance and coherent integration delivery — 2026-11-05T01:16:37.027300+08:00
+
+Root accepts the exact soleimportconnection after actual source9focused/332affected+3originalstrictxfails; default7058passed/137tierskips/3strictxfails/49subtests; each CP310–CP314 outside-checkout affected selection332passed/3originalstrictxfails. Sixnativepayloads perwheel remain acceptedED7bytes, no freshbuildclaim. Actual recipe47c15a1e99a17e90648d38a7b6c037ea3a1e57b47c88b9c62e622ee24ac75963 completed154timedphases/28separatememoryprobes/zeroexperimentfailures orretries. Root reviewed actualfixtures/workloops, allfive900→901memberdeltas and current535sourceguards, recomputed sevenmedians, and accepts usablecost retaining2adversemedians/allsharedhost andallocationlimits under P20-D037. First rootread-onlyevidence script failed after recomputingmedians on len(integercounter); correctedcheckcompleted without rerunningexperiments.
+
+Maintained checkpoint/report/evidencegraph are in `stages/stage13/integration/`; verified rawarchive is `.plan20-artifacts/20261105/stage13/integration-delivery/stage13b-evidence.tar.gz`, 44130513bytes SHA256=f7faac5c1b638d3ae5368ce9b3702380a05cf0d71103da388f61c634c28274dd, 525exactmembers. Originalfailedfocusedcandidate, expectedlimits andallmeasurements are preserved; derivableprivateinstall/tempfixturetrees are excludedfromarchive but originalruntimepaths remain. Oneprivate1055-bytebindingmodule/oneimportsubstitution/zeroruntimeclasses is retained as the boundedexperiment; no otherdomainpromotion and no B_exp rewriting. I_exp is the coherent businessintegrationcommit containing this record; fullresultingSHA/push is recorded at nextnormalbusinesscheckpoint. Overallgoal remains open forStage14/15.

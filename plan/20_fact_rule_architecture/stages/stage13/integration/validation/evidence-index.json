@@ -1,0 +1,17 @@
+{
+  "archive": {
+    "path": ".plan20-artifacts/20261105/stage13/integration-delivery/stage13b-evidence.tar.gz",
+    "bytes": 44130513,
+    "sha256": "f7faac5c1b638d3ae5368ce9b3702380a05cf0d71103da388f61c634c28274dd"
+  },
+  "manifest": ".plan20-artifacts/20261105/stage13/integration-delivery/ARCHIVE_MANIFEST.json",
+  "verified_members": 525,
+  "temporary_roots": [
+    "/tmp/hotpot_plan20/medium/stage13b-integration-20261105",
+    "/tmp/hotpot_plan20/medium/stage13b-default-20261105",
+    "/tmp/hotpot_plan20/medium/stage13b-installed-20261105",
+    "/tmp/hotpot_plan20/medium/stage13b-paired-cost-20261105"
+  ],
+  "baseline_wheels": "Stage12 final-docs-refreshed-delivery.json and its already retained artifact wheel inputs",
+  "limits": "Exact source/installed/default/cost reports, scripts, intents, logs,JUnit, failedfocused01candidate, rawmeasurements/hardware, candidatewheels, source/artifactguards and rootdecisions. Derivable privateinstall/unpacked trees and disposable pytest-temp/cache/tmp excluded; their identitylists and wheels remain. Originalrawroots remain retained under /tmp/hotpot_plan20/medium."
+}

@@ -3124,8 +3124,9 @@ unspecified interface.
 
 ## 17. 最后阶段：kekulize/aromatic 实验性规则接口协议
 
-状态：依据本轮负责人指示新增的实施尾阶段；当前仅修订规划，尚未定义生产协议或
-接入算法。本节记为 **Stage13**，严格排在既有 Stage0–12 完成、验证并提交之后。
+状态：Stage0–12 已验收并提交 `B_exp`；Stage13A 已独立验证并提交 `D_exp`，
+Stage13B 的接入、默认/安装验证及配对成本已完成，根代理保留此有界实验。
+实际结果、限制和 Git 里程碑见 [Stage13 记录](stages/stage13/README.md)。
 
 ### 17.1 范围与既有规划的关系
 

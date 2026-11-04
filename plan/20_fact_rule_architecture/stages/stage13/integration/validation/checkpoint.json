@@ -1,0 +1,81 @@
+{
+  "stage": "Stage13B",
+  "recorded_local": "2026-11-05T01:16:37.027300+08:00",
+  "status": "ROOT_ACCEPTED_BOUNDED_INTEGRATION_READY_FOR_I_EXP",
+  "B_exp": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+  "D_exp": "5dc0443de17439f0c4d74151e2427a3a834c899c",
+  "I_exp": "The coherent integration commit containing this checkpoint; resulting fullSHA is recorded in the next normal business log/update, not a hash-only commit.",
+  "production_change": "Sole operation-local calculator import redirected through accepted directalias; twoexisting callbodies and scientificalgorithm/default/public/native bytes unchanged.",
+  "source_identities": {
+    "hotpot/cheminfo/operations/_aromatic_protocol.py": {
+      "bytes": 1055,
+      "sha256": "685eb8d786eca837da5848957db48db5894415797752501fc447019b3fbf3396"
+    },
+    "hotpot/cheminfo/operations/chemistry.py": {
+      "bytes": 46365,
+      "sha256": "834460940c242f8d79c1c1a9dec4c3aafaf40a43d2179468ef8765195c691a8d"
+    },
+    "tests/test_cheminfo/kekulize/test_protocol_integration.py": {
+      "bytes": 9040,
+      "sha256": "284fc8c28c03dcb9f6a9a8c6b914e7d2edc4646fccdb4aa89cb6238eca77f24f"
+    }
+  },
+  "source": {
+    "focused01": "7pass/2fixturefailures retained unchanged",
+    "focused02": "9pass",
+    "affected": "332pass/3originalstrictxfails/0failure/error/tierskip",
+    "default": {
+      "elapsed_seconds": 330.00520894117653,
+      "finished_local": "2026-11-05T01:03:44.835355+08:00",
+      "guard_count": 1050,
+      "guards_unchanged": true,
+      "interpretation": "CP311 source default suite only; installed/version/pairedcost not covered.",
+      "junit": {
+        "errors": 0,
+        "failures": 0,
+        "passed": 7058,
+        "skipped_total": 140,
+        "testcases": 7198
+      },
+      "returncode": 0,
+      "pytest_counts": {
+        "passed": 7058,
+        "tier_skipped": 137,
+        "strict_known_limit_xfailed": 3,
+        "subtests_passed": 49,
+        "warnings": 17
+      },
+      "pytest_elapsed_seconds": 327.27,
+      "product_origin_observations": 416,
+      "origin_violations": [],
+      "native_origin_observations": 6
+    }
+  },
+  "installed": {
+    "abis": [
+      "cp310",
+      "cp311",
+      "cp312",
+      "cp313",
+      "cp314"
+    ],
+    "per_abi": "332pass/3originalstrictxfails/0failure/error/tierskip;219mainprocessorignobservations/0violations",
+    "wheel_member_delta": "900baseline→901candidate;898originalmembers unchanged, chemistry.py+RECORDchanged, bindingadded. Sixnativepayloadsunchanged ineachABI. ActualED7buildprovenance reused; no freshbuildclaim.",
+    "native_build_provenance": "ed7a64d463945360e669e858591d5ed399eb4535"
+  },
+  "cost": {
+    "record": "paired-cost.json",
+    "status": "ACCEPTED_BOUNDED_USABLE_COST_WITH_ALL_ADVERSE_AND_INCONCLUSIVE_VALUES_RETAINED",
+    "actual_phases": 154,
+    "memory_probes": 28,
+    "failures": 0
+  },
+  "root_review": "Actual exactdiff/newtests/JUnit/freeze reviewed; sevenmedians independentlyrecomputed; everyfivewheelmemberdelta/sixnatives and535currentinputs checked. First rootread-onlycounter-len TypeError preserved; correctedreview didnot rerunexperiments.",
+  "retention_decision": "Retain thisboundedprivateconnection on the independentexperimentbranch. It may be included in eventual overalltaskdelivery; no promotion to otherdomains. B_exp historicalacceptance is unchanged.",
+  "remaining": "Only coherent I_exp commit/push for thisslice; Stage14/15 remain required overallscope.",
+  "archive": {
+    "path": ".plan20-artifacts/20261105/stage13/integration-delivery/stage13b-evidence.tar.gz",
+    "bytes": 44130513,
+    "sha256": "f7faac5c1b638d3ae5368ce9b3702380a05cf0d71103da388f61c634c28274dd"
+  }
+}

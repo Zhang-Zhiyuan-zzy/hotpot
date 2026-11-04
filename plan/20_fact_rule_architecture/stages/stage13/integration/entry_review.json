@@ -1,0 +1,89 @@
+{
+  "stage": "Stage13B",
+  "status": "ENTRY_ALIGNED_BOUNDED_INTEGRATION_RELEASED",
+  "recorded_local": "2026-11-05T00:46:58.256637+08:00",
+  "B_exp": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+  "D_exp": "5dc0443de17439f0c4d74151e2427a3a834c899c",
+  "D_exp_delivery": "Original push exit0; new GitHub experiment branch created and tracking configured.",
+  "alignment": "Fresh separately gated entry: reuse root full governing/mainplan/fourcompanions reads performed at13A minutesearlier; reviewed current13Aexactcontract/15actualpasses, sourceconsumer scout and unchanged main-scope acceptancelimits. No material plan/scientific/publicroute change.",
+  "scope": "Replace the one operation-local imported calculator binding, covering both existing callsites. Preserve its local name for current tests/callers; no algorithm/preparation/commit/publicchange. Add genuine production integration fixtures for ordinary/fused/coordination/lazy/None/failure.",
+  "exclusive_worker_files": [
+    "hotpot/cheminfo/operations/chemistry.py",
+    "tests/test_cheminfo/kekulize/test_protocol_integration.py"
+  ],
+  "root_ownership": "Stage records/log/verification map, independent keyreview, paired semanticworksampling/cost, installed delivery and final acceptance/Git.",
+  "required_checks": [
+    "Affected CP311 chemical/rule/selection/lifecycle/diagnostic/consumer tests including original3strictxfails",
+    "Required CP311default suite after source freeze",
+    "Actual outside-checkout installed affected contracts with attributed reusednative/source bytes",
+    "Frozen samealgorithm/sameinput pairedB_exp costs: time, allocation and memory; retain alladverse/failed/inconclusive values"
+  ],
+  "rollback": "Separate experiment branch; validatedB_exp untouched. No merge/retentiondecision before I_exp evidence.",
+  "remaining": [
+    "Actual integration implementation/validation/cost and I_exp",
+    "SeparateStage14/15implementation"
+  ],
+  "document_bindings": [
+    {
+      "path": ".codex/skills/hotpot-plan-governance/SKILL.md",
+      "sha256": "6724ebfce1fe9df9f717ee249f124f1533fbea9d51aa51faf2118995052be297"
+    },
+    {
+      "path": ".codex/skills/hotpot-plan-governance/references/plan-execution-governance.md",
+      "sha256": "62d36bb6d6770d623b38a3f39fe5aa0d758dd0a5f7707e447d88b2849cc22bd1"
+    },
+    {
+      "path": ".codex/skills/hotpot-plan-governance/references/cheminformatics-harness-principles.md",
+      "sha256": "8e552c711c5aa71719d0b910376dda44a452d702ceba5497bb117c201dd0a48e"
+    },
+    {
+      "path": ".codex/skills/hotpot-stage/SKILL.md",
+      "sha256": "d249a80bf84197f87034882c1d87070747fb119dd69ac85bd69b962f71c0b5f8"
+    },
+    {
+      "path": ".codex/skills/hotpot-validation/SKILL.md",
+      "sha256": "bcbfeef52f219359e4af057b9ee560659d1d1b45b91e461dc409cd4d2b9a6541"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/goal.md",
+      "sha256": "76bccaac0a87a331f816f5a264461d192ab5afbb2daa6dfee48ea33f5f7fdbed"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md",
+      "sha256": "0aec0d6b8ffa2512b69d4883c4a1239d124b3851ce73da7a02264c32482bf297"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/chemical_type_interface_contract.md",
+      "sha256": "0c21630964e264e1f4e03f3b5938787cddbfacceb2616dd51b547d93686642bf"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_scope_audit.md",
+      "sha256": "c6ef2c74aaa6ffd2c43e552884c5863e2285e9cf9a2f6b90609c6d417d6cd3f9"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md",
+      "sha256": "feb7337c68a5d2790e006db9ecb667d218eb1d27e9a8cf08d1b9bbd14486940a"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/stage_verification_map.json",
+      "sha256": "8aa773a4bfb6af5737fd91cb3860b151b3619150b3ef411a1a813a14c5e22c87"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/reviewed_interface_contracts.json",
+      "sha256": "9d83957ada73eee87c8ce63105ef6df4a9bf7911d094b7b010ac7fb1c0f1bc9f"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/data_object_budget.json",
+      "sha256": "a2f7bcfa77716c4a957a7b832de63b4140b7bdcfc5302c39c14c1449ee4c3ccc"
+    },
+    {
+      "path": "plan/20_fact_rule_architecture/integrated_requirements.json",
+      "sha256": "368b6addeee895e2a8fbd6afaa9e194c1a9b5e838b5b6c39d879fe0f7b5d7e22"
+    },
+    {
+      "path": "plan/21_metal_cluster/metal_cluster_implementation_plan.md",
+      "sha256": "b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d"
+    }
+  ],
+  "definition_record_note": "13Aentry script calculated but omitted serializing its document digest array. This current13Brecord supplies exact current governing/companion identities; all normativeMarkdown remains unchanged fromB_exp. Original13Aentryisnotrewritten."
+}

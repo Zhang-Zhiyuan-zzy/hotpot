@@ -1,0 +1,121 @@
+{
+  "recorded_local": "2026-11-05T01:16:37.027300+08:00",
+  "status": "ACCEPTED_BOUNDED_USABLE_COST_WITH_ALL_ADVERSE_AND_INCONCLUSIVE_VALUES_RETAINED",
+  "recipe_sha256": "47c15a1e99a17e90648d38a7b6c037ea3a1e57b47c88b9c62e622ee24ac75963",
+  "cells": [
+    {
+      "cell": "rule.benzene",
+      "measured_pairs": 10,
+      "baseline_median_ms": 15.41643,
+      "candidate_median_ms": 15.852171499999997,
+      "candidate_over_baseline_ratio": 1.0282647474155817,
+      "paired_bootstrap95_ci": [
+        0.9885910243156931,
+        1.0652586799045736
+      ],
+      "root_disposition": "Retain adverse median; interval spans1, so stable direction is inconclusive. Absolute complete batch cost remains usable; no optimization prerequisite."
+    },
+    {
+      "cell": "rule.fused",
+      "measured_pairs": 10,
+      "baseline_median_ms": 23.512453500000003,
+      "candidate_median_ms": 21.8031555,
+      "candidate_over_baseline_ratio": 0.9273024399601681,
+      "paired_bootstrap95_ci": [
+        0.825765286010483,
+        1.131170274514326
+      ],
+      "root_disposition": "Retain observed lower median; shared-host/small-n evidence does not establish a general speedup or parity."
+    },
+    {
+      "cell": "rule.coordination",
+      "measured_pairs": 10,
+      "baseline_median_ms": 15.992306999999997,
+      "candidate_median_ms": 14.034287999999998,
+      "candidate_over_baseline_ratio": 0.8775649441947307,
+      "paired_bootstrap95_ci": [
+        0.7415808462629303,
+        1.0260466313725398
+      ],
+      "root_disposition": "Retain observed lower median; shared-host/small-n evidence does not establish a general speedup or parity."
+    },
+    {
+      "cell": "rule.non_aromatic",
+      "measured_pairs": 10,
+      "baseline_median_ms": 9.777863499999999,
+      "candidate_median_ms": 11.754093000000001,
+      "candidate_over_baseline_ratio": 1.2021126087513905,
+      "paired_bootstrap95_ci": [
+        0.7502458518141607,
+        1.650050385224744
+      ],
+      "root_disposition": "Retain adverse median; interval spans1, so stable direction is inconclusive. Absolute complete batch cost remains usable; no optimization prerequisite."
+    },
+    {
+      "cell": "rule.unresolved",
+      "measured_pairs": 10,
+      "baseline_median_ms": 3.339625,
+      "candidate_median_ms": 3.2971749999999997,
+      "candidate_over_baseline_ratio": 0.987288992027548,
+      "paired_bootstrap95_ci": [
+        0.9744257033244959,
+        1.2305481473032378
+      ],
+      "root_disposition": "Retain observed lower median; shared-host/small-n evidence does not establish a general speedup or parity."
+    },
+    {
+      "cell": "workflow.explicit",
+      "measured_pairs": 5,
+      "baseline_median_ms": 120.59647199999999,
+      "candidate_median_ms": 117.29050000000001,
+      "candidate_over_baseline_ratio": 0.9725864949017746,
+      "paired_bootstrap95_ci": [
+        0.9610146754013089,
+        1.0303957855856583
+      ],
+      "root_disposition": "Retain observed lower median; shared-host/small-n evidence does not establish a general speedup or parity."
+    },
+    {
+      "cell": "workflow.lazy",
+      "measured_pairs": 5,
+      "baseline_median_ms": 191.589165,
+      "candidate_median_ms": 189.62032000000002,
+      "candidate_over_baseline_ratio": 0.9897236098920312,
+      "paired_bootstrap95_ci": [
+        0.9712181226422951,
+        0.9950650497380684
+      ],
+      "root_disposition": "Small five-pair interval below1 is retained as a local observation only; no general speedup. Current complete workflow cost is usable."
+    }
+  ],
+  "work_counts": {
+    "timed_phase_invocations": 154,
+    "separate_memory_probes": 28,
+    "experiment_failures": 0,
+    "retries": 0
+  },
+  "memory": "Nonaromatic net allocation +754B/200calls and lazy +593B/20molecules retained. Single memory probes have no uncertainty estimate; zero RSS increments over preflight HWM do not imply zero allocation or constant space.",
+  "hardware": {
+    "after_local": "2026-11-05T01:05:29.630049+08:00",
+    "before_local": "2026-11-05T01:04:53.525063+08:00",
+    "cpu64_71_observed_frequency_mhz_range": [
+      1717.443,
+      4186.279
+    ],
+    "during_observations": 71,
+    "mem_available_kib_range": [
+      466941556,
+      467316396
+    ],
+    "observed_wall_seconds": 36.10498833656311,
+    "one_minute_load_range": [
+      0.68,
+      0.96
+    ]
+  },
+  "limits": "CPU64–71/one thread/noGPU; frequencies1717.443–4186.279MHz, shared-host workload and smallsamples. Same sole implementation and actual full work. No universal parity/performancegain/scaling/leak/native-peak claim.",
+  "maintenance": "One private1055-byte bindingmodule and one importsubstitution; zero runtimeclasses/wrappers/registries. Keep the explicit connection and executable contract; do not generalize to other rules.",
+  "reopen": "Changed aromaticprotocol/calls/work, demonstrated chemical/mapping/lifecycle regression, representativebatch inability, OOM or problematic retainedgrowth.",
+  "unified_issue": "P20-D037",
+  "approval": "Root explicit technical/scientific disposition under current goal. No scientificalgorithm/public/defaultchange."
+}

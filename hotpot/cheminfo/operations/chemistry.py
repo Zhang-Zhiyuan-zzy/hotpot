@@ -31,8 +31,9 @@ from ..rules.chemistry.bonding.formal_charge import (
 from ..rules.chemistry.bonding.hydrogen import _calculate_implicit_hydrogens, _non_graph_hydrogens
 from ..rules.chemistry.bonding.bond_order import _sum_orders
 from ..rules.chemistry.bonding.kekule import (
-    _calculate_aromatic_assignment, _check_joint_ring_kekulization, _aromatic_flags_assignment,
+    _check_joint_ring_kekulization, _aromatic_flags_assignment,
 )
+from ._aromatic_protocol import _evaluate_aromatic_assignment as _calculate_aromatic_assignment
 
 
 __all__ = ()

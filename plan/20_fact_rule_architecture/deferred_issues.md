@@ -117,6 +117,8 @@ later implementation.
 
 | P20-D036 | S3 / private final-inventory checker | ACCEPTED_LIMITATION | Three bounded static-extractor rounds failed on historical count, wildcard scope and tuple/list export comparison; no product defect demonstrated. Actual business/installed tests, direct source/owner inspection and applicable contract records remain authoritative. No fourth retry. | Stage12 final review; consolidated tooling cleanup after mainline scope, reopen if this private tool becomes necessary. | Retain all attempts. Current facade source bytes are unchanged since accepted contract review; final package/current examples still have their own required validation. No checker PASS or gate waiver. | [Disposition and business-evidence boundary](stages/stage12/final-delivery/validation/final-interface-reconciliation.json). |
 
+| P20-D037 | S2 / bounded experimental cost | ACCEPTED_LIMITATION | Stage13B retains benzene1.0283x and nonaromatic1.2021x adverse medians with intervals spanning1; explicit/lazy complete20-molecule batches remain117.291/189.620ms. Small allocation increases and shared-host uncertainty remain. No parity/speedup/constant-space claim. | Stage13 aromatic owner; bounded root disposition2026-11-05, revisit at affected edits or overall Stage14/15 delivery. | Reopen for changedwork/algorithm/contract, unusable mandatorybatch, OOM or problematicgrowth; no extra optimization prerequisite under currentusablecost. | [Actual7-cell root disposition](stages/stage13/integration/validation/paired-cost.json), [report](stages/stage13/integration/report.md) and archived154timedphases/28memoryprobes/allrawobservations. |
+
 ## Closure and evidence
 
 Before treatment, state expected business facts, allowed differences, rejection

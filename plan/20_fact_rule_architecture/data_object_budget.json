@@ -1415,6 +1415,9 @@
     "definition": "stages/stage13/contracts/review.md",
     "binding_module": "hotpot/cheminfo/operations/_aromatic_protocol.py",
     "class_dataclass_protocol_typeddict_enum_abi_delta": 0,
-    "meaning": "Direct alias toexisting sole function; no newruntimewrapper/record/registry. One private Pythonmodule added; finalmain-scope505/771census remains its historicalB_expscope."
+    "meaning": "Direct alias toexisting sole function; no newruntimewrapper/record/registry. One private Pythonmodule added; finalmain-scope505/771census remains its historicalB_expscope.",
+    "D_exp": "5dc0443de17439f0c4d74151e2427a3a834c899c",
+    "integration": "stages/stage13/integration/report.md",
+    "integration_class_dataclass_protocol_typeddict_enum_abi_delta": 0
   }
 }

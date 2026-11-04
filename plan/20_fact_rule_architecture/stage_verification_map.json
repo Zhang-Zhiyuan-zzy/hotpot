@@ -5050,17 +5050,27 @@
         "pytest",
         "-q",
         "--import-mode=importlib",
-        "tests/test_cheminfo/kekulize/test_known_limitations.py",
-        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "tests/test_cheminfo/kekulize",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/structure/test_preparation_diagnostics.py",
+        "tests/test_cheminfo/structure/test_dependencies.py",
+        "tests/test_cheminfo/structure/test_topology_selection.py",
+        "tests/test_cheminfo/structure/test_conversion_freshness.py",
+        "tests/test_cheminfo/test_relevant_ring_integration.py",
+        "tests/test_cheminfo/test_search_ownership.py",
+        "tests/test_cheminfo/test_assembly_transformations.py",
         "tests/test_cheminfo/test_complex_hydrogens.py",
         "tests/test_cheminfo/test_molecule_conversion.py"
       ],
       "native_command": null,
-      "planned_contract_test_files": [],
+      "planned_contract_test_files": [
+        "tests/test_cheminfo/kekulize/test_protocol_integration.py"
+      ],
       "additional_requirements": [
         "actual ordinary/fused/coordination/unsupported/failure paths through protocol; affected packaging/default suite; paired affected-workflow benchmark against B_exp"
       ],
-      "execution_status": "not_executed_by_inventory_capture"
+      "execution_status": "root_accepted_actual_source_default_five_abi_installed_and_paired_cost",
+      "evidence": "stages/stage13/integration/validation/checkpoint.json"
     }
   },
   "migration_inventory_file": "baseline_inventory/migration_inventory.json",

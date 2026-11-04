@@ -1,0 +1,1348 @@
+{
+  "status": "ROOT_ACCEPTED_FINAL_COMPLETE_WRITE_COST_AND_BOUNDED_RESOURCE_OBSERVATIONS",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "record_commit_at_review": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
+  "reviewed_utc": "2026-11-04T13:40:16.848704+00:00",
+  "execution": {
+    "status": "TERMINAL_ROOT_REVIEW_REQUIRED",
+    "argv": [
+      "/usr/bin/time",
+      "-v",
+      "-o",
+      "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/root-launch01/time-v.txt",
+      "timeout",
+      "--signal=TERM",
+      "--kill-after=10s",
+      "1800s",
+      "taskset",
+      "-c",
+      "8-15",
+      "/usr/bin/env",
+      "-u",
+      "PYTHONHOME",
+      "-u",
+      "PYTHONSTARTUP",
+      "-u",
+      "PYTHONUSERBASE",
+      "-u",
+      "PYTEST_PLUGINS",
+      "-u",
+      "HOTPOT_FOCUSED_NATIVE_MODULES",
+      "-u",
+      "HOTPOT_MCA_MODEL_DIR",
+      "-u",
+      "HOTPOT_CBOND_MODEL_DIR",
+      "-u",
+      "HOTPOT_NEW_ONLY_PROCESS_ORIGINS",
+      "LD_LIBRARY_PATH=/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+      "LD_PRELOAD=/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "PYTHONPATH=/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site:/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01",
+      "PYTHONNOUSERSITE=1",
+      "PYTHONSAFEPATH=1",
+      "PYTHONDONTWRITEBYTECODE=1",
+      "PYTHONHASHSEED=0",
+      "PYTHONOPTIMIZE=0",
+      "OMP_NUM_THREADS=1",
+      "OPENBLAS_NUM_THREADS=1",
+      "MKL_NUM_THREADS=1",
+      "NUMEXPR_NUM_THREADS=1",
+      "CUDA_VISIBLE_DEVICES=",
+      "MPLBACKEND=Agg",
+      "HF_HUB_OFFLINE=1",
+      "HF_DATASETS_OFFLINE=1",
+      "HOTPOT_MODEL_SOURCE=local",
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD=1",
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-B",
+      "-s",
+      "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/observe_sdf.py",
+      "--output",
+      "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/prospective-execution01"
+    ],
+    "cwd": "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01",
+    "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+    "automatic_retries": 0,
+    "started_unix": 1793799222.6838105,
+    "pid": 4,
+    "returncode": 0,
+    "elapsed_seconds": 71.01232190430164,
+    "finished_unix": 1793799293.696768
+  },
+  "runtime": {
+    "argv": [
+      "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/observe_sdf.py",
+      "--output",
+      "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/prospective-execution01"
+    ],
+    "cwd": "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01",
+    "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+    "executable": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+    "affinity": [
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15
+    ],
+    "loadavg": [
+      1.21,
+      2.86,
+      3.71
+    ],
+    "environment": {
+      "XDG_SESSION_TYPE": "tty",
+      "XDG_SESSION_CLASS": "user",
+      "XDG_SESSION_ID": "59614",
+      "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+      "XDG_RUNTIME_DIR": "/run/user/1021",
+      "XDG_DATA_DIRS": "/usr/local/share:/usr/share:/var/lib/snapd/desktop",
+      "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site:/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONSAFEPATH": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONHASHSEED": "0",
+      "PYTHONOPTIMIZE": "0",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "CUDA_VISIBLE_DEVICES": "",
+      "MPLBACKEND": "Agg",
+      "HF_HUB_OFFLINE": "1",
+      "HF_DATASETS_OFFLINE": "1",
+      "HOTPOT_MODEL_SOURCE": "local",
+      "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1",
+      "TMPDIR": "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/prospective-execution01/tmp",
+      "XDG_CACHE_HOME": "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/prospective-execution01/cache",
+      "MPLCONFIGDIR": "/tmp/hotpot_plan20/long/stage12-final-sdf-resource-20261104/preparation01/prospective-execution01/matplotlib"
+    }
+  },
+  "dependency_versions": {
+    "numpy": "2.4.6",
+    "rdkit": "2026.09.1",
+    "openbabel": "3.2.1"
+  },
+  "work": {
+    "cost_calls_including_warmups": 260,
+    "cost_frames_including_warmups": 520,
+    "measured_cost_calls": 200,
+    "measured_cost_frames": 400,
+    "resource_calls": 320,
+    "resource_frames": 640,
+    "representative_calls": 1,
+    "representative_frames": 2,
+    "persisted_and_independently_readback_records": 1162,
+    "public_writes_total": 581,
+    "persisted_records": 1162,
+    "fixture": {
+      "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+      "atoms": 256,
+      "heavy_atoms": 256,
+      "bonds": 255,
+      "source_frames": 2,
+      "selected_frame": 0,
+      "formal_charge": 0,
+      "non_graph_H": 514,
+      "ordered_H": [
+        3,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        2,
+        3
+      ],
+      "isotope_scope": "none supplied",
+      "stereo_scope": "no stereo records in this chain; current codec path still executes",
+      "state_sha256": "f99772b86c45cf17caf5bb38a6c43459d322f1612078c5a27bcdc9f16326dc60"
+    },
+    "source_and_frames_unchanged": true
+  },
+  "plain_cost": {
+    "attempts": 10,
+    "completed": 10,
+    "failed": 0,
+    "no_output": 0,
+    "all_attempt_seconds": 6.471944697201252,
+    "median_seconds": 0.646559196524322,
+    "mad_seconds": 0.0006481288000941277,
+    "p95_seconds": 0.6511342993006111,
+    "peak_rss_bytes": 151887872,
+    "median_seconds_per_complete_call": 0.0323279598262161
+  },
+  "resource_observations": {
+    "batches": 16,
+    "calls": 320,
+    "frames": 640,
+    "retained_delta_from_baseline_bytes": 48321,
+    "retained_increments_bytes": [
+      10743,
+      1571,
+      2230,
+      896,
+      2895,
+      -713,
+      2217,
+      9940,
+      5805,
+      -9525,
+      6447,
+      367,
+      2530,
+      4191,
+      -724,
+      9451
+    ],
+    "rss_delta_from_baseline_bytes": 1081344,
+    "max_observed_rss_bytes": 152969216,
+    "process_peak_rss_bytes": 152969216,
+    "limits": "Python tracked values exclude missed/untraced native allocations. RSS includes allocator caching, output and observer bookkeeping; no universal leak/destructor theorem or exact causal attribution.",
+    "checkpoints": [
+      {
+        "batch": 0,
+        "completed_calls": 0,
+        "completed_frames": 0,
+        "python_tracked_retained_bytes": 0,
+        "python_tracked_peak_bytes": 0,
+        "rss_bytes": 151887872,
+        "peak_rss_bytes": 151887872
+      },
+      {
+        "batch": 1,
+        "completed_calls": 20,
+        "completed_frames": 40,
+        "python_tracked_with_outputs_bytes": 1100190,
+        "python_tracked_write_peak_bytes": 2590601,
+        "python_tracked_retained_bytes": 10743,
+        "python_tracked_peak_including_persistence_bytes": 3018310,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 2,
+        "completed_calls": 40,
+        "completed_frames": 80,
+        "python_tracked_with_outputs_bytes": 1101820,
+        "python_tracked_write_peak_bytes": 2597401,
+        "python_tracked_retained_bytes": 12314,
+        "python_tracked_peak_including_persistence_bytes": 3019879,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 3,
+        "completed_calls": 60,
+        "completed_frames": 120,
+        "python_tracked_with_outputs_bytes": 1103738,
+        "python_tracked_write_peak_bytes": 2595708,
+        "python_tracked_retained_bytes": 14544,
+        "python_tracked_peak_including_persistence_bytes": 3021858,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 4,
+        "completed_calls": 80,
+        "completed_frames": 160,
+        "python_tracked_with_outputs_bytes": 1105009,
+        "python_tracked_write_peak_bytes": 2601675,
+        "python_tracked_retained_bytes": 15440,
+        "python_tracked_peak_including_persistence_bytes": 3023007,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 5,
+        "completed_calls": 100,
+        "completed_frames": 200,
+        "python_tracked_with_outputs_bytes": 1107843,
+        "python_tracked_write_peak_bytes": 2597863,
+        "python_tracked_retained_bytes": 18335,
+        "python_tracked_peak_including_persistence_bytes": 3025841,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 6,
+        "completed_calls": 120,
+        "completed_frames": 240,
+        "python_tracked_with_outputs_bytes": 1107067,
+        "python_tracked_write_peak_bytes": 2605212,
+        "python_tracked_retained_bytes": 17622,
+        "python_tracked_peak_including_persistence_bytes": 3025128,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 7,
+        "completed_calls": 140,
+        "completed_frames": 280,
+        "python_tracked_with_outputs_bytes": 1109225,
+        "python_tracked_write_peak_bytes": 2601557,
+        "python_tracked_retained_bytes": 19839,
+        "python_tracked_peak_including_persistence_bytes": 3027345,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 8,
+        "completed_calls": 160,
+        "completed_frames": 320,
+        "python_tracked_with_outputs_bytes": 1119464,
+        "python_tracked_write_peak_bytes": 2608807,
+        "python_tracked_retained_bytes": 29779,
+        "python_tracked_peak_including_persistence_bytes": 3037464,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 9,
+        "completed_calls": 180,
+        "completed_frames": 360,
+        "python_tracked_with_outputs_bytes": 1125275,
+        "python_tracked_write_peak_bytes": 2611279,
+        "python_tracked_retained_bytes": 35584,
+        "python_tracked_peak_including_persistence_bytes": 3043151,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 10,
+        "completed_calls": 200,
+        "completed_frames": 400,
+        "python_tracked_with_outputs_bytes": 1115689,
+        "python_tracked_write_peak_bytes": 2608583,
+        "python_tracked_retained_bytes": 26059,
+        "python_tracked_peak_including_persistence_bytes": 3033626,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 11,
+        "completed_calls": 220,
+        "completed_frames": 440,
+        "python_tracked_with_outputs_bytes": 1121828,
+        "python_tracked_write_peak_bytes": 2607921,
+        "python_tracked_retained_bytes": 32506,
+        "python_tracked_peak_including_persistence_bytes": 3039948,
+        "rss_bytes": 152698880,
+        "peak_rss_bytes": 152698880
+      },
+      {
+        "batch": 12,
+        "completed_calls": 240,
+        "completed_frames": 480,
+        "python_tracked_with_outputs_bytes": 1122381,
+        "python_tracked_write_peak_bytes": 2610900,
+        "python_tracked_retained_bytes": 32873,
+        "python_tracked_peak_including_persistence_bytes": 3040440,
+        "rss_bytes": 152969216,
+        "peak_rss_bytes": 152969216
+      },
+      {
+        "batch": 13,
+        "completed_calls": 260,
+        "completed_frames": 520,
+        "python_tracked_with_outputs_bytes": 1124850,
+        "python_tracked_write_peak_bytes": 2611668,
+        "python_tracked_retained_bytes": 35403,
+        "python_tracked_peak_including_persistence_bytes": 3042909,
+        "rss_bytes": 152969216,
+        "peak_rss_bytes": 152969216
+      },
+      {
+        "batch": 14,
+        "completed_calls": 280,
+        "completed_frames": 560,
+        "python_tracked_with_outputs_bytes": 1129102,
+        "python_tracked_write_peak_bytes": 2613928,
+        "python_tracked_retained_bytes": 39594,
+        "python_tracked_peak_including_persistence_bytes": 3047222,
+        "rss_bytes": 152969216,
+        "peak_rss_bytes": 152969216
+      },
+      {
+        "batch": 15,
+        "completed_calls": 300,
+        "completed_frames": 600,
+        "python_tracked_with_outputs_bytes": 1128439,
+        "python_tracked_write_peak_bytes": 2619031,
+        "python_tracked_retained_bytes": 38870,
+        "python_tracked_peak_including_persistence_bytes": 3046498,
+        "rss_bytes": 152969216,
+        "peak_rss_bytes": 152969216
+      },
+      {
+        "batch": 16,
+        "completed_calls": 320,
+        "completed_frames": 640,
+        "python_tracked_with_outputs_bytes": 1137829,
+        "python_tracked_write_peak_bytes": 2621230,
+        "python_tracked_retained_bytes": 48321,
+        "python_tracked_peak_including_persistence_bytes": 3055949,
+        "rss_bytes": 152969216,
+        "peak_rss_bytes": 152969216
+      }
+    ],
+    "whole_process_peak_including_readback_bytes": 160272384
+  },
+  "chemical_oracles": {
+    "hotpot_MolReader_representative_records": 2,
+    "independent_RDKit_all_records": 1162,
+    "ordered_elements_charge_H_isotope_graph_frame_coordinates": "All match the explicit literal chain/frame fixture; no historical serialized bytes used as chemical oracle.",
+    "limitations": "Artificial coordinate conversion fixture, no stereo records/no isotopes; no physical-geometry or broad chemical-domain qualification."
+  },
+  "root_dispositions": {
+    "P20-D003": {
+      "state": "ACCEPTED_LIMITATION",
+      "decision": "Final complete two-frame256-carbon write cost is usable at observed32.328ms/call. Accept the measured current cost without per-stage optimization, reducing frames/records or inventing a speedup/parity verdict.",
+      "comparison": "Current-only final measurement. Historical median7.549ms and GMratio2.527527/sixadverseintervals/twelvehigherPythonpeaks remain historical; no newly matched B0pair/statistical ratio is asserted."
+    },
+    "P20-D004": {
+      "state": "ACCEPTED_LIMITATION",
+      "decision": "Representative581writes/1162records complete; separate320write/640frame resource window retains48321Pythontracked bytes and1081344RSSbytegrowth, with152969216peak-windowRSS. Root accepts the observed bounded cost/resources, without allocation-owner attribution or universal leak/destructor freedom.",
+      "unresolved": "Historical3264-byte batch10dictresize step,15-byteMDLallocation and native frames remain unresolved; no mandatory new trace. Resource window includes output/observer bookkeeping; do not identify growth causally as business leakage or all-tool allocation.",
+      "reopen": "Changed write/native/storage/fixture contracts, newly observed sustained problematic resource growth, OOM or incomplete representative work."
+    }
+  },
+  "evidence": {
+    "installed_files_verified_before_after": 903,
+    "original_bound_recipe_inputs": 28,
+    "actual_mapped_backend_native_files": [
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/_openbabel.so",
+        "bytes": 3476176,
+        "sha256": "2bf84974a4468d8faa01119541fb7c88255a7abff4f146f01e3e6bb8ac3ec427"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libinchi.so.1",
+        "bytes": 1419440,
+        "sha256": "21547eb584c870b8dedff88e283aef70cec1f8a3c23350e2dcd790cf1d4e8f0c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8",
+        "bytes": 3721104,
+        "sha256": "46c565393702f84146fdee597dc4764ed6d6c4e1d3f70bd61fc70f75735aaf8b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/APIInterface.so",
+        "bytes": 18656,
+        "sha256": "c7da13776123b500ac934c1e3a121136035c6319de67aa98f8dd20fb402f8f43"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/CSRformat.so",
+        "bytes": 26888,
+        "sha256": "73c919054994273b0e2cdc9aba102319b0c4f19c0d4b2aecb555c1e1e2f82abe"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/MCDLformat.so",
+        "bytes": 105232,
+        "sha256": "625499eb5015156d24ee330fd7e5708a0b091d6c5155465fdf9eb036bec9394f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/MNAformat.so",
+        "bytes": 47624,
+        "sha256": "f55366f81a06b59fa6671d26de2856c6c75a87121b7d9767ef2f66bf1fbe581c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/PQSformat.so",
+        "bytes": 48128,
+        "sha256": "a0c376d987385b9b28643cd0873c3437068cbe9c8fa9a7178373345aba5c9005"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/abinitformat.so",
+        "bytes": 35200,
+        "sha256": "5a69b6d7f20f5e9a9f8e889f0035d24afacb753e675f6c5d1f0d5300f63c882f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/acesformat.so",
+        "bytes": 47528,
+        "sha256": "ddb727eeac152b8446ffdafc61746f17da500fb7fd53ccaeeb1ad14ceb19a899"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/acrformat.so",
+        "bytes": 31024,
+        "sha256": "823cb4dbc4194eef5558bd4045e2665a531d00969c1713a0445b35e525cdcf19"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/adfformat.so",
+        "bytes": 84824,
+        "sha256": "d2d73b0b75280cee6dce6a500985cdea3b6564517a83bb8c0664c865297e138c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/alchemyformat.so",
+        "bytes": 31120,
+        "sha256": "0bb649c6ee387a53d2431e24fd26c97817ef51c603d631d3f8c12ef29826c111"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/amberformat.so",
+        "bytes": 31024,
+        "sha256": "b58ade01df6caa1febb20c85c744974a30e64b834cf1e7be83d09153ddefd1a1"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/aoforceformat.so",
+        "bytes": 43392,
+        "sha256": "5f7b679d26e083530049a7397debef9a3a35cce5a01adb0f39914a62c2539a5a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/asciiformat.so",
+        "bytes": 47656,
+        "sha256": "5842fab01660746eaf8ce9052560e87004e4498da727a6be32b870787276aba6"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/balstformat.so",
+        "bytes": 31128,
+        "sha256": "bd1c7858bdee8f49619ed4d9faf6032677fbb2e2de657a1d7f5a63f9b093a822"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/bgfformat.so",
+        "bytes": 39480,
+        "sha256": "084f0bba474bbcfb320a1c23da8f285b89c028fcd2da636ef3d058a963fb7791"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/boxformat.so",
+        "bytes": 31048,
+        "sha256": "219aa881679a300e83f5e4e7822dfe92d6b9e06192db68228ddbaeef6d69f5dc"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cacaoformat.so",
+        "bytes": 43560,
+        "sha256": "9dcf246a02d245ad6826d83359316641794c3b19d2d1ee1af89f0818bb75271c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cacheformat.so",
+        "bytes": 26872,
+        "sha256": "62b71d92d8f3d97b2a23170cbac16f2181e5317a911684f15ab209c35fb29a9e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/carformat.so",
+        "bytes": 31104,
+        "sha256": "cde2fa27c0f073720cdda3d187fbc56fe60a726cd05eb166be245c08d5a96ba4"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/castepformat.so",
+        "bytes": 31088,
+        "sha256": "febc1adb72768600c7cc98f32f24977a087cc1fbae1756c72f26f70f8b05238e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cccformat.so",
+        "bytes": 31040,
+        "sha256": "18e8af213a4fdb386dff1f9d33816d4ff7ecab6a71bdab995efa354acfcc6920"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cdxmlformat.so",
+        "bytes": 82553,
+        "sha256": "50d5451403eab92c8a1e93f86157fb44413c66cef62e73cf853a356f10680c5c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/chem3dformat.so",
+        "bytes": 39408,
+        "sha256": "e0aff99158999fe685c211301679638e7a0aa891f28aa0205812b233daf61c73"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/chemdoodlejsonformat.so",
+        "bytes": 117720,
+        "sha256": "b45915471075cc170d7b226f17dc775fc2419bcd5406563f1b7ff85b93a72828"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/chemdrawcdx.so",
+        "bytes": 84920,
+        "sha256": "a83a921152dc8fed3db8351c2f22c5059dd019aff4d346c5062bea611ef9f171"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/chemdrawct.so",
+        "bytes": 31064,
+        "sha256": "fccaba9cd4655da45186ae5ec8d7dff33e2eb0b18e48c86846b21d176803bd40"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/chemicaljsonformat.so",
+        "bytes": 113584,
+        "sha256": "ed1f44da1fea6415c6a3774b9fb2f5469b96eb9e8cb14e4bdc97d2565cb19438"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/chemkinformat.so",
+        "bytes": 113800,
+        "sha256": "36db8d730dcca31a78c2dd43149782f641d7c6079ec113cffc2fea427f1f72f2"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/chemtoolformat.so",
+        "bytes": 30984,
+        "sha256": "53c0096edbec11a6988818030fdc676fae3cf814ae20ca5adc018ffbfb6fbac9"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cifformat.so",
+        "bytes": 184072,
+        "sha256": "2867d3a6b02c8bcd2a51e020856dc4887c4a4db8a9c0416343444fadc1c266e0"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cmlformat.so",
+        "bytes": 251697,
+        "sha256": "c721bfd20883d8260820605a1b9d684e00ac66ac1c013e8d8bbd6a9ee4fa458e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cmlreactformat.so",
+        "bytes": 140841,
+        "sha256": "fa3cdefbe2ee7ab1c992eb441a68436c0582d4be53364050fe506b917cd545da"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cofformat.so",
+        "bytes": 55976,
+        "sha256": "5e5f8b72ad9022d499693635df4f0905b6eb084fa169a49d4eacd52f3ad54208"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/confabreport.so",
+        "bytes": 43616,
+        "sha256": "813c3a3c0fd9d3655e4ed14b2c2d4c93cd8f40b02cf6a26bb07e57efee10e033"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/copyformat.so",
+        "bytes": 18648,
+        "sha256": "34b5ae28e5b84416cb729b717fa0dc526f7de3494da466b3bfec7396a70e9216"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/crkformat.so",
+        "bytes": 47576,
+        "sha256": "8281d61a35a200eabbc62982b2e252032e34631bbaa584038f4128b87368a2db"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/crystal09format.so",
+        "bytes": 55752,
+        "sha256": "7f35673c2ce34c2b0f592244ff69c64505ae7c78f91a8e44ef0674dd10784fbd"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/cssrformat.so",
+        "bytes": 31040,
+        "sha256": "3cb5b1451cc43bb0a220c76c916988ffc2a4b8fb0416631a8e98ee817a35aea9"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/daltonformat.so",
+        "bytes": 43456,
+        "sha256": "26a3c1f104aae89d9478f0ff505d8a1801bea37921c2212fc6382d1665af6148"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/dlpolyformat.so",
+        "bytes": 84664,
+        "sha256": "05b72bb6d13c8c57798ea7c5541dd33cb174fcfcf544e97f134897bb7a92c1ec"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/dmolformat.so",
+        "bytes": 31128,
+        "sha256": "6537a985b6017140c8631dc7d623053f9ed9b95150395b89893840472dfb78d2"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/exyzformat.so",
+        "bytes": 55944,
+        "sha256": "69f06326395585e5bd58fb0f87fb8debc4b736d67431f7b37eb1248831a949bc"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/fastaformat.so",
+        "bytes": 291488,
+        "sha256": "56e776612569fa0fd886f98bac9af3c4ac839c74b2bdc6f58b920470804f7454"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/fastsearchformat.so",
+        "bytes": 72680,
+        "sha256": "5ecfd5bc2f246dcdab5951f06852b0375dd7e5e1ec60beb628eee848015ad80e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/fchkformat.so",
+        "bytes": 80552,
+        "sha256": "311b40b2fd9e0aa2ce60362f1905fd20af77d79ca3700c5cd9ebf7f5af99f775"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/featformat.so",
+        "bytes": 31088,
+        "sha256": "c3c6d9ea8270b2f28e0652c3b46db50d44ec439183847a7d2fb61454ddef3a1b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/fhformat.so",
+        "bytes": 26912,
+        "sha256": "3f23d61ec5d4bb502259aca522ac0d8f97f56daf04ca01d9d1c70fc759e54a98"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/fhiaimsformat.so",
+        "bytes": 31112,
+        "sha256": "2e25e775577715c08cdd396e3b08b9f8650ef2359616e9bf69ac3acb198b4aa8"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/fingerprintformat.so",
+        "bytes": 39352,
+        "sha256": "effa65ac367ff97da2e19ca03fbb3c6a2bba825b2b25a4b7a368ea8456187eb0"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/fpsformat.so",
+        "bytes": 39352,
+        "sha256": "8a2e74c5dcb8c249b9b6c3c7e21f5fb03c666df17737f511c922afb3d0f3f108"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/freefracformat.so",
+        "bytes": 35296,
+        "sha256": "2d3c0e062545007d8b0f3321b58e5fe2cfb2ceaae9c4d8a78a32d706581ada33"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/gamessformat.so",
+        "bytes": 101200,
+        "sha256": "695183dbfada48b030fc1c0a8904feb387aa5efb6dc1b1d40de1ec73120597ff"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/gamessukformat.so",
+        "bytes": 259136,
+        "sha256": "db9643e50756d2d55481afde5995de728df92aa83942859e48a3b34b1b3c5b81"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/gausscubeformat.so",
+        "bytes": 68216,
+        "sha256": "d93bbbb47cf848791d0c4cc13eb478fa08895ce83cd963c872573ba4cd07b16f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/gaussformat.so",
+        "bytes": 130176,
+        "sha256": "7cd3351cb5fae07e2e9318c13be6b3c71ea2d6b0e9cdd14376505081cbc13812"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/gausszmatformat.so",
+        "bytes": 51840,
+        "sha256": "f882ccb58bb35cbba5052796364f8de43be9867c0be0161878454fd1864c052d"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/ghemicalformat.so",
+        "bytes": 31088,
+        "sha256": "65a8d1dc3a70fe954d1ae285ec8d15365b78e6a6f00c6c73a9764cf9044c4655"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/groformat.so",
+        "bytes": 60128,
+        "sha256": "d63e40480290b30a4cdd9710be2bc2c17e8fa37c0b4c6b4396d701e6097d35c1"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/gromos96format.so",
+        "bytes": 26888,
+        "sha256": "5749122a5e8591ce1d294ed545842e07f1dbd177bd4e32411a8789a7e0628279"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/gulpformat.so",
+        "bytes": 39280,
+        "sha256": "8c09cf5e30691ecf4acc456403f466d41f4b60a3ecda633fe17c3918d17effd8"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/hinformat.so",
+        "bytes": 31088,
+        "sha256": "524d0c6068a29a4c674d7a9ac3cf3c97dfdcdef234f457f285f70628abd03a4a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/inchiformat.so",
+        "bytes": 105648,
+        "sha256": "3dc1132f94b2be84345a2c274cd2662ea9fe962cb5399b381926af408557b15b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/jaguarformat.so",
+        "bytes": 43400,
+        "sha256": "25eac10c465ff937a14774c0930dc9dcfc5b30312e0b2a2a0c980fb7990a6474"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/ketformat.so",
+        "bytes": 195904,
+        "sha256": "9fbc2768905ed41da6ab37201ab781c35b274a7c19db62853f366406ca91319b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/lmpdatformat.so",
+        "bytes": 59920,
+        "sha256": "64f9d6769f05790e126b95125a81c3521a0f977e73f5eb316f6599315d95a1bb"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/lpmdformat.so",
+        "bytes": 113496,
+        "sha256": "7d9eda58b98f4b73b23a4bcb5abe1bea7a1472b5522f6c8067912de31132ae1e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mdffformat.so",
+        "bytes": 72480,
+        "sha256": "36e7de92643ef2e0d984c6c6bd1e8c8098066c366711b9e3f91019876ca7ed3b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mdlformat.so",
+        "bytes": 180008,
+        "sha256": "5466b89843ee73fee532cee795805bb676688e2f56202ffacad185ffdda6d896"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mmcifformat.so",
+        "bytes": 96536,
+        "sha256": "6711857201ff897f5b9df56701ba853c35cdd40bfeef55681aba498e96218ec1"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mmodformat.so",
+        "bytes": 39432,
+        "sha256": "b1a69428344f7f3412f15ec9e648c1eafc3171391c4e20057faa1199dc62ca60"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mol2format.so",
+        "bytes": 93304,
+        "sha256": "3fd73d385adbb63b44d9a7590d29992d43b4c8f28f1395d620c6afcb122e782f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/moldenformat.so",
+        "bytes": 68256,
+        "sha256": "dc865602f03574e3449ca3ae848d5dc84a9e74528d7a6479210af8beddbec051"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/molproformat.so",
+        "bytes": 51680,
+        "sha256": "e21aaa35ebb1ce2c7f32671634e628e38f0eaaaa5d71e6ea461efacc2656b829"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/molreport.so",
+        "bytes": 30960,
+        "sha256": "b4f3fd0216407b8cdc84244696214f3235fd6a8eb9c90e054027a762f8aecbf6"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mopacformat.so",
+        "bytes": 84704,
+        "sha256": "66ad4de5401de48a7e64a5d781a4299626ff4308848b97de057bbe27c3ea88d6"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mpdformat.so",
+        "bytes": 35184,
+        "sha256": "a03011a7d4354d1a66e23b19347bae2e51394c9b6e45a64f0193daf1d1063a04"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/mpqcformat.so",
+        "bytes": 31008,
+        "sha256": "7bcada74418121fee31780663ba684bb047091a2f012925ae5f45ab7875c17a7"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/msiformat.so",
+        "bytes": 35224,
+        "sha256": "ae41d6997273e9dec3a62ea989496a3bc348ed2f8522b51ee78cb10f713b50a3"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/msmsformat.so",
+        "bytes": 26816,
+        "sha256": "9c3c312895223da8cdcea3b4dbb31aa4bda9f79e4464b5a0f0f9e74a8c086de4"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/nulformat.so",
+        "bytes": 18376,
+        "sha256": "3685dd6c81b9cca70119da7e89d3c9e2f2a3c7a45f773af58f61ac535606e33c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/nwchemformat.so",
+        "bytes": 92936,
+        "sha256": "5b29026d59d0c610b85fc12eb6e535fb21ff532353914e2b12b8563ea6ea774f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/opendxformat.so",
+        "bytes": 47624,
+        "sha256": "ee7cbdf53f83b909bd5e0ae589489f41a843943356915fa616cdcc31b19c1bed"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/orcaformat.so",
+        "bytes": 222144,
+        "sha256": "387d054eacf7fc67355a8f1864d806a2165a9ee14861251648987edc75e9657f"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/outformat.so",
+        "bytes": 31000,
+        "sha256": "80795e71535e177ddb98e8fea80cbd112d9a908fe431ab4352c1ce39f1245107"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/painterformat.so",
+        "bytes": 39248,
+        "sha256": "91866328a9211017c08be1c067cc6940636b980a963a609b1d7c15360f6906c7"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pcmodelformat.so",
+        "bytes": 31168,
+        "sha256": "fdfd0a96a757eb05e658fe54624abce13d0bd1f483baa6f4223a018cbde57f44"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pdbformat.so",
+        "bytes": 93352,
+        "sha256": "81cc3a854ea2f24ec6818d8435f2316b39eea3522dac5324e5cb125c73978fa6"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pdbqtformat.so",
+        "bytes": 105744,
+        "sha256": "379b5d4aa44bd61c447f50cbb45d947530732ae7d40c9402395199421994402a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/plugin_charges.so",
+        "bytes": 339472,
+        "sha256": "c1d4d9696e80ae744bcfd59b4ab6c38aa6b244500cb177c95de07d54ccc9f25a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/plugin_descriptors.so",
+        "bytes": 72544,
+        "sha256": "194c40604adfaa0b756d1eb77361853b8bdee2832f01a258ae958d877d96ab25"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/plugin_fingerprints.so",
+        "bytes": 84936,
+        "sha256": "0afc9b14d7c0761d3b5a8e5175b22fc97c35f15cecf13ae6579805e43007917b"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/plugin_forcefields.so",
+        "bytes": 475720,
+        "sha256": "093b63eb5838c299d3b739bf9f7713004b0d7dc929e17e5fbc549d7e62301069"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/plugin_ops.so",
+        "bytes": 311768,
+        "sha256": "5dc067cd56509f79a62618f118358fc19fd560c331037310432cdcd8e9a95267"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pngformat.so",
+        "bytes": 43584,
+        "sha256": "9e44913adacb1f42651f8cbef149fbf2edbf74eab53d99d4a70daeba2d749090"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pointcloudformat.so",
+        "bytes": 35168,
+        "sha256": "efdb33881fbed5c9103cd85afd6d55ee68078bea9e52b87afbaa6253d24dfe33"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/posformat.so",
+        "bytes": 35288,
+        "sha256": "ded87a610305945a67b0caa5a4eb8f0b07610a103ca341f2d31d44c1aac72e97"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/povrayformat.so",
+        "bytes": 68144,
+        "sha256": "c0403eb2af78afa6e4c1bc658384b2c0a2e32ad18037186d654ff0fd2d7721ad"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pqrformat.so",
+        "bytes": 60232,
+        "sha256": "2d2d9d758361d4b4378783189ffd80af8472255ec5d13e1c451c1bf45428a381"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pubchem.so",
+        "bytes": 68937,
+        "sha256": "53715717bb07288a43720c9212a7632fc18b4c8f2ac5ce303c7dd9c286b1e269"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pubchemjsonformat.so",
+        "bytes": 171488,
+        "sha256": "925e3cea0bc477a9d015202bc51ca8f210d9f0dc6af9366bd63351580efd0ae3"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/pwscfformat.so",
+        "bytes": 35184,
+        "sha256": "c337f34410b3eb01c31644de6b117e96d20b93479dc4407d18901ac5cfabfd3e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/qchemformat.so",
+        "bytes": 55904,
+        "sha256": "14cc85e8d1ccfc659073edd8b0631a58a2d9feac832b3207add986103a57ada0"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/reportformat.so",
+        "bytes": 35248,
+        "sha256": "1b23682313073d1bd41c76a1a3f4fae39225a4e851cd3b6d3c6d7e074ab63d62"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/rinchiformat.so",
+        "bytes": 43464,
+        "sha256": "fdb601104a4fac9ada9fed67dc634704dc54766cc93c8a88321e1e57e6a68dc9"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/rsmiformat.so",
+        "bytes": 47568,
+        "sha256": "d5ffe49bddd0628827b09ff062cdb72900e96a4ea2bdee0eecb06004c29bce1d"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/rxnformat.so",
+        "bytes": 35264,
+        "sha256": "5929f969f20084c965279b442531b3407707e0c044ba6f397b2b0d05d0b250a0"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/shelxformat.so",
+        "bytes": 31048,
+        "sha256": "68881b72f14cd0814651d472988c98e66837b1ff25d501c43677870db2117abe"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/siestaformat.so",
+        "bytes": 55928,
+        "sha256": "8b11f5d6a5a28d2bf5e55fba71b8e69dd0524505078c0e7d6c540ac4cca679ce"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/smilesformat.so",
+        "bytes": 217064,
+        "sha256": "a37da9cb197b84a2ac81df573ac24d94c544d6c143dfedb34c7f2970b62701a3"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/smileyformat.so",
+        "bytes": 84640,
+        "sha256": "82db93f9c300ccdea864d93a7485a10e508febe8162ea3322e42cf1d131ab064"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/stlformat.so",
+        "bytes": 35144,
+        "sha256": "0a3042bbd098a9fbae210578547ffcf28d6c1c61b2fe461f9811014201a39f5c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/svgformat.so",
+        "bytes": 51928,
+        "sha256": "488e2073e0bdf7b59bdc3a8896bf1df1cc1f1c979b42df56526a821954f1eabc"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/textformat.so",
+        "bytes": 26872,
+        "sha256": "61a304214f059e58fbfdaf0d528242bb15af8f6216d47a3a0ff5bb7f1fa88379"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/thermoformat.so",
+        "bytes": 43448,
+        "sha256": "1eaf2918bb76c52b9dd44737099e54f7e0a0a9cd93305ee37bc3bb8ba0a923fd"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/tinkerformat.so",
+        "bytes": 51920,
+        "sha256": "88e2bb292637a48589ce7c478e0150985cd3a3aa9971cfa754b39d99c8035779"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/titleformat.so",
+        "bytes": 26880,
+        "sha256": "ca70097e19d333c58bd7882e5bd1210c9e86651ad21b180ea575b8a908714862"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/turbomoleformat.so",
+        "bytes": 31120,
+        "sha256": "e806eb696fa5d0f0c21f269971a88acdfac07d3c4129d20b5d90c312aaa5b22c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/unichemformat.so",
+        "bytes": 31080,
+        "sha256": "c1124cb438d8d7731246b6468a5578f6431baff1bc98673f38af41c67d44ad98"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/vaspformat.so",
+        "bytes": 97160,
+        "sha256": "9c93bc67e5191c67cbd34720c3396ac636c69214c81e020f481360f4f404ad8a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/viewmolformat.so",
+        "bytes": 31056,
+        "sha256": "1e498b01c470a7ef5080e73f9a0235c07e6b7ddb614ecbf32c9d6cbab5fed01a"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/wlnformat.so",
+        "bytes": 101064,
+        "sha256": "640672997ca159bd630644251f5d7fa3f5552ed5a44534ebfeb9090d3cbfa9fc"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/xedformat.so",
+        "bytes": 30984,
+        "sha256": "5e499ecb797483bb90fe70137a745fbcb554607b685d26fed8aaa04d8646ffd0"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/xmlformat.so",
+        "bytes": 59577,
+        "sha256": "7348e0198172600ae38225865a7695c682ba81d39946e20439b5d14932ebe844"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/xsfformat.so",
+        "bytes": 31080,
+        "sha256": "bbc57d22f499a664030f182d6ed56e7b31b3fc418a2e3cc6ff76ce2ea45a0b7e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/xtcformat.so",
+        "bytes": 52000,
+        "sha256": "ca7a37ebcc8638d4430841e78e6d11a56865639ca5733d0aa3874410ecb73b92"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/xyzformat.so",
+        "bytes": 43520,
+        "sha256": "e57ae1a012eab02b293da3b294553a444b1efc7d75f5f9beb15b3afc1793152e"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/yasaraformat.so",
+        "bytes": 40504,
+        "sha256": "354809b51d1fad1b79e50ca8566b489232a2b154ed2021af63e5d9ddffb72c9c"
+      },
+      {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/openbabel/3.2.1/zindoformat.so",
+        "bytes": 30984,
+        "sha256": "6231a52897c8aa78bb33d94469bb12d3062b932df8eb1f7880f3124e77806552"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site/hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 1226712,
+        "sha256": "ac64084c071c59aae14ecf12bcc697cd966eecdff1211f85e62fafb2249ccccd"
+      },
+      {
+        "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "bytes": 410928,
+        "sha256": "386e743c129f75e89d662fdce34b751d3eee5da205ad9c42a062e42b95b0ca16"
+      }
+    ],
+    "hardware_samples": 37,
+    "hardware_scope": "ActualCPU8-15counters/load/memory before/during/after. No CPUclock/temperature record or exclusive reservation; no historical hardware-parity claim.",
+    "business_reexecutions_for_root_review": 0
+  },
+  "limits": [
+    "The exact finite resource window does not prove arbitrary batch-size or universal memory bounds.",
+    "tracemalloc misses untraced native allocations; RSS includes interpreter/allocator caching and output/observer bookkeeping.",
+    "Production read-back and independent parsing are outside plain cost/resource windows; whole-process RSS is separately reported.",
+    "No fresh B0pair, equal historical output, strict timing ratio, GPU/test/version performance or global acceptance is claimed."
+  ],
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/final-sdf-resource16b864f/raw-final-sdf.tar.gz",
+    "bytes": 2816670,
+    "sha256": "473572f80c739557a89c5f2fb93f51086b94758e929543caa91cee2bb436be19",
+    "members": 50,
+    "all_member_bytes_verified": true
+  }
+}

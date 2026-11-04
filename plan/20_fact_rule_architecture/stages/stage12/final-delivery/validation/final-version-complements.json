@@ -1,0 +1,100 @@
+{
+  "status": "BOUNDED_FROZEN_INSTALLED_COMPLEMENT_ACCEPTED",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "actual_results": {
+    "cp312": {
+      "actual_passed": 3204,
+      "actual_failed": 0,
+      "actual_skipped": 0,
+      "actual_product_files_reverified": 904,
+      "actual_distinct_hashed_origins": 397,
+      "actual_native_modules": [
+        "hotpot.cheminfo.adapters.native.substructure._search_native",
+        "hotpot.cheminfo.obWrappers._ob_native",
+        "hotpot.cheminfo.rdWrappers._rd_native",
+        "hotpot.cheminfo.rules.mathematics.geometry._geometry_native",
+        "hotpot.cheminfo.rules.mathematics.graph._graph_native",
+        "hotpot.cheminfo.structure._fact_native"
+      ],
+      "receipt": {
+        "reviewed_unix": 1793803182.2680762,
+        "abi": "cp312",
+        "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+        "checks": {
+          "3204_all_phases_pass": true,
+          "origin_pass": true,
+          "binding_equal": true,
+          "exit0": true,
+          "3204_unique_calls": true,
+          "collection_matches_calls": true,
+          "junit": true
+        },
+        "all_pass": true,
+        "actual_results": {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "3204",
+          "time": "340.539",
+          "timestamp": "2026-11-04T22:27:51.543231+08:00",
+          "hostname": "chemlex-ai-2"
+        },
+        "scope": "Actual3204non-graph complement at frozen installed product; no timing claim or D033native geometry closure",
+        "next": "OriginalCP314complement may execute once, same frozen product."
+      }
+    },
+    "cp314": {
+      "actual_passed": 3204,
+      "actual_failed": 0,
+      "actual_skipped": 0,
+      "actual_product_files_reverified": 904,
+      "actual_distinct_hashed_origins": 397,
+      "actual_native_modules": [
+        "hotpot.cheminfo.adapters.native.substructure._search_native",
+        "hotpot.cheminfo.obWrappers._ob_native",
+        "hotpot.cheminfo.rdWrappers._rd_native",
+        "hotpot.cheminfo.rules.mathematics.geometry._geometry_native",
+        "hotpot.cheminfo.rules.mathematics.graph._graph_native",
+        "hotpot.cheminfo.structure._fact_native"
+      ],
+      "receipt": {
+        "abi": "cp314",
+        "reviewed_unix": 1793803905.656332,
+        "checks": {
+          "3204all_phases_pass": true,
+          "collection_matches_calls": true,
+          "origin_pass": true,
+          "product_guards_equal": true,
+          "terminal0": true,
+          "junit3204": true,
+          "bound3204": true
+        },
+        "all_pass": true,
+        "actual_results": {
+          "name": "pytest",
+          "errors": "0",
+          "failures": "0",
+          "skipped": "0",
+          "tests": "3204",
+          "time": "341.611",
+          "timestamp": "2026-11-04T22:39:48.143203+08:00",
+          "hostname": "chemlex-ai-2"
+        },
+        "scope": "Actual3204non-graph complement at unchanged installed16b864fproduct; no timing, D033geometry or final gate closure."
+      }
+    }
+  },
+  "archive": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-version-complements16b864f/raw-evidence.tar.gz",
+    "bytes": 31458983,
+    "sha256": "b1feb7d83f484b00e1cb3122ec19d5025e4e226cdbd66000632916bb490eaa60",
+    "manifest_sha256": "deff94b9c6fa025e45abc030ded215c05b447d688fe13c669f94020c72fc920f",
+    "verified_payload_count": 1048,
+    "payload_bytes": 85024237
+  },
+  "actual_commands": "Original COMMANDS.json3204outside_pending_non_graphcommands, CPUs48-55, ABIs sequential; no retries, dependency/test/product/native changes or formal timings.",
+  "remaining": "2469pendingcost-overlap nodes perCP312/314; changedD033native/D035stereoaffected source/wheel/version qualification remains separate. Current unrelated evidence reuse requires actual applicability, not chronology.",
+  "global_gate_closed": false,
+  "reviewed_unix": 1793804275.7183712
+}

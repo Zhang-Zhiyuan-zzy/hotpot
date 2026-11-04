@@ -1,0 +1,129 @@
+{
+  "status": "BOUNDED_D035_SOURCE_REPAIR_QUALIFIED_INSTALLED_PENDING",
+  "deferred_issue": "P20-D035",
+  "base_commit": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
+  "production_repair_rounds": 1,
+  "changes": [
+    "hotpot/cheminfo/adapters/rdkit/stereo_transport.py",
+    "tests/test_cheminfo/test_rdkit_materialized_h_stereo.py"
+  ],
+  "candidate_actual_results": {
+    "prefixed-tests": {
+      "tests": 21,
+      "failures": 12,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 9,
+      "seconds": 1.618,
+      "timestamps": [
+        "2026-11-04T22:52:06.905463+08:00"
+      ]
+    },
+    "focused-tests": {
+      "tests": 21,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 21,
+      "seconds": 0.805,
+      "timestamps": [
+        "2026-11-04T22:52:41.702369+08:00"
+      ]
+    },
+    "final-affected-tests": {
+      "tests": 161,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "passed": 161,
+      "seconds": 2.746,
+      "timestamps": [
+        "2026-11-04T22:54:14.267864+08:00"
+      ]
+    }
+  },
+  "actual_combined_main_results": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "1",
+    "tests": "267",
+    "time": "8.904",
+    "timestamp": "2026-11-04T22:59:37.969467+08:00",
+    "hostname": "chemlex-ai-2"
+  },
+  "root_decision": "Apply six-line actual-H binding to temporary ordered RDKitcarriers; canonical source records/parity remain unchanged. Remaining heavy/missing/duplicate carrier mismatches retain original failure. Source R/S, charge, copy/reorder, implicitH/LP and independent3Droundtrip controls pass. Installed/affectedversion/currentbusiness qualification remains open.",
+  "geometry_observations": [
+    {
+      "input_smiles": "C[C@H](F)Cl",
+      "expected_centers": [
+        "R"
+      ],
+      "before_roundtrip_centers": [
+        "R"
+      ],
+      "after_roundtrip_centers": [
+        "R"
+      ],
+      "graph_preserved": true,
+      "canonical_payload_preserved": true
+    },
+    {
+      "input_smiles": "C[C@@H](F)Cl",
+      "expected_centers": [
+        "S"
+      ],
+      "before_roundtrip_centers": [
+        "S"
+      ],
+      "after_roundtrip_centers": [
+        "S"
+      ],
+      "graph_preserved": true,
+      "canonical_payload_preserved": true
+    }
+  ],
+  "geometry_coordinate_verification": [
+    {
+      "input_smiles": "C[C@H](F)Cl",
+      "shape": [
+        8,
+        3
+      ],
+      "exact_array_equality": true,
+      "finite": true
+    },
+    {
+      "input_smiles": "C[C@@H](F)Cl",
+      "shape": [
+        8,
+        3
+      ],
+      "exact_array_equality": true,
+      "finite": true
+    }
+  ],
+  "archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/rdkit-materialized-h-export-main/raw-evidence.tar.gz",
+    "archive_bytes": 138081,
+    "archive_sha256": "3f35c6ad49608cfb6d53f19db1fbd699020d4b81bf3a1e17468208eb40210372",
+    "manifest_sha256": "91785b05371cd207271846072e0e67baf045477da2386ee931d4dec70db84bad",
+    "verified_payload_count": 33,
+    "payload_bytes": 462766,
+    "actual_combined_main_results": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "1",
+      "tests": "267",
+      "time": "8.904",
+      "timestamp": "2026-11-04T22:59:37.969467+08:00",
+      "hostname": "chemlex-ai-2"
+    },
+    "verified_unix": 1793804472.4891934
+  },
+  "known_evidence_limit": "Earlier focused and pre-repair selection and identities are retained; the compacted worker context does not retain their complete shell invocations. Both selected the single new regression file. Final affected argv and environment are exact.",
+  "formal_performance": false,
+  "global_gate_closed": false,
+  "reviewed_unix": 1793804521.9913301
+}

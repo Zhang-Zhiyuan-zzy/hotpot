@@ -179,14 +179,14 @@ an executed result, and passed scopes retain their source/version boundaries.
 
 | Item | Required closure | Current state |
 |---|---|---|
-| 1. Final Plan12 scientific observations | Bind actual corpus/workflow results to final affected owners; retain eligibility, failures, finite findings and stochastic variation. | Earlier556b21e evidence stays historical. Final installed2280-objectcorpus/replay is executing; remaining three commands await separate root review/release. |
-| 2. CBond CUDA environment and functionality | Load both unchanged models and complete original CUDA work with actual attribution. | Both original models load with CUDA; each endpoint completes20CBondcalls with actual graph/head CUDAkernels. Extra post-work native checker fails on candidate; bounded root review pending. |
-| 3. Four GPU paired costs | Eight full untimed preflights, then eight original paired timing invocations with1+3sampling and hardware/load review. | Eight full preflights executed; one extra native-check failure and cache-lock capture failure retained. Actual child/kernel/numerical review pending; no timings released. |
-| 4. Five-version coverage | Applicable source/installed/native evidence without transferring CP311to other ABIs. | [Root coverage assessment](validation/final-version-coverage.json):30graph contracts eachCP310/313;5703runtime nodes eachCP312/314remain. |
+| 1. Final Plan12 scientific observations | Bind actual corpus/workflow results to final affected owners; retain eligibility, failures, finite findings and stochastic variation. | [Final inactive2280-objectcorpus/replay](validation/final-plan12-inactive-dry2280.json) is accepted within its inactive-profile boundary. [Final Eu reference](validation/final-plan12-eu-reference.json) is accepted as observed:181monitor passes/1quality failure/5CBondrejections. [FinalUFF](validation/final-plan12-eu-uff.json) completes369dynamic targets with6retained monitor failures. [Final officialxTB](validation/final-plan12-eu-xtb.json) completes738eligible route slots:691existing-monitor passes,30quality failures and17backend failures, with1105actual optimizer launches and all finite observations retained. case54geometry remains affected byD033and requires repaired-workflow qualification. Earlier556b21e workflow evidence stays historical. |
+| 2. CBond CUDA environment and functionality | Load both unchanged models and complete original CUDA work with actual attribution. | [Bounded direct-work review](validation/final-gpu-preflight-disposition.json) accepts20CBondcalls per endpoint and actual graph/head CUDAkernels; extra candidate native import failure stays retained. Complete container-native capability is not claimed. |
+| 3. Four GPU paired costs | Eight full untimed preflights, then eight original paired timing invocations with1+3sampling and hardware/load review. | Eight business preflights reviewed with ordered outputs/origins/actual kernels. Peripheral failures and129old acid metadata differences stay explicit; only2of4initialized GPUsinfer in this512fixture. Original timing-driver preparation allowed; actual timing held. |
+| 4. Five-version coverage | Applicable source/installed/native evidence without transferring CP311to other ABIs. | [Actual four-ABI graph qualification](validation/final-version-graph-qualification.json) passes30cases eachCP310/312/313/314. [Actual CP312/314complements](validation/final-version-complements.json) each pass3204cases, with all six native modules observed and unchanged installed products. Each retains2469nodes in the pendingcost-selection overlap; changedD033native/D035stereo qualification remains separately open. |
 | 5. Common test and version costs | Preserve3948logical/common2689version selections, migrations and3retirements; original1+5sampling. | [Four common cells complete](validation/final-common-test-cost.json), each1+5samples and0failures; current execution median230.87s. Full-population strict speedup ineligible;2689version matrix open. |
 | 6. Additional-current test cost | All3183additional current nodes, separately reported1+5sampling. | Complete selection reviewed; final installed timing held. |
 | 7. New mechanism costs | Marking-only sizes8/64/256/4096and full19-column float64projection,3+10sampling. | Recipes reviewed; execution held. |
-| 8. Complete SDF writes/resources |581public writes/1162records, independent semantic read-back and bounded retained/peak series. | Final recipe ready; D003/D004open. |
+| 8. Complete SDF writes/resources |581public writes/1162records, independent semantic read-back and bounded retained/peak series. | [Final581write/1162record observation](validation/final-sdf-write-resources.json) passes both read-back oracles.32.328ms per complete call; resource-windowRSS+1.031MiB. D003/D004have explicit accepted bounded limitations; no fresh paired speedup or universal leak claim. |
 | 9. Cross-stage cost dispositions | Explicit current usable-cost/scaling/resource decisions forD001/D002/D005/D017/D018/D019/D025. | Final62CPU pairs accepted; individual consolidated closure remains open. |
 | 10. Validation/navigation tools | Trustworthy replacement/retirement ofD014tool limitations and realD015navigation omissions. | [Bounded tool disposition](validation/final-validation-tools.json): real omissions repaired;36applied checks pass; one bare-SMILES false positive remains a raw scanner failure. |
 | 11. Documentation and final acceptance review | Current examples/API/fact-role/lifecycle/consolidation maps and requirement-by-requirement review. | Existing passed evidence reusable; final reconciliation open. |
@@ -198,3 +198,23 @@ uses the same pinned Docker/device context as the workloads. Initial observation
 show no compute utilization but approximately13GBresident on each ofGPU0/3;
 this is shared capacity, not an exclusive reservation. Before/during/after
 observations and transient contention limits must accompany later timings.
+
+The [native-builder stereochemical defect](validation/native-builder-stereo-defect.json)
+reopens D033: current native construction retains declarations but omits their
+projection into OBBuilder, giving opposite case54tetrahedral geometry in all
+three observed O0trials. Original passing geometry monitors do not establish
+declared stereochemical consistency. All raw observations stay retained; the
+affected geometry acceptance and final gate remain held pending isolated repair
+and actual source/installed/affected-workflow qualification.
+
+The [applied native-builder repair](validation/native-builder-stereo-repair.json)
+now delivers the original declarations through one shared OBcodec to direct
+native construction. The original standardO0/Am case54route completes all three
+original seeds with independently derived R,Rcoordinates and finite selected
+energies, without changing budgets or source facts. The separate
+[RDKit materialized-H export correction](validation/rdkit-materialized-h-export.json)
+binds only the unique actual graphH in a temporary carrier sequence, preserving
+original parity and rejecting a heavy-neighbour mismatch. The combined main
+source selection passes266cases with one existing scientific-boundary skip;
+original failures remain. Current repaired wheel/native, Eu and affected-version
+qualification, comparable costs and final acceptance remain open.

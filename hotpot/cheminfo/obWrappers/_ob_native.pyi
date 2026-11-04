@@ -98,6 +98,7 @@ class MoleculeData:
         bond_kinds: npt.NDArray[np.uint8],
         bond_aromatic: npt.NDArray[np.uint8],
         unit_cell: Optional[npt.NDArray[np.float64]] = ...,
+        stereo_configs: Tuple[Tuple[str, str, bool, Tuple[int, ...], Tuple[Optional[int], ...], Tuple[int, ...]], ...] = ...,
     ) -> None: ...
 
     atom_count: int

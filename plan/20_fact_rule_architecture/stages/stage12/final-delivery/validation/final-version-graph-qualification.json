@@ -1,0 +1,95 @@
+{
+  "status": "ROOT_ACCEPTED_ACTUAL_120_GRAPH_PASSES_SCOPED",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "indexed_receipt_files_verified": 348,
+  "rows": [
+    {
+      "abi": "cp310",
+      "collected": 30,
+      "actual_call_passes": 30,
+      "junit_cases": 30,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0,
+      "actual_native_imports": 3,
+      "native_origin_records": 9,
+      "raw_extra_import_check_retained": "FAILED_NO_RETRY",
+      "origin_violations": [],
+      "pytest_elapsed_seconds": 11.075203895568848
+    },
+    {
+      "abi": "cp312",
+      "collected": 30,
+      "actual_call_passes": 30,
+      "junit_cases": 30,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0,
+      "actual_native_imports": 3,
+      "native_origin_records": 9,
+      "raw_extra_import_check_retained": "FAILED_NO_RETRY",
+      "origin_violations": [],
+      "pytest_elapsed_seconds": 11.485736608505249
+    },
+    {
+      "abi": "cp313",
+      "collected": 30,
+      "actual_call_passes": 30,
+      "junit_cases": 30,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0,
+      "actual_native_imports": 3,
+      "native_origin_records": 9,
+      "raw_extra_import_check_retained": "FAILED_NO_RETRY",
+      "origin_violations": [],
+      "pytest_elapsed_seconds": 11.490938663482666
+    },
+    {
+      "abi": "cp314",
+      "collected": 30,
+      "actual_call_passes": 30,
+      "junit_cases": 30,
+      "failed": 0,
+      "skipped": 0,
+      "errors": 0,
+      "actual_native_imports": 3,
+      "native_origin_records": 9,
+      "raw_extra_import_check_retained": "FAILED_NO_RETRY",
+      "origin_violations": [],
+      "pytest_elapsed_seconds": 12.632251262664795
+    }
+  ],
+  "total_passes": 120,
+  "decision": "Accept actual Data/tensor/serialization operations across four ABIs. The original controller all-six-import requirement was unrelated to these graph tests; retain failed receipts and exact observed three imports while all six delivered files have unchanged bindings. No execution repeated.",
+  "limits": [
+    "Selected graph30perABI only; broaderCP312/314remaining5673nodes each stay open.",
+    "No model/GPU/performance or whole-plan approval.",
+    "Newly demonstrated native-builder stereo defect D033 remains blocking within its separate affected geometry scope."
+  ],
+  "global_gate_closed": false,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/final-version-graph16b864f/raw-evidence.tar.gz",
+    "bytes": 10574868,
+    "sha256": "bcdf57a363ba9074367192721eed60f7decbad62d0aa0a039ec28a38d09642cc",
+    "verified_members": 435
+  },
+  "raw_receipt_limits": "Original per-ABI controller FAILED_NO_RETRY stays retained for extra all-six-import assertion. Root initial raw-record count assertion also stays retained; corrected only duplicate origin observation counting, without a test rerun.",
+  "commands": [
+    "python -B /tmp/hotpot_plan20/medium/stage12-final-version-graph-environments-20261104/preparation01/execution01/run_released.py",
+    "python -B /tmp/hotpot_plan20/medium/stage12-final-version-graph-environments-20261104/preparation01/execution01/review_execution.py",
+    "python -B /tmp/hotpot_plan20/medium/stage12-final-version-graph-environments-20261104/preparation01/root-review01/review.py"
+  ],
+  "remaining_coverage": {
+    "cp310": "No remaining default graph30gap in this frozen scope.",
+    "cp313": "No remaining default graph30gap in this frozen scope.",
+    "cp312": {
+      "outside_pending_non_graph": 3204,
+      "pending_cost_overlap": 2469
+    },
+    "cp314": {
+      "outside_pending_non_graph": 3204,
+      "pending_cost_overlap": 2469
+    }
+  }
+}

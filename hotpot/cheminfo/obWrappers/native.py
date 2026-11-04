@@ -31,7 +31,21 @@ def _native_module() -> ModuleType:
 
 def _native_molecule_data(mol: "Molecule", *, selection=None) -> "_ob_native.MoleculeData":
     native = _native_module()
-    buffers = _pack_molecule(mol, selection=selection)
+    from ..adapters.openbabel.stereo_transport import _project_stereo_payload
+    from ..operations.chemistry import _require_non_graph_hydrogens
+    from ..structure._stereo import _get_stereo_payload
+
+    with mol._mutation_lock:
+        buffers = _pack_molecule(mol, selection=selection)
+        configs = ()
+        if mol._stereo_records:
+            payload = _get_stereo_payload(mol)
+            hydrogens = _require_non_graph_hydrogens(mol)
+            bonds = ((int(begin), int(end), float(order))
+                     for (begin, end), order in zip(buffers.bond_indices, buffers.bond_orders))
+            configs = _project_stereo_payload(
+                payload, dict(enumerate(buffers.atomic_numbers)), bonds, hydrogens,
+            )
     return native.MoleculeData(
         buffers.schema_version,
         buffers.atomic_numbers,
@@ -44,4 +58,5 @@ def _native_molecule_data(mol: "Molecule", *, selection=None) -> "_ob_native.Mol
         buffers.bond_kinds,
         buffers.bond_aromatic,
         buffers.unit_cell,
+        configs,
     )

@@ -1,0 +1,167 @@
+{
+  "status": "BOUNDED_MAIN_SOURCE_REPAIR_AND_O0_CASE54_QUALIFIED_INSTALLED_EU_PENDING",
+  "base_commit": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
+  "source_results": {
+    "original_affected": {
+      "passed": 187,
+      "failed": 1,
+      "skipped": 1
+    },
+    "exact_cold_source_recheck": {
+      "passed": 1,
+      "failed": 0
+    },
+    "composed_unique_passed": 188,
+    "scope": "Original189affectedcases; one existing scientific-boundary skip; source cold subprocess uses explicit source PYTHONPATH. Original old-installed failure and diagnosis preserved."
+  },
+  "o0_configuration_unchanged": true,
+  "o0_original_bindings_unchanged": 739,
+  "actual_o0_elapsed_seconds": 5.837942600250244,
+  "o0_observations": [
+    {
+      "root_seed": 42,
+      "effective_seed": 96,
+      "outcome": "completed",
+      "selected_energy_kj_mol": 1058.7348295159245,
+      "standard_quality_passed": true,
+      "findings": [],
+      "coordinate_derived_stereo": {
+        "1": "R",
+        "12": "R"
+      },
+      "expected_stereo": {
+        "1": "R",
+        "12": "R"
+      },
+      "coordinates_finite": true
+    },
+    {
+      "root_seed": 43,
+      "effective_seed": 97,
+      "outcome": "completed",
+      "selected_energy_kj_mol": 980.6768204464443,
+      "standard_quality_passed": true,
+      "findings": [],
+      "coordinate_derived_stereo": {
+        "1": "R",
+        "12": "R"
+      },
+      "expected_stereo": {
+        "1": "R",
+        "12": "R"
+      },
+      "coordinates_finite": true
+    },
+    {
+      "root_seed": 44,
+      "effective_seed": 98,
+      "outcome": "completed",
+      "selected_energy_kj_mol": 980.6325643601964,
+      "standard_quality_passed": true,
+      "findings": [],
+      "coordinate_derived_stereo": {
+        "1": "R",
+        "12": "R"
+      },
+      "expected_stereo": {
+        "1": "R",
+        "12": "R"
+      },
+      "coordinates_finite": true
+    }
+  ],
+  "independent_coordinate_oracle": "Read saved final selected coordinates only; reconstruct literal reported ligand graph without Am/coordination edges; RDKit AssignAtomChiralTagsFromStructure and CIP comparison to original SMILES. No workflow/model/geometry rerun.",
+  "same_generic_SDK_inputs": 46,
+  "required_remaining": [
+    "Current installed wheel/native affected qualification",
+    "Actual Eu reference/UFF/official xTBcase54replay and independent geometry",
+    "D035separate RDKitexport repair",
+    "Affected supported-version delivery",
+    "Final global reports/gates"
+  ],
+  "formal_performance": false,
+  "global_gate_closed": false,
+  "source_files": {
+    "hotpot/cheminfo/adapters/openbabel/stereo_transport.py": {
+      "baseline_sha256": "7b4afc89045f40ae2720ce594f7fb7a9960e3c1d5ded9729843115056ae031ff",
+      "candidate_sha256": "ee230107c2420065642b7a3fe921e40c99993defad4c14dd4392e6b24e139db3"
+    },
+    "hotpot/cheminfo/obWrappers/native.py": {
+      "baseline_sha256": "689ad3d27c001338f2b4d0259270e93b07c26ddd7df96e8e60d0a010cbcd062d",
+      "candidate_sha256": "8f486e7fb802a7941c093573eaaf8a687726686f4ed74c3866be0c6c55380888"
+    },
+    "hotpot/cheminfo/obWrappers/_native/molecule_data.hpp": {
+      "baseline_sha256": "f8a5521a297cc2f456eb62918528f7d6f1ff787981e0f8017c1c945d30250608",
+      "candidate_sha256": "9993b79eda3f912dd8fc6680f04eac0dc8b02d32728d73174f16ffe57509c4cc"
+    },
+    "hotpot/cheminfo/obWrappers/_native/molecule_data.cpp": {
+      "baseline_sha256": "77d88f652cd457332b5d2edd2ce0f0de5692e43c03255832f0a81327387b97d9",
+      "candidate_sha256": "5d43f5acee2d7a2931ccb151a1e0f7b8d82ff975c729e9a1ad56ebfe13f87a0b"
+    },
+    "hotpot/cheminfo/obWrappers/_native/native_bindings.cpp": {
+      "baseline_sha256": "ae3f027013de0af9dc095d72db0e712d6cbe61e45b3582026e9e5e571f830b58",
+      "candidate_sha256": "b923f583c21c0798fe53780b83c2ce45fd07ac28b86028841f3cd75535815979"
+    },
+    "hotpot/cheminfo/obWrappers/_native/openbabel_adapter.cpp": {
+      "baseline_sha256": "fbf40fbc734c84eead1abd773de9e598ddb5c1b156f97ea11aae602c9673cf6b",
+      "candidate_sha256": "5d03e497815cddfb0d4d947842eaff17b7ae46222714decbb0b08087e38bb770"
+    },
+    "hotpot/cheminfo/obWrappers/_ob_native.pyi": {
+      "baseline_sha256": "3400c7c8b968ee9f0cfc1b2fcb60e0af4485c18bebd5b0fe6e3da92b0cbbc521",
+      "candidate_sha256": "a8e163b411427f2ff3a2f75c7afc686ed2bac6694f29c47a7270d08d12d599e3"
+    },
+    "tests/test_cheminfo/test_native_builder_stereo.py": {
+      "baseline_sha256": null,
+      "candidate_sha256": "ce9a78f40425b9fd94e8220a68f0837425519da3ba0e6c5a70d6f0a720619d29"
+    }
+  },
+  "native_sha256": "ffa30f50b2e11ed2d046e68e72730e7e85647bd2b0f05f47ad33a5eb43ed141c",
+  "archive": {
+    "status": "ARCHIVED_AND_RECONSTRUCTED",
+    "payload_count": 234,
+    "payload_bytes": 5094154,
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/native-builder-repair-main/raw-evidence.tar.gz",
+    "archive_bytes": 1537784,
+    "archive_sha256": "33185fec1847a2252e97678c24f079067e5c2a43252aeb2c3647df3d4338360b",
+    "manifest_sha256": "6e1a7910c35bfd6f620e2769d570307680a35eb5450f9208ac0b2d37ac388610",
+    "verified_unix": 1793804226.5192266,
+    "scope": "Applied D033repair/candidateandmain failures/actual CP311source188composed passes and repaired original three-seed O0case54; installed/Eu/global gates remain open."
+  },
+  "combined_main_source_results": {
+    "name": "pytest",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "1",
+    "tests": "267",
+    "time": "8.904",
+    "timestamp": "2026-11-04T22:59:37.969467+08:00",
+    "hostname": "chemlex-ai-2"
+  },
+  "combined_main_source_archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/rdkit-materialized-h-export-main/raw-evidence.tar.gz",
+    "archive_bytes": 138081,
+    "archive_sha256": "3f35c6ad49608cfb6d53f19db1fbd699020d4b81bf3a1e17468208eb40210372",
+    "manifest_sha256": "91785b05371cd207271846072e0e67baf045477da2386ee931d4dec70db84bad",
+    "verified_payload_count": 33,
+    "payload_bytes": 462766,
+    "actual_combined_main_results": {
+      "name": "pytest",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "1",
+      "tests": "267",
+      "time": "8.904",
+      "timestamp": "2026-11-04T22:59:37.969467+08:00",
+      "hostname": "chemlex-ai-2"
+    },
+    "verified_unix": 1793804472.4891934
+  },
+  "method": "One shared OBprojection restores declared TH/CT/SP configurations to persistent native atom IDs before the existing direct builder/optimizer; empty record collections bypass payload/Hpreparation. Generic numeric SDK, canonical owner and trainedfeatures unchanged.",
+  "original_failures": "Original S,Sgeometry and ten minimal prefixed failures remain under native-builder-stereo-defect16b864f; initial source cold subprocess failure loaded old installed code and its exact recheck passed.",
+  "scope_limits": [
+    "CP311source/native and actual originalO0case54seeds42/43/44; not installed/other-version/Eu replay acceptance.",
+    "No fixed historical energy/CIPmetadata-only oracle, feature/schema/algorithm substitution or SWIGfallback.",
+    "D035separateRDKitexport repair is applied and included in combinedsource266passes/oneexisting boundary skip."
+  ],
+  "reviewed_unix": 1793804521.990495
+}

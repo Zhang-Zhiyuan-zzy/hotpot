@@ -401,6 +401,12 @@ def _apply_atom_stereo(rdmol, atom, record):
 
     transported = _transported_atom_carriers(record)
     native = _native_atom_carriers(rdmol, atom, lone_pair=len(transported) == 3)
+    if (len(transported) == 3 and len(native) == 4
+            and all(kind is StereoCarrierKind.ATOM for kind, _ in transported)):
+        remaining = tuple(token for token in native if token not in transported)
+        if (len(remaining) == 1 and remaining[0][0] is StereoCarrierKind.ATOM
+                and rdmol.GetAtomWithIdx(remaining[0][1]).GetAtomicNum() == 1):
+            transported += remaining
     if len(native) not in (3, 4) or len(transported) not in (3, 4):
         raise ValueError(
             "RDKit tetrahedral atom stereo requires three or four carriers"

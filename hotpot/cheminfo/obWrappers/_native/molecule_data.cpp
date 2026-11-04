@@ -53,8 +53,10 @@ MoleculeData::MoleculeData(
     std::vector<double> bond_orders_value,
     std::vector<BondKind> bond_kinds_value,
     std::vector<std::uint8_t> bond_aromatic_value,
-    std::optional<std::array<double, 6>> unit_cell_value
-) : hotpot::native::OwnedMoleculeData{} {
+    std::optional<std::array<double, 6>> unit_cell_value,
+    std::vector<StereoConfiguration> stereo_configs_value
+) : hotpot::native::OwnedMoleculeData{},
+    stereo_configs(std::move(stereo_configs_value)) {
     const auto atoms = atomic_numbers_value.size();
     const auto bonds = bond_indices_value.size();
     const auto field_mask = REQUIRED_FIELDS

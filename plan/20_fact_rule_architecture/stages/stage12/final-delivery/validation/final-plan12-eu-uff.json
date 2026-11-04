@@ -1,0 +1,2049 @@
+{
+  "schema": "hotpot.plan20.stage12.final-scientific-observation.v1",
+  "status": "ROOT_ACCEPTED_FINAL_INSTALLED_UFF_AND_CANONICAL_PREPARATION_OBSERVATIONS",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "record_commit_at_review": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
+  "reviewed_utc": "2026-11-04T13:46:21.446750+00:00",
+  "command": {
+    "argv": [
+      "taskset",
+      "--cpu-list",
+      "64-127",
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-s",
+      "-B",
+      "-m",
+      "tests.benchmarks.coordination_complexes.auto_optimize_benchmark",
+      "--input",
+      "/home/zhangzhiyuan/hotpot/molecules/extractant/extractants.smi",
+      "--reference",
+      "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-reference-installed01/results",
+      "--output",
+      "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-uff-installed01/results",
+      "--workers",
+      "16"
+    ],
+    "attempts": 1,
+    "automatic_continuation": false,
+    "cwd": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+    "environment_overrides": {
+      "CUDA_VISIBLE_DEVICES": "",
+      "HF_HUB_OFFLINE": "1",
+      "HOTPOT_CBOND_DEVICE": "cpu",
+      "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot_plan20/medium/cbond-model-cache-20261103/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+      "HOTPOT_EXPECTED_PRODUCT": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site",
+      "HOTPOT_MODEL_SOURCE": "local",
+      "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-uff-installed01/origins",
+      "HOTPOT_UFF_WORKER_OBSERVATIONS": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-uff-installed01/worker-observations",
+      "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+      "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/preparation01/observers/eu-uff-installed01:/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+      "PYTHONSAFEPATH": "1"
+    },
+    "id": "eu-uff-installed01",
+    "old_execution": {
+      "bytes": 9087,
+      "path": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-uff-installed01/execution.json",
+      "sha256": "f1840bf3a2f7a2698a54b81f3e43cd692dd15e7e57f1172eb4a98bb2cba24ca5"
+    },
+    "original_scientific_argv_preserved_except": [
+      "final product/site",
+      "private observation/output paths",
+      "same-count CPU64-127 allocation"
+    ],
+    "output": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-uff-installed01",
+    "performance_claim": false,
+    "removed_environment": [
+      "HOTPOT_CBOND_INTEGRATION",
+      "HOTPOT_MCA_CONFORMER_INTEGRATION",
+      "HOTPOT_MCA_INTEGRATION",
+      "HOTPOT_MCA_MODEL_DIR",
+      "HOTPOT_MCA_MODEL_PATH",
+      "HOTPOT_XTB_INTEGRATION",
+      "PYTEST_PLUGINS",
+      "PYTHONHOME",
+      "PYTHONSTARTUP",
+      "PYTHONUSERBASE"
+    ],
+    "status": "HOLD_ROOT_RELEASE"
+  },
+  "returncode": 0,
+  "elapsed_seconds": 159.77329559624195,
+  "scientific_attempts": 1,
+  "retries": 0,
+  "formal_performance_accepted": false,
+  "observations": {
+    "status": "BOUNDED_FINAL_UFF_AND_CANONICAL_PREPARATION_REVIEW_COMPLETE_ROOT_DECISION_REQUIRED",
+    "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+    "returncode": 0,
+    "input_count": 187,
+    "natural_complex_eligible": 182,
+    "eligible_targets": 369,
+    "per_target_status_counts": {
+      "ligand": {
+        "passed": 182,
+        "failed_quality": 5
+      },
+      "complex": {
+        "passed": 181,
+        "failed_quality": 1,
+        "not_eligible": 5
+      }
+    },
+    "failed_targets": [
+      {
+        "index": 61,
+        "target": "complex",
+        "status": "failed_quality",
+        "validation": {
+          "level": "standard",
+          "passed": false,
+          "checks": [
+            {
+              "name": "coordinate_shape",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                91,
+                3
+              ],
+              "threshold": [
+                91,
+                3
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Coordinates must contain one Cartesian row per atom"
+            },
+            {
+              "name": "finite_coordinates",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "All Cartesian coordinates must be finite"
+            },
+            {
+              "name": "topology",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                91,
+                99
+              ],
+              "threshold": [
+                91,
+                99
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Original topology is preserved"
+            },
+            {
+              "name": "forcefield_setup",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Force-field setup must succeed"
+            },
+            {
+              "name": "finite_final_energy",
+              "passed": true,
+              "severity": "error",
+              "measured": 8348.46912191508,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "final energy must be finite"
+            },
+            {
+              "name": "finite_rms_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 11.423839770145301,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "rms gradient must be finite"
+            },
+            {
+              "name": "finite_max_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 57.423800034426186,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "max gradient must be finite"
+            },
+            {
+              "name": "backend_explosion",
+              "passed": true,
+              "severity": "error",
+              "measured": false,
+              "threshold": false,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend must report a non-exploded structure"
+            },
+            {
+              "name": "forcefield_convergence",
+              "passed": false,
+              "severity": "warning",
+              "measured": false,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            },
+            {
+              "name": "atom_overlap",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": 0.001,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "atom_too_close",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.4,
+                0.5,
+                0.55
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.5145090895771958,
+              "threshold": 1.7485,
+              "atom_indices": [
+                90,
+                30
+              ],
+              "bond_indices": [
+                97
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.5630145314413367,
+              "threshold": [
+                0.65,
+                1.6
+              ],
+              "atom_indices": [
+                90,
+                30
+              ],
+              "bond_indices": [
+                97
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.53291879498943,
+              "threshold": 1.7485,
+              "atom_indices": [
+                90,
+                33
+              ],
+              "bond_indices": [
+                98
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.5698582881001599,
+              "threshold": [
+                0.65,
+                1.6
+              ],
+              "atom_indices": [
+                90,
+                33
+              ],
+              "bond_indices": [
+                98
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_distance",
+              "passed": true,
+              "severity": "error",
+              "measured": 2.6371442457488175,
+              "threshold": [
+                0.0,
+                30.0
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": true,
+              "severity": "error",
+              "measured": "does_not_pierce",
+              "threshold": "does_not_pierce",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            }
+          ],
+          "failures": [
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.5145090895771958,
+              "threshold": 1.7485,
+              "atom_indices": [
+                90,
+                30
+              ],
+              "bond_indices": [
+                97
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.5630145314413367,
+              "threshold": [
+                0.65,
+                1.6
+              ],
+              "atom_indices": [
+                90,
+                30
+              ],
+              "bond_indices": [
+                97
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.53291879498943,
+              "threshold": 1.7485,
+              "atom_indices": [
+                90,
+                33
+              ],
+              "bond_indices": [
+                98
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.5698582881001599,
+              "threshold": [
+                0.65,
+                1.6
+              ],
+              "atom_indices": [
+                90,
+                33
+              ],
+              "bond_indices": [
+                98
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            }
+          ],
+          "warnings": [
+            {
+              "name": "forcefield_convergence",
+              "passed": false,
+              "severity": "warning",
+              "measured": false,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            }
+          ],
+          "metrics": {
+            "atom_count": 91,
+            "bond_count": 99,
+            "minimum_pair_distance": 0.9993930704904769,
+            "maximum_bond_length": 2.6371442457488175,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_undetermined_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_selected_ring_count": 10,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_scope": "full_graph",
+            "coordination_environments": [
+              {
+                "metal_index": 90,
+                "coordination_number": 5,
+                "donor_indices": [
+                  12,
+                  22,
+                  26,
+                  30,
+                  33
+                ],
+                "distances": [
+                  2.3793555395610406,
+                  2.6371442457488175,
+                  2.334558191420778,
+                  1.5145090895771958,
+                  1.53291879498943
+                ],
+                "angles": [
+                  64.27951391486154,
+                  141.31490655251596,
+                  105.80256351161029,
+                  99.14063573965693,
+                  88.44660845506372,
+                  100.2967908698793,
+                  162.91845251569026,
+                  105.71098533734269,
+                  103.91079665698182,
+                  87.8255659426864
+                ]
+              }
+            ]
+          }
+        }
+      },
+      {
+        "index": 68,
+        "target": "ligand",
+        "status": "failed_quality",
+        "validation": {
+          "level": "standard",
+          "passed": false,
+          "checks": [
+            {
+              "name": "coordinate_shape",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                47,
+                3
+              ],
+              "threshold": [
+                47,
+                3
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Coordinates must contain one Cartesian row per atom"
+            },
+            {
+              "name": "finite_coordinates",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "All Cartesian coordinates must be finite"
+            },
+            {
+              "name": "topology",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                47,
+                50
+              ],
+              "threshold": [
+                47,
+                50
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Original topology is preserved"
+            },
+            {
+              "name": "forcefield_setup",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Force-field setup must succeed"
+            },
+            {
+              "name": "finite_final_energy",
+              "passed": true,
+              "severity": "error",
+              "measured": 9322.000928533003,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "final energy must be finite"
+            },
+            {
+              "name": "finite_rms_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 2.140444839632572,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "rms gradient must be finite"
+            },
+            {
+              "name": "finite_max_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 7.754544380612959,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "max gradient must be finite"
+            },
+            {
+              "name": "backend_explosion",
+              "passed": true,
+              "severity": "error",
+              "measured": false,
+              "threshold": false,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend must report a non-exploded structure"
+            },
+            {
+              "name": "forcefield_convergence",
+              "passed": true,
+              "severity": "warning",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            },
+            {
+              "name": "atom_overlap",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": 0.001,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "atom_too_close",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.4,
+                0.5,
+                0.55
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.7748107612363686,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                12,
+                13
+              ],
+              "bond_indices": [
+                13
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_distance",
+              "passed": true,
+              "severity": "error",
+              "measured": 2.608971819017462,
+              "threshold": [
+                0.0,
+                30.0
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "short_bond",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.65,
+                0.65
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "No explicit bond is below its radius-scaled limit"
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": false,
+              "severity": "error",
+              "measured": [
+                0,
+                1,
+                2,
+                3,
+                21,
+                22
+              ],
+              "threshold": "does_not_pierce",
+              "atom_indices": [
+                12,
+                13
+              ],
+              "bond_indices": [
+                13
+              ],
+              "message": "A finite bond segment pierces a selected ring surface"
+            }
+          ],
+          "failures": [
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.7748107612363686,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                12,
+                13
+              ],
+              "bond_indices": [
+                13
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": false,
+              "severity": "error",
+              "measured": [
+                0,
+                1,
+                2,
+                3,
+                21,
+                22
+              ],
+              "threshold": "does_not_pierce",
+              "atom_indices": [
+                12,
+                13
+              ],
+              "bond_indices": [
+                13
+              ],
+              "message": "A finite bond segment pierces a selected ring surface"
+            }
+          ],
+          "warnings": [],
+          "metrics": {
+            "atom_count": 47,
+            "bond_count": 50,
+            "minimum_pair_distance": 1.0813706633725646,
+            "maximum_bond_length": 2.608971819017462,
+            "bond_ring_piercing_count": 1,
+            "bond_ring_undetermined_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_selected_ring_count": 4,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_scope": "ligand_skeleton",
+            "coordination_environments": []
+          }
+        }
+      },
+      {
+        "index": 84,
+        "target": "ligand",
+        "status": "failed_quality",
+        "validation": {
+          "level": "standard",
+          "passed": false,
+          "checks": [
+            {
+              "name": "coordinate_shape",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                71,
+                3
+              ],
+              "threshold": [
+                71,
+                3
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Coordinates must contain one Cartesian row per atom"
+            },
+            {
+              "name": "finite_coordinates",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "All Cartesian coordinates must be finite"
+            },
+            {
+              "name": "topology",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                71,
+                76
+              ],
+              "threshold": [
+                71,
+                76
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Original topology is preserved"
+            },
+            {
+              "name": "forcefield_setup",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Force-field setup must succeed"
+            },
+            {
+              "name": "finite_final_energy",
+              "passed": true,
+              "severity": "error",
+              "measured": 8117.466060298084,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "final energy must be finite"
+            },
+            {
+              "name": "finite_rms_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 2.0031547856983,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "rms gradient must be finite"
+            },
+            {
+              "name": "finite_max_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 5.641574348009775,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "max gradient must be finite"
+            },
+            {
+              "name": "backend_explosion",
+              "passed": true,
+              "severity": "error",
+              "measured": false,
+              "threshold": false,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend must report a non-exploded structure"
+            },
+            {
+              "name": "forcefield_convergence",
+              "passed": true,
+              "severity": "warning",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            },
+            {
+              "name": "atom_overlap",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": 0.001,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "atom_too_close",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.4,
+                0.5,
+                0.55
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.5912838711229895,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                1,
+                2
+              ],
+              "bond_indices": [
+                1
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_distance",
+              "passed": true,
+              "severity": "error",
+              "measured": 2.3391872905507944,
+              "threshold": [
+                0.0,
+                30.0
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "short_bond",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.65,
+                0.65
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "No explicit bond is below its radius-scaled limit"
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": false,
+              "severity": "error",
+              "measured": [
+                26,
+                27,
+                28,
+                29,
+                32,
+                33
+              ],
+              "threshold": "does_not_pierce",
+              "atom_indices": [
+                1,
+                2
+              ],
+              "bond_indices": [
+                1
+              ],
+              "message": "A finite bond segment pierces a selected ring surface"
+            },
+            {
+              "name": "bond_ring_scope_coverage",
+              "passed": false,
+              "severity": "warning",
+              "measured": 4,
+              "threshold": 0,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Some rings exceed the configured maximum size and were not evaluated for bond-ring piercing"
+            }
+          ],
+          "failures": [
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.5912838711229895,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                1,
+                2
+              ],
+              "bond_indices": [
+                1
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": false,
+              "severity": "error",
+              "measured": [
+                26,
+                27,
+                28,
+                29,
+                32,
+                33
+              ],
+              "threshold": "does_not_pierce",
+              "atom_indices": [
+                1,
+                2
+              ],
+              "bond_indices": [
+                1
+              ],
+              "message": "A finite bond segment pierces a selected ring surface"
+            }
+          ],
+          "warnings": [
+            {
+              "name": "bond_ring_scope_coverage",
+              "passed": false,
+              "severity": "warning",
+              "measured": 4,
+              "threshold": 0,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Some rings exceed the configured maximum size and were not evaluated for bond-ring piercing"
+            }
+          ],
+          "metrics": {
+            "atom_count": 71,
+            "bond_count": 76,
+            "minimum_pair_distance": 1.083060786767144,
+            "maximum_bond_length": 2.3391872905507944,
+            "bond_ring_piercing_count": 1,
+            "bond_ring_undetermined_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_selected_ring_count": 5,
+            "bond_ring_excluded_ring_count": 4,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_scope": "ligand_skeleton",
+            "coordination_environments": []
+          }
+        }
+      },
+      {
+        "index": 89,
+        "target": "ligand",
+        "status": "failed_quality",
+        "validation": {
+          "level": "standard",
+          "passed": false,
+          "checks": [
+            {
+              "name": "coordinate_shape",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                153,
+                3
+              ],
+              "threshold": [
+                153,
+                3
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Coordinates must contain one Cartesian row per atom"
+            },
+            {
+              "name": "finite_coordinates",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "All Cartesian coordinates must be finite"
+            },
+            {
+              "name": "topology",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                153,
+                163
+              ],
+              "threshold": [
+                153,
+                163
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Original topology is preserved"
+            },
+            {
+              "name": "forcefield_setup",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Force-field setup must succeed"
+            },
+            {
+              "name": "finite_final_energy",
+              "passed": true,
+              "severity": "error",
+              "measured": 9444.272681723805,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "final energy must be finite"
+            },
+            {
+              "name": "finite_rms_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 1.8631427162124914,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "rms gradient must be finite"
+            },
+            {
+              "name": "finite_max_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 9.058586913344001,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "max gradient must be finite"
+            },
+            {
+              "name": "backend_explosion",
+              "passed": true,
+              "severity": "error",
+              "measured": false,
+              "threshold": false,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend must report a non-exploded structure"
+            },
+            {
+              "name": "forcefield_convergence",
+              "passed": true,
+              "severity": "warning",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            },
+            {
+              "name": "atom_overlap",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": 0.001,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "atom_too_close",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.4,
+                0.5,
+                0.55
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 2.0109218422183224,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                75,
+                78
+              ],
+              "bond_indices": [
+                87
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_distance",
+              "passed": true,
+              "severity": "error",
+              "measured": 3.0566012001718503,
+              "threshold": [
+                0.0,
+                30.0
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "short_bond",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.65,
+                0.65
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "No explicit bond is below its radius-scaled limit"
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": false,
+              "severity": "error",
+              "measured": [
+                24,
+                25,
+                26,
+                27,
+                36,
+                37
+              ],
+              "threshold": "does_not_pierce",
+              "atom_indices": [
+                75,
+                78
+              ],
+              "bond_indices": [
+                87
+              ],
+              "message": "A finite bond segment pierces a selected ring surface"
+            },
+            {
+              "name": "bond_ring_scope_coverage",
+              "passed": false,
+              "severity": "warning",
+              "measured": 3,
+              "threshold": 0,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Some rings exceed the configured maximum size and were not evaluated for bond-ring piercing"
+            }
+          ],
+          "failures": [
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 2.0109218422183224,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                75,
+                78
+              ],
+              "bond_indices": [
+                87
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": false,
+              "severity": "error",
+              "measured": [
+                24,
+                25,
+                26,
+                27,
+                36,
+                37
+              ],
+              "threshold": "does_not_pierce",
+              "atom_indices": [
+                75,
+                78
+              ],
+              "bond_indices": [
+                87
+              ],
+              "message": "A finite bond segment pierces a selected ring surface"
+            }
+          ],
+          "warnings": [
+            {
+              "name": "bond_ring_scope_coverage",
+              "passed": false,
+              "severity": "warning",
+              "measured": 3,
+              "threshold": 0,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Some rings exceed the configured maximum size and were not evaluated for bond-ring piercing"
+            }
+          ],
+          "metrics": {
+            "atom_count": 153,
+            "bond_count": 163,
+            "minimum_pair_distance": 0.9604010561518985,
+            "maximum_bond_length": 3.0566012001718503,
+            "bond_ring_piercing_count": 1,
+            "bond_ring_undetermined_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_selected_ring_count": 9,
+            "bond_ring_excluded_ring_count": 3,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_scope": "ligand_skeleton",
+            "coordination_environments": []
+          }
+        }
+      },
+      {
+        "index": 124,
+        "target": "ligand",
+        "status": "failed_quality",
+        "validation": {
+          "level": "standard",
+          "passed": false,
+          "checks": [
+            {
+              "name": "coordinate_shape",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                46,
+                3
+              ],
+              "threshold": [
+                46,
+                3
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Coordinates must contain one Cartesian row per atom"
+            },
+            {
+              "name": "finite_coordinates",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "All Cartesian coordinates must be finite"
+            },
+            {
+              "name": "topology",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                46,
+                52
+              ],
+              "threshold": [
+                46,
+                52
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Original topology is preserved"
+            },
+            {
+              "name": "forcefield_setup",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Force-field setup must succeed"
+            },
+            {
+              "name": "finite_final_energy",
+              "passed": true,
+              "severity": "error",
+              "measured": 55829.53896862113,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "final energy must be finite"
+            },
+            {
+              "name": "finite_rms_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 14150.618061573794,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "rms gradient must be finite"
+            },
+            {
+              "name": "finite_max_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 70800.14657048887,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "max gradient must be finite"
+            },
+            {
+              "name": "backend_explosion",
+              "passed": true,
+              "severity": "error",
+              "measured": false,
+              "threshold": false,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend must report a non-exploded structure"
+            },
+            {
+              "name": "forcefield_convergence",
+              "passed": false,
+              "severity": "warning",
+              "measured": false,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            },
+            {
+              "name": "atom_overlap",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": 0.001,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "atom_too_close",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.07498279396501893,
+              "threshold": 0.4,
+              "atom_indices": [
+                3,
+                4
+              ],
+              "bond_indices": [],
+              "message": "An atom pair is closer than the allowed separation"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.07498279396501893,
+              "threshold": 0.9880000000000001,
+              "atom_indices": [
+                3,
+                4
+              ],
+              "bond_indices": [
+                3
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.04933078550330193,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                3,
+                4
+              ],
+              "bond_indices": [
+                3
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.41302057612988385,
+              "threshold": 0.9880000000000001,
+              "atom_indices": [
+                8,
+                13
+              ],
+              "bond_indices": [
+                14
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.27172406324334464,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                8,
+                13
+              ],
+              "bond_indices": [
+                14
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 3.1741201364789267,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                3,
+                13
+              ],
+              "bond_indices": [
+                15
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 2.0851709472670312,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                20,
+                21
+              ],
+              "bond_indices": [
+                23
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.6116416010629585,
+              "threshold": 0.9880000000000001,
+              "atom_indices": [
+                21,
+                22
+              ],
+              "bond_indices": [
+                24
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.40239579017299903,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                21,
+                22
+              ],
+              "bond_indices": [
+                24
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.4757333944971094,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                21,
+                38
+              ],
+              "bond_indices": [
+                44
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_distance",
+              "passed": true,
+              "severity": "error",
+              "measured": 4.824662607447968,
+              "threshold": [
+                0.0,
+                30.0
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": true,
+              "severity": "error",
+              "measured": "does_not_pierce",
+              "threshold": "does_not_pierce",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            }
+          ],
+          "failures": [
+            {
+              "name": "atom_too_close",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.07498279396501893,
+              "threshold": 0.4,
+              "atom_indices": [
+                3,
+                4
+              ],
+              "bond_indices": [],
+              "message": "An atom pair is closer than the allowed separation"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.07498279396501893,
+              "threshold": 0.9880000000000001,
+              "atom_indices": [
+                3,
+                4
+              ],
+              "bond_indices": [
+                3
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.04933078550330193,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                3,
+                4
+              ],
+              "bond_indices": [
+                3
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.41302057612988385,
+              "threshold": 0.9880000000000001,
+              "atom_indices": [
+                8,
+                13
+              ],
+              "bond_indices": [
+                14
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.27172406324334464,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                8,
+                13
+              ],
+              "bond_indices": [
+                14
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 3.1741201364789267,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                3,
+                13
+              ],
+              "bond_indices": [
+                15
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 2.0851709472670312,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                20,
+                21
+              ],
+              "bond_indices": [
+                23
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "short_bond",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.6116416010629585,
+              "threshold": 0.9880000000000001,
+              "atom_indices": [
+                21,
+                22
+              ],
+              "bond_indices": [
+                24
+              ],
+              "message": "An explicit bond is shorter than its radius-scaled limit"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.40239579017299903,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                21,
+                22
+              ],
+              "bond_indices": [
+                24
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": false,
+              "severity": "error",
+              "measured": 1.4757333944971094,
+              "threshold": [
+                0.65,
+                1.45
+              ],
+              "atom_indices": [
+                21,
+                38
+              ],
+              "bond_indices": [
+                44
+              ],
+              "message": "Bond length is inconsistent with covalent radii"
+            }
+          ],
+          "warnings": [
+            {
+              "name": "forcefield_convergence",
+              "passed": false,
+              "severity": "warning",
+              "measured": false,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            }
+          ],
+          "metrics": {
+            "atom_count": 46,
+            "bond_count": 52,
+            "minimum_pair_distance": 0.07498279396501893,
+            "maximum_bond_length": 4.824662607447968,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_undetermined_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_selected_ring_count": 7,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_scope": "ligand_skeleton",
+            "coordination_environments": []
+          }
+        }
+      },
+      {
+        "index": 184,
+        "target": "ligand",
+        "status": "failed_quality",
+        "validation": {
+          "level": "standard",
+          "passed": false,
+          "checks": [
+            {
+              "name": "coordinate_shape",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                92,
+                3
+              ],
+              "threshold": [
+                92,
+                3
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Coordinates must contain one Cartesian row per atom"
+            },
+            {
+              "name": "finite_coordinates",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "All Cartesian coordinates must be finite"
+            },
+            {
+              "name": "topology",
+              "passed": true,
+              "severity": "error",
+              "measured": [
+                92,
+                91
+              ],
+              "threshold": [
+                92,
+                91
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Original topology is preserved"
+            },
+            {
+              "name": "forcefield_setup",
+              "passed": true,
+              "severity": "error",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "Force-field setup must succeed"
+            },
+            {
+              "name": "finite_final_energy",
+              "passed": true,
+              "severity": "error",
+              "measured": 823.7326409234454,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "final energy must be finite"
+            },
+            {
+              "name": "finite_rms_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 2.2676766820179197,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "rms gradient must be finite"
+            },
+            {
+              "name": "finite_max_gradient",
+              "passed": true,
+              "severity": "error",
+              "measured": 8.796813897769342,
+              "threshold": "finite",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "max gradient must be finite"
+            },
+            {
+              "name": "backend_explosion",
+              "passed": true,
+              "severity": "error",
+              "measured": false,
+              "threshold": false,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend must report a non-exploded structure"
+            },
+            {
+              "name": "forcefield_convergence",
+              "passed": true,
+              "severity": "warning",
+              "measured": true,
+              "threshold": true,
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "The force-field backend did not report convergence"
+            },
+            {
+              "name": "atom_overlap",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.0,
+              "threshold": 0.001,
+              "atom_indices": [
+                61,
+                62
+              ],
+              "bond_indices": [],
+              "message": "Two atoms occupy indistinguishable coordinates"
+            },
+            {
+              "name": "atom_too_close",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.4,
+                0.5,
+                0.55
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "bond_distance",
+              "passed": true,
+              "severity": "error",
+              "measured": 1.5630807767311687,
+              "threshold": [
+                0.0,
+                30.0
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "bond_length_ratio",
+              "passed": true,
+              "severity": "error",
+              "measured": null,
+              "threshold": [
+                [
+                  0.65,
+                  1.45
+                ],
+                [
+                  0.65,
+                  1.6
+                ]
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            },
+            {
+              "name": "short_bond",
+              "passed": true,
+              "severity": "error",
+              "measured": 0,
+              "threshold": [
+                0.65,
+                0.65
+              ],
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": "No explicit bond is below its radius-scaled limit"
+            },
+            {
+              "name": "bond_ring_piercing",
+              "passed": true,
+              "severity": "error",
+              "measured": "does_not_pierce",
+              "threshold": "does_not_pierce",
+              "atom_indices": [],
+              "bond_indices": [],
+              "message": ""
+            }
+          ],
+          "failures": [
+            {
+              "name": "atom_overlap",
+              "passed": false,
+              "severity": "error",
+              "measured": 0.0,
+              "threshold": 0.001,
+              "atom_indices": [
+                61,
+                62
+              ],
+              "bond_indices": [],
+              "message": "Two atoms occupy indistinguishable coordinates"
+            }
+          ],
+          "warnings": [],
+          "metrics": {
+            "atom_count": 92,
+            "bond_count": 91,
+            "minimum_pair_distance": 0.0,
+            "maximum_bond_length": 1.5630807767311687,
+            "bond_ring_piercing_count": 0,
+            "bond_ring_undetermined_count": 0,
+            "bond_ring_scan_complete": true,
+            "bond_ring_selected_ring_count": 0,
+            "bond_ring_excluded_ring_count": 0,
+            "bond_ring_max_ring_size": 16,
+            "bond_ring_scope": "ligand_skeleton",
+            "coordination_environments": []
+          }
+        }
+      }
+    ],
+    "case61_included": true,
+    "canonical_topology_transport_matches_selected_reference": true,
+    "actual_reconstruction_gate_executed": "Bound same backend_comparison.py exporter calls _rebuild_complex for each case before writing canonical manifest; all182cases produced with no reconstruction error.",
+    "input_bindings": 4000,
+    "origin_reports": 223,
+    "unique_observed_bound_files": 175,
+    "trajectory_frames": 17359,
+    "coordinate_scalars": 3406314,
+    "nonfinite_coordinate_scalars": 0,
+    "recorded_nonfinite_energy_frames": 0,
+    "all_selected_final_coordinates_and_energy_finite": true,
+    "formal_performance_accepted": false,
+    "limits": [
+      "Topology SHA verifies deterministic normalized graph transport, not chemical truth.",
+      "Quality failures/nonconvergence/finite concerning geometry remain original findings; no forced historical success or energy equality.",
+      "Only captured origins/bindings are qualified, not exhaustive dependency execution.",
+      "No xTBrelease, scientific/global acceptance or performance verdict follows automatically."
+    ]
+  },
+  "root_decision": {
+    "actual_case_denominators_and_finite_findings_accepted": true,
+    "all_case_quality_or_convergence_accepted": false,
+    "no_quality_filtering_for_xtb": true,
+    "original_official_xtb_released_separately": true,
+    "meaning": "All369eligible targets complete with finite selected values; six monitor failures remain failures and five complex-not-eligible slots remain explicit. This is attributed method-bound observation, not chemical truth or forced historical parity."
+  },
+  "limits": [
+    "Actual target convergence is176ligands/148complexes;11ligands/34complexes are nonconverged. These counts are not reference-run convergence.",
+    "Original work budgets, finite findings, failed target outputs and canonical reconstruction retained.",
+    "All3406314stored coordinate scalars are finite; selected energies finite. No complete theoretical validity or independent energy agreement is inferred.",
+    "Actual xTB, O0multi-seed applicability, GPU/performance/version and global acceptance remain separately open."
+  ],
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/final-plan12-rebind16b864f/eu-uff/raw-uff-and-review.tar.gz",
+    "bytes": 64642174,
+    "sha256": "49ff9bfbe1fe722f012557c8eedc8049a0d8b65613797792ec05218da897fd04",
+    "members": 3160,
+    "all_member_bytes_verified": true
+  },
+  "root_review_command": [
+    "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3",
+    "-B",
+    "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-uff-installed01/root-review01/review.py"
+  ]
+}

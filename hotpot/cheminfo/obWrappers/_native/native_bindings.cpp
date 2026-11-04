@@ -17,6 +17,7 @@
 #include <optional>
 #include <stdexcept>
 #include <string>
+#include <tuple>
 #include <vector>
 
 
@@ -128,6 +129,27 @@ std::optional<std::array<double, 6>> read_unit_cell(
     return std::array<double, 6>{
         data[0], data[1], data[2], data[3], data[4], data[5]
     };
+}
+
+
+using ProjectedStereo = std::tuple<
+    std::string, std::string, bool, std::vector<std::int32_t>,
+    std::array<std::optional<std::int32_t>, 4>, std::vector<unsigned int>
+>;
+
+
+std::vector<StereoConfiguration> read_stereo_configs(
+    const std::vector<ProjectedStereo>& configs
+) {
+    std::vector<StereoConfiguration> result;
+    result.reserve(configs.size());
+    for (const auto& config : configs) {
+        result.push_back(StereoConfiguration{
+            std::get<0>(config), std::get<1>(config), std::get<2>(config),
+            std::get<3>(config), std::get<4>(config), std::get<5>(config)
+        });
+    }
+    return result;
 }
 
 
@@ -308,7 +330,8 @@ PYBIND11_MODULE(_ob_native, module) {
                 const py::array& bond_orders,
                 const py::array& bond_kinds,
                 const py::array& bond_aromatic,
-                const py::object& unit_cell
+                const py::object& unit_cell,
+                const std::vector<ProjectedStereo>& stereo_configs
             ) {
                 MoleculeData molecule{
                     schema_version,
@@ -330,6 +353,7 @@ PYBIND11_MODULE(_ob_native, module) {
                         bond_aromatic, "bond_aromatic"
                     ),
                     read_unit_cell(unit_cell),
+                    read_stereo_configs(stereo_configs),
                 };
                 validate_openbabel_compatibility(molecule);
                 return molecule;
@@ -344,7 +368,8 @@ PYBIND11_MODULE(_ob_native, module) {
             py::arg("bond_orders"),
             py::arg("bond_kinds"),
             py::arg("bond_aromatic"),
-            py::arg("unit_cell") = py::none()
+            py::arg("unit_cell") = py::none(),
+            py::arg("stereo_configs") = py::tuple()
         )
         .def_property_readonly("atom_count", &MoleculeData::atom_count)
         .def_property_readonly("bond_count", &MoleculeData::bond_count);

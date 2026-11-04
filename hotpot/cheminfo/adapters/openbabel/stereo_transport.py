@@ -1,4 +1,6 @@
 """Native Open Babel stereo records; toolkit imports occur only at OB calls."""
+from typing import NamedTuple
+
 from ...structure.stereo import (
     StereoAnchor, StereoAnchorKind, StereoCarrier, StereoCarrierKind, StereoRecord,
 )
@@ -99,28 +101,41 @@ def _check_carriers(carriers, expected):
         raise ValueError('Open Babel stereo carriers do not match target graph or virtual references')
 
 
-def _apply_stereo_payload(obmol, payload, row_to_idx, hydrogens):
-    from openbabel import openbabel as ob
+class _StereoConfig(NamedTuple):
+    """Transient toolkit-independent row references for one OB configuration."""
 
-    row_to_id = {row: obmol.GetAtom(index).GetId() for row, index in row_to_idx.items()}
-    idx_to_row = {index: row for row, index in row_to_idx.items()}
-    implicit = int(ob.OBStereo.ImplicitRef) & 0xffffffff
-    def atom_id(row):
-        try:
-            return row_to_id[row]
-        except KeyError:
-            raise ValueError(f'Open Babel stereo references missing atom row: {row}') from None
+    family: str
+    value: str
+    specified: bool
+    anchors: tuple[int, ...]
+    references: tuple[int | None, ...]
+    hydrogens: tuple[int, ...]
+
+
+def _project_stereo_payload(payload, atomic_numbers, bonds, hydrogens):
+    """Translate source declarations once, against the actual target graph."""
+    adjacency = {row: [] for row in atomic_numbers}
+    bond_orders = {}
+    for begin, end, order in bonds:
+        adjacency[begin].append(end)
+        adjacency[end].append(begin)
+        bond_orders[frozenset((begin, end))] = order
+
+    def atom_row(row):
+        if row not in adjacency:
+            raise ValueError(f'Open Babel stereo references missing atom row: {row}')
+        return row
+
     def reference(carrier):
         if carrier.kind is StereoCarrierKind.ATOM:
-            return atom_id(carrier.atom)
+            return atom_row(carrier.atom)
         if carrier.kind in (StereoCarrierKind.IMPLICIT_H, StereoCarrierKind.LONE_PAIR) and carrier.atom is None:
-            return implicit
+            return None
         raise ValueError('Unsupported Open Babel stereo carrier')
+
     def neighbors(center, other=None):
-        atom_id(center)
-        return tuple(_atom_carrier(idx_to_row[atom.GetIdx()])
-                     for atom in ob.OBAtomAtomIter(obmol.GetAtom(row_to_idx[center]))
-                     if idx_to_row[atom.GetIdx()] != other)
+        return tuple(_atom_carrier(row) for row in adjacency[atom_row(center)] if row != other)
+
     def inventory(center, other=None):
         actual = neighbors(center, other)
         count = 4 if other is None else 2
@@ -134,6 +149,7 @@ def _apply_stereo_payload(obmol, payload, row_to_idx, hydrogens):
             raise ValueError('Open Babel stereo has unsupported target neighbor count')
         return actual
 
+    configs = []
     for record in payload.records:
         if record.group is not None:
             raise ValueError('Open Babel cannot preserve enhanced stereo groups')
@@ -151,7 +167,11 @@ def _apply_stereo_payload(obmol, payload, row_to_idx, hydrogens):
                 center, = _anchor(record, StereoAnchorKind.ATOM, 1)
                 carriers = record.carriers
                 if len(carriers) == 3 and all(carrier.kind is StereoCarrierKind.ATOM for carrier in carriers):
-                    carriers += (_virtual_carrier(hydrogens[center]),)
+                    remaining = tuple(carrier for carrier in neighbors(center) if carrier not in carriers)
+                    if len(remaining) == 1 and atomic_numbers[remaining[0].atom] == 1:
+                        carriers += remaining
+                    else:
+                        carriers += (_virtual_carrier(hydrogens[center]),)
             elif code in ('STEREOE', 'STEREOZ', 'STEREOCIS', 'STEREOTRANS', 'STEREOANY'):
                 family, value, specified = 'CT', 'U', code != 'STEREOANY'
                 begin, end = _anchor(record, StereoAnchorKind.BOND, 2)
@@ -175,26 +195,14 @@ def _apply_stereo_payload(obmol, payload, row_to_idx, hydrogens):
         if family == 'TH':
             center, = _anchor(record, StereoAnchorKind.ATOM, 1)
             _check_carriers(carriers, inventory(center))
-            config = ob.OBTetrahedralConfig()
-            config.center = atom_id(center)
-            config.from_or_towards = reference(carriers[0])
-            config.refs = ob.OBStereo.MakeRefs(*(reference(carrier) for carrier in carriers[1:]))
-            config.view = ob.OBStereo.ViewFrom
-            config.winding = {'CW':ob.OBStereo.Clockwise, 'CCW':ob.OBStereo.AntiClockwise,
-                              'UNKNOWN':ob.OBStereo.UnknownWinding}[value]
-            data = ob.OBTetrahedralStereo(obmol)
+            anchors = (center,)
         elif family == 'CT':
             begin, end = _anchor(record, StereoAnchorKind.BOND, 2)
-            bond = obmol.GetBond(row_to_idx[begin], row_to_idx[end])
-            if bond is None or bond.GetBondOrder() != 2:
+            if bond_orders.get(frozenset((begin, end))) != 2:
                 raise ValueError('Open Babel cis/trans anchor requires a double bond')
             _check_carriers(carriers[:2], inventory(begin, end))
             _check_carriers(carriers[2:], inventory(end, begin))
-            config = ob.OBCisTransConfig()
-            config.begin, config.end = atom_id(begin), atom_id(end)
-            config.refs = ob.OBStereo.MakeRefs(*(reference(carrier) for carrier in carriers))
-            config.shape = ob.OBStereo.ShapeU
-            data = ob.OBCisTransStereo(obmol)
+            anchors = (begin, end)
         else:
             center, = _anchor(record, StereoAnchorKind.ATOM, 1)
             if any(carrier.kind is not StereoCarrierKind.ATOM for carrier in carriers):
@@ -202,12 +210,48 @@ def _apply_stereo_payload(obmol, payload, row_to_idx, hydrogens):
             _check_carriers(carriers, neighbors(center))
             if len(carriers) != 4:
                 raise ValueError('Open Babel square-planar stereo requires four atom carriers')
+            anchors = (center,)
+        configs.append(_StereoConfig(family, value, specified, anchors,
+                                     tuple(reference(carrier) for carrier in carriers),
+                                     tuple(hydrogens[row] for row in anchors)))
+    return tuple(configs)
+
+
+def _apply_stereo_payload(obmol, payload, row_to_idx, hydrogens):
+    from openbabel import openbabel as ob
+
+    idx_to_row = {index: row for row, index in row_to_idx.items()}
+    bonds = tuple((idx_to_row[bond.GetBeginAtomIdx()], idx_to_row[bond.GetEndAtomIdx()],
+                   bond.GetBondOrder()) for bond in ob.OBMolBondIter(obmol))
+    atomic_numbers = {row: obmol.GetAtom(index).GetAtomicNum()
+                      for row, index in row_to_idx.items()}
+    configs = _project_stereo_payload(payload, atomic_numbers, bonds, hydrogens)
+    row_to_id = {row: obmol.GetAtom(index).GetId() for row, index in row_to_idx.items()}
+    implicit = int(ob.OBStereo.ImplicitRef) & 0xffffffff
+    for projected in configs:
+        references = tuple(implicit if row is None else row_to_id[row] for row in projected.references)
+        if projected.family == 'TH':
+            config = ob.OBTetrahedralConfig()
+            config.center = row_to_id[projected.anchors[0]]
+            config.from_or_towards = references[0]
+            config.refs = ob.OBStereo.MakeRefs(*references[1:])
+            config.view = ob.OBStereo.ViewFrom
+            config.winding = {'CW': ob.OBStereo.Clockwise, 'CCW': ob.OBStereo.AntiClockwise,
+                              'UNKNOWN': ob.OBStereo.UnknownWinding}[projected.value]
+            data = ob.OBTetrahedralStereo(obmol)
+        elif projected.family == 'CT':
+            config = ob.OBCisTransConfig()
+            config.begin, config.end = (row_to_id[row] for row in projected.anchors)
+            config.refs = ob.OBStereo.MakeRefs(*references)
+            config.shape = ob.OBStereo.ShapeU
+            data = ob.OBCisTransStereo(obmol)
+        else:
             config = ob.OBSquarePlanarConfig()
-            config.center = atom_id(center)
-            config.refs = ob.OBStereo.MakeRefs(*(reference(carrier) for carrier in carriers))
+            config.center = row_to_id[projected.anchors[0]]
+            config.refs = ob.OBStereo.MakeRefs(*references)
             config.shape = ob.OBStereo.ShapeU
             data = ob.OBSquarePlanarStereo(obmol)
-        config.specified = specified
+        config.specified = projected.specified
         data.SetConfig(config)
         obmol.CloneData(data)
     obmol.SetChiralityPerceived(True)

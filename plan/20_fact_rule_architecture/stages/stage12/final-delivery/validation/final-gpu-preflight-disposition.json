@@ -1,0 +1,143 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_ACTUAL_INFERENCE_EVIDENCE_PERIPHERAL_FAILURES_RETAINED_TIMING_HELD",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "baseline_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+  "record_commit_at_review": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
+  "reviewed_utc": "2026-11-04T13:29:28.184954+00:00",
+  "decision": {
+    "scope": "Original8untimed inference workloads on selected CP311installed product/ORT1.24.1/CUDA12.8runtime.",
+    "direct_business_records_replace_peripheral_exit_code_authority": true,
+    "basis": "Full work counters, ordered parent/child outputs, original model/session attribution and actual provider kernels establish the bounded inference operations. Later unrelated native import/empty-lock read failures stay separate under goal.md checker/business separation.",
+    "prepare_original_timing_driver": true,
+    "actual_timing_released": false,
+    "full_native_container_capability_accepted": false,
+    "complete_chemical_or_numerical_parity_accepted": false,
+    "timing_conditions": [
+      "Original8recipes/1warmup+3measured sampling, frozen products/models/encodings/affinities, failures and denominators unchanged.",
+      "Only the exact2stat-verified empty .all-atoms.lock coordination files may be omitted from content hashing; all85derived artifacts per endpoint remain guarded.",
+      "Review terminal heavy science and before/during/after hardware/load; shared devices are not exclusive.",
+      "Preserve old metadata defects, observed numerical differences and incomplete chemical comparability in actual cost disposition."
+    ]
+  },
+  "observations": {
+    "preflights": 8,
+    "business_recipe_completions": 8,
+    "parent_returncodes": {
+      "baseline/mca_fallback": 0,
+      "candidate/mca_fallback": 0,
+      "candidate/mca_1gpu": 0,
+      "baseline/mca_1gpu": 0,
+      "baseline/mca_4gpu": 0,
+      "candidate/mca_4gpu": 0,
+      "candidate/cbond_cuda": 2,
+      "baseline/cbond_cuda": 0
+    },
+    "controller_returncode": 1,
+    "sessions": 16,
+    "raw_profiles": 16,
+    "origin_snapshots": 27,
+    "ordered_MCA_molecule_pairs": 1032,
+    "ordered_MCA_numeric_scalar_pairs": 5934,
+    "MCA_max_abs_paired_difference": 0.0,
+    "MCA_acid_serialized_metadata_differences": 129,
+    "CBond_calls_each_phase": 20,
+    "CBond_values_each_call": 2,
+    "CBond_max_abs_paired_difference": 9.5367431640625e-07,
+    "kernel_counts_each_phase": {
+      "mca_fallback": {
+        "CPU": 1526,
+        "CUDA": 0
+      },
+      "mca_1gpu": {
+        "CPU": 116,
+        "CUDA": 2450
+      },
+      "mca_4gpu": {
+        "CPU": 116,
+        "CUDA": 2450
+      },
+      "cbond_cuda": {
+        "CPU": 1760,
+        "CUDA": 12080
+      }
+    },
+    "four_GPU_active_devices": [
+      0,
+      1
+    ],
+    "four_GPU_initialized_idle_devices": [
+      2,
+      3
+    ]
+  },
+  "preserved_failures": [
+    "Candidate CBond FAIL_PREFLIGHT/rc2 after20completed calls: forced _ob_native import cannot locate libopenbabel.so.8in CUDA-only search path.",
+    "Outer controller rc1 after all8recipes: PermissionError reading exact2zero-byte/mode600derived-cache locks.",
+    "Observer shutdown module=None .endswith AttributeError in all8stderr logs."
+  ],
+  "limits": [
+    "129old MCAacid SMILES differences remain; exact numeric/index equality does not prove complete chemical parity. Current metadata has separate independent final-functional qualification.",
+    "Canonical SMILES order has no explicit permutation to frozen-input atom indices; no fresh parser/isomorphism evidence claimed.",
+    "CBond finite output differences retain actual values without invented tolerance or bit-equality requirement; no general error bound claimed.",
+    "Only GPUs0/1infer in this original512fixture; GPUs2/3initialize idle. No four-active-GPUscaling claim.",
+    "This is bounded inference evidence and timing preparation, not performance/global science/complete native capability/Stage12closure/B_exp."
+  ],
+  "review": {
+    "executed_commands": [
+      [
+        "python3",
+        "-B",
+        "/tmp/hotpot_plan20/long/stage12-final-gpu-preflight-review-20261104/review01/extract_preflights.py"
+      ],
+      [
+        "python3",
+        "-B",
+        "/tmp/hotpot_plan20/long/stage12-final-gpu-preflight-review-20261104/review01/finish_review.py"
+      ]
+    ],
+    "extraction_checks": 1352,
+    "root_verified_index_files": 26,
+    "root_verified_archive_member_count": 102,
+    "agent_reconstructed_archive_members": 102,
+    "private_reviewer_workload_runs": 0,
+    "root_transport_correction": "Initial root copy check resolved index-relative paths against cwd and failed before writing; corrected to review directory without any workload rerun."
+  },
+  "durable_review_directory": ".plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01",
+  "key_artifacts": {
+    "BUSINESS_CONCLUSION.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01/BUSINESS_CONCLUSION.json",
+      "bytes": 2835,
+      "sha256": "e37dc01e98535c633f5e2fd1fb7ef220c2df3e81413f932737a6f24c232602a7"
+    },
+    "ROOT_DECISION_INPUT.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01/ROOT_DECISION_INPUT.json",
+      "bytes": 60271,
+      "sha256": "2e55b9b643ae50d7a57d0b201e1fc98d71931eeaaa5b40265aa4e124bc4c8970"
+    },
+    "REVIEW_SUMMARY.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01/REVIEW_SUMMARY.json",
+      "bytes": 6876,
+      "sha256": "7db0b2270ea3197dc815c20c187fdd0e2d2fc2e45eab02bb9fdc4b5593778c37"
+    },
+    "REPORT.md": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01/REPORT.md",
+      "bytes": 5242,
+      "sha256": "1ed0ccd2be9440d096913419aedb11515c07cf1763d2d245b85bb4cc258f50f1"
+    },
+    "PRESERVED_FAILURES.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01/PRESERVED_FAILURES.json",
+      "bytes": 5455,
+      "sha256": "30d1fa1409f88bbeba407b77e02e1c631c47dccd44db0f03387b0fd238df1940"
+    },
+    "LOCK_STAT_EXCLUSIONS.json": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01/LOCK_STAT_EXCLUSIONS.json",
+      "bytes": 1176,
+      "sha256": "26a8f0830b96d73c664cd3604b85872a492331579bc332258bb8b793fa8f2d77"
+    },
+    "reviewed-raw-records.tar.gz": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-gpu-preflights16b864f/review01/reviewed-raw-records.tar.gz",
+      "bytes": 2902232,
+      "sha256": "82a7f45d8e1e3df5ada236d4b5f4dcd4bfb81975309c9e72d74c1f98a106e851"
+    }
+  }
+}

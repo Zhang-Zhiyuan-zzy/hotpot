@@ -44,9 +44,11 @@ does not substitute a coordinate-derived stereoisomer for the declarations or
 invent stereo on an unspecified graph. Native TH/CT/SP configs are restored
 directly. Existing RDKit ordered tetrahedral and alkene records translate by
 registered carrier-order and cis/trans rules without importing RDKit or using
-RDKit as a conversion intermediary. Three graph carriers use the native virtual
-fourth reference under the source convention; graph H and isotopic H keep their
-actual identities. Unsupported namespaces, codes, enhanced groups and other
+RDKit as a conversion intermediary. For a three-carrier RDKit tetrahedral record, a uniquely remaining actual graph H
+is appended after the ordered source carriers, preserving parity. Otherwise the
+registered virtual H/lone-pair convention applies. A remaining heavy neighbour
+is not inferred as the fourth carrier; full carrier validation rejects the
+mismatch. Graph H and isotopic H keep their actual identities. Unsupported namespaces, codes, enhanced groups and other
 stereo families fail at the affected adapter boundary instead of losing data.
 
 Open-Babel-origin TH records project to RDKit using actual target neighbour order
@@ -61,8 +63,13 @@ These are adapter support limits, not claims that a molecule cannot exist.
 
 Projection leaves canonical records, Atom/Bond facts and source objects intact.
 Copy, component, merge, reorder, pickle and H materialization use the existing
-source-independent carrier remapping and canonical storage. No new DTO, stored
-payload, ABI field, model feature or public interface is introduced. Lossless
+source-independent carrier remapping and canonical storage. The Python adapter and direct native builder/optimizer consume one shared
+configuration projection. The private native `MoleculeData` owns transient
+TH/CT/SP configurations, binds them to actual persistent Open Babel atom IDs,
+and attaches them before native work. Packing and stereo capture share the
+Molecule mutation lock; undeclared native input skips stereo/H preparation.
+No durable stereo owner, generic numeric-buffer/SDK field, model feature or
+public interface is introduced. Lossless
 native-config comparisons apply to registered transport; chemistry comparisons
 use independent opposite-isomer fixtures, allowed ordinary-H projection and
 explicit source orders rather than canonical SMILES spelling alone.

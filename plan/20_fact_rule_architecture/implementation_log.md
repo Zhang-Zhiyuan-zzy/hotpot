@@ -9596,3 +9596,226 @@ scientific equality. The three dependent scientific commands remain held.
 Hardware observation is a finite background script with zero model polling;
 main-agent judgment and local analysis agent remain distinct from that monitor.
 Externalhelper stays stopped. No product/test/native/model/configuration change.
+
+
+### 2026-11-04 — Final inactive corpus accepted; GPU direct-work decision
+
+The final installed2280-objectcorpus/replay terminates0with2280primary and
+2280replay returns,0source/resolution errors,0snapshot replay mismatches and
+0external effects. All2280remain scientifically unresolved/inadmissible under
+the inactive profile;17searches have no_certified_decision and2263are not_evaluated.
+Root accepts this boundary without profile activation or forced historical
+success/equality.4000before/afterbindings and231observed product files agree;
+18raw archive members are verified. final-plan12-inactive-dry2280.json retains
+the root-review directory-origin handling correction. Separately released
+187-caseEu reference terminates0after117.228s; the existing localSol/mediumagent
+reviews actual cases/eligibility before any separate UFF/xTBrelease.
+
+Root accepts bounded direct GPUinference evidence under unchanged Stage12
+alignment and goal.md checker/business separation. Eight original recipes
+complete;16profiles/27origin snapshots prove actual provider work.1032ordered
+MCApairs/5934values agree, but129old acid metadata differences and nonexplicit
+canonical atom-order permutations prevent complete chemical parity. EachCBond
+endpoint completes20calls/20graph+20headruns; maximum paired finite output
+difference is9.5367431640625e-7without a newly invented numerical threshold.
+FourMCAsessions initialize; onlydevices0/1infer in this frozen512fixture.
+
+Candidate post-work _ob_native import still fails on missinglibopenbabel.so.8;
+outer controller still fails reading2empty mode600locks; observer shutdown
+errors remain. Direct ordered work/model/origin/kernel evidence replaces those
+exit codes only as acceptance authority for the observed inference operations.
+No whole-native container support, complete chemical/numerical parity or timing
+PASSis fabricated. Root permits a simple new timing-driver preparation retaining
+original8recipes/1+3sampling/content guards except exactly2stat-verified empty
+coordination locks. Actual timing remains held for science/resource review.
+1352extraction checks pass; root verifies26review-index files,102archive-member
+count and exact durable copies at .plan20-artifacts/20261104/stage12/
+final-gpu-preflights16b864f/review01. The first root index-path check failed before
+writes and was corrected to resolve relative paths; no business rerun occurred.
+
+
+### 2026-11-04 — Final Eu reference observation accepted; original UFF released
+
+Root reviews actual187case reports and the localSol/mediumagent's3146passing
+extraction checks. Actual182CBondpayloads,181monitor passes/1failed_quality and
+5local threshold rejections remain unchanged observations, without a forced
+scientific count. Case61retains two short Eu bonds/radius-ratio findings and
+finite8348.4691kJ/mol; all182trajectories and selected structures remain.
+145outputs converge,37do not;1269bond-ring warnings across6cases remain.
+873733submitted steps/8747epochs plus967initialization steps are recorded;
+completed-step counts are unavailable. All4000input bindings and200captured
+product origins agree.2016observed ORTthreads extend beyond requested affinity,
+so elapsed time is not accepted performance evidence. Five prior finite terminal
+energies differ without causal resolution or an invented equality threshold.
+Root preserves this uncertainty and releases only independent original UFF
+reconstruction:187ligands+actual182complexes, including failed-quality61.
+Allraw reference/review files are reconstructed from the durable archive at
+.plan20-artifacts/20261104/stage12/final-plan12-rebind16b864f/eu-reference/.
+FinalO0multi-seed applicability, UFF/xTB, performance and global gates remain
+separate. No source/model/feature/work-budget change occurs.
+
+
+### 2026-11-04 — Final complete SDF write and bounded resource disposition
+
+After Eu reference terminal and before releasing UFF, root executes the original
+single final-installedCP311complete-write recipe once, CPU8-15/one numerical
+thread, no heavy business overlap or retries. Actual outer return0after71.012s;
+903installed files and28recipe inputs verify before/after.581public writes
+retain1162records. Two representative Hotpotread-backs and all1162independent
+RDKitread-backs match literal256C/255chain edges, neutral charge,514non-graphH,
+no isotopes and both exact frame coordinates/order. Source facts/frames/selected
+frame/Atom/Bondidentities stay unchanged. These artificial coordinates qualify
+conversion, not physical geometry or broad stereo/isotope chemistry.
+
+All3warmup+10measured20-call batches complete. Current median32.32796ms per
+complete two-frame call is accepted as usable without optimizing away work.
+The separate16resource batches/320writes/640frames retain17checkpoints,48321
+Pythontracked bytes and1081344RSSbytes of growth; peak-windowRSS152969216bytes.
+Output/observer bookkeeping is included, untraced native allocations are not
+attributed, and RSSincludes allocator caching. No universal leak/destructor or
+arbitrary-batch bound is inferred. Whole-process peak and actual CPU/load/memory
+samples remain separate. Raw historical costs,3264-byte dictresize step and
+native ownership uncertainty stay retained. Root dispositions D003/D004as
+ACCEPTED_LIMITATIONwith revalidation for changed contracts, problematic growth,
+OOM or incomplete representative work. No new B0ratio/parity is invented.
+The exact original packet/outputs/receipts/hardware are archived and every member
+reconstructed at .plan20-artifacts/20261104/stage12/final-sdf-resource16b864f/.
+Final-sdf-write-resources.json is the bounded root decision; global gates remain.
+
+
+### 2026-11-04 — Final independent UFF accepted; official xTB separately released
+
+Original UFFinvocation terminates0after159.773s, without retry. Root inspects all
+187case reports, exact dynamic182complex cohort and source-selected topology,
+donor/seed/input mappings. Same bound exporter calls actual explicit-H zero-
+geometry reconstruction for all182before writing the coordinate-free canonical
+manifest.369eligible targets retain17,359frames/3,406,314finite coordinate scalars;
+all selected energies/coordinates are finite. Ligands:182monitor passes/5quality
+failures; complexes:181passes/1quality failure plus5explicit not-eligible slots.
+Failures are complex61and ligands68/84/89/124/184; all structures/trajectories
+remain.176ligands/148complexes converge;11/34do not. Routes are164native_fast/
+18complex_workflow. No forced scientific count/equality or elapsed-time
+performance acceptance.4000pre/postbindings match;223captured origins have no
+violations. Exact raw/review archive members reconstruct under final-plan12-
+rebind16b864f/eu-uff/. Final-plan12-eu-uff.json accepts bounded observations.
+
+Root separately releases exactly the original official xTBcommand, all187inputs,
+actual182complexes, both routes/targets,16workers*4threads,CPU64-127,timeout1000s,
+standardquality, ligandcharge0/UHF0and complexcharge3/UHF6. Canonical and source
+manifests bind this actual UFFrun. Keep quality failures, ineligible/source-invalid
+records, finite backend failures and original denominators. No automatic retry,
+scientific/model/source change or dependent acceptance is released. GPUformal
+cost execution stays held during this heavy scientific invocation.
+
+
+### 2026-11-04 — Isolated real graph dependency qualification released
+
+Root reviews the local Sol/medium dependency preparation: official CPU wheel
+metadata and32preparation checks establish availability, not runtime support.
+Release four sequential isolated layers at stage12-final-version-graph-
+environments-20261104/preparation01 forCP310/312/313/314, followed by actual
+Torch/PyG preflight and the exact30Stage9bundle cases perABI. Original qualified
+environments, final16b864fproduct/native/model/source bytes remain frozen.
+Use the same8CPUbudget on32-39to avoid currentxTB64-127and prospectiveO00-31;
+these functional results will supply no comparable-cost claim. Preserve every
+failed install/import/test and require root review of actual outcomes/origins.
+No model tier, stub, automatic retry, nested delegation or support claim is
+released. Exact commands and scope bind to root-release01.json in that packet.
+
+
+### 2026-11-04 — Bounded final O0 reuse and changed case54 observation
+
+Root accepts the scout partition after actual final-installed enumeration of
+all187inputs: onlycase54has stereo(two records). Reuse original Stage12C561
+slots as historical546completed/15ineligible observations under their original
+identity; no full repeat solely for chronology. Numerical native algorithm,
+CBondfeatures and runner are unchanged; final source/native qualifications and
+failed-commit rollback remain separately attributed. Release exactly original
+standard O0/Amcase54with seeds42/43/44(effective96/97/98),32workers/CPU0-31and
+all original budgets. Bind the existing unchanged3-fileCBondmodel by explicit
+path; keep offline selection and new private outputs. Root-review actual stereo/
+Hcarrier retention, selected energy/frame attribution and findings; no forced
+old energy/pass count or independence claim. D022/D023dispositions unchanged.
+The root reuse decision and command/before-afterbindings are retained under
+stage12-final-o0-applicability-20261104. No formal costs overlap this science.
+
+
+### 2026-11-04 — Actual native-builder stereochemical defect; D033 reopened
+
+The boundedcase54O0/Amrun completes3slots with finite selected values and all
+existing monitors passed;739source/model/runner/native bindings stay unchanged.
+Independent RDKit reconstruction of saved ligand coordinates identifiesS,Sat
+rows1/12against originalSMILESR,Rin all3trials. Declared facts remainR,R.
+Three minimal controls localize loss to nativeMoleculeData/make_obmol: opposite
+R/Sinputs both buildSthrough native, while existing full adapter+OBBuilder
+preservesR/Sandcase54R,R. This is a core chemical defect, not historical
+numerical disagreement or a checker-only failure. ReopenD033S0and hold affected
+geometry acceptance. Prior converter/model metadata evidence stays valid only
+within its tested scope. Preserve all original outputs and counts.
+
+Root repair boundary: retain direct native construction, canonical stereo owner,
+scientific/model features and generic SDKbuffer layout. Reuse one existing OB
+codec to project declared row/carrier configurations into the private native
+construction boundary; no hidden SWIGfallback or duplicated chemical mapping.
+Prepare/validate only in an isolated copy while finalxTBuses frozen inputs.
+After review, apply and requalify affected native/stereo source/installed and
+actualcase54O0/Euwork; reuse unaffected evidence by applicability. Exact raw
+launch/results/repro scripts and indexed evidence are retained at
+.plan20-artifacts/20261104/stage12/native-builder-stereo-defect16b864f/.
+
+
+### 2026-11-04 — Four-ABI real graph operations accepted within frozen scope
+
+The localSol/mediumagent sequentially installs four isolated real CPU
+Torch2.9.1+cpu/PyG2.8.1layers and executes exactly30Stage9bundle cases perABI.
+All120actual calls pass with0skip/fail/error; no retries or pin changes. Root
+independently checks348indexed receipt files, actual collection/call/JUnit sets,
+commands, unchanged before/afterbindings and loaded-native hashes. Each path
+loads3distinct native modules; all6delivered files remain bound. Original
+controllerFAILED_NO_RETRYreceipts retain an extra all-six-import assertion. Root
+initially counted9duplicate native observations as9imports; the failed receipt
+check is preserved and corrected by(module,path)grouping without business rerun.
+All actual dependency/product origins remain selected. Exact commands, raw
+receipts and preparation metadata reconstruct from the final-version-graph
+archive; final-version-graph-qualification.json records the scoped decision.
+CP310/313graph gaps are filled; CP312/314each retain3204complement+2469pending
+cost-overlap nodes. No model/performance/global pass follows; D033remains open.
+
+
+### 2026-11-04 — Remaining CP312/314 complement released independently
+
+After actual four-ABIgraph qualification, root releases only the preferred
+3204non-graph complement collection/execution perCP312/314from the existing
+final-version-disposition packet. Use fresh original future01support, original
+8CPU48-55and sequentialABIs; no formal cost claim or model tier. Do not execute
+the alternative5673selection or duplicate2469pending-cost overlap/30graph cases.
+Existing installed product/source/native/environment bytes stay frozen while
+D033repair is isolated. Preserve failed collection/test/imports and stop before
+any retry, pin change or test edit; root owns actual coverage/support decisions.
+The exact release binds COMMANDS.json in root-release-complement01.json.
+
+
+### 2026-11-04 — Final official xTB actual outcome review; D033 remains open
+
+The original once-only installed16b864f official command in `final-plan12-eu-xtb.json` completed187cases/182eligible complexes/738eligible route slots. Root independently matched1105actual optimizer launches to1105stage reports (1088successes/17backend failures),2211actual version probes,9106declared backend artifacts, requested charge/UHF/method projections, loaded origins and unchanged input guards. Existing monitors record691passes/30final-quality failures/17backend failures; all738finite final/last-finite structures and original denominators remain. GF N-FF uses its actual charge-only projection; GFN2uses ligandQ0/UHF0andcomplexQ3/UHF6. Onlycase54input carries explicit stereo tokens; its upstream geometry remains affected byreopenedD033. No blanket chemical qualification, formal performance or gate closure follows. The initial private root extractor compared the backend report with a full stage envelope and failed; its original script/failure is retained and corrected without rerunning business. All14877raw payloads (2280540640bytes) are archived/reconstructed; `final-plan12-eu-xtb.json` indexes receipt and precise limits.
+
+
+### 2026-11-04 — D033 bounded repair applied; D035 separated and assigned
+
+Existing Stage12 alignment/governance and unchanged global objectives remain active. Root reviewed the complete shared OBprojector/private native patch, exact candidate files, actual independent R/S/E/Z/case54geometry, common numeric-view boundary and135passed/1existing scientific-tier skip. The eight-file repair is applied to main; actual fresh CP311native rebuild returns0and emits `ffa30f50b2e11ed2d046e68e72730e7e85647bd2b0f05f47ad33a5eb43ed141c`. Generic numeric SDK/feature contracts are unchanged. The main affected run records187passed/1failed/1existing skip; the cold subprocess failure loads an old hp-usage installed Hotpot, whereas explicit source import preserves deferred SWIG loading. Original command/failure and direct source/old-installed origin diagnoses remain; an exactly-one-node recheck uses explicit source PYTHONPATH. One original standard O0/Am case54route withroot42/43/44and original budgets/CPU0-31/workers32is released against repaired source, retaining all original wrong geometries.
+
+The observed separate RDKit-export three-carrier/materialized-H failure isP20-D035, not hidden by the independent geometry oracle. A reused local GPT-6.1Sol/xhigh worker owns only the isolated RDKit stereo writer and a new focused test, under immutable assignment SHA256`912b31055d9240ea09d93ab45ead933c0397413cb1176c54a7b89a4a73e20522`; no nested delegation or main writes. Root owns apply/acceptance/delivery. D007reopens only the changed native-wheel delivery boundary; unchanged SDKand unaffected results remain reusable by actual rebind. All gates remain open. The preceding xTBlog uses the spellingGFN-FF(charge-only backend projection); no calculation was changed by this clarification.
+
+
+### 2026-11-04 — CP312/314 complement outcomes accepted; owner three-round direction
+
+Original sequential CPU48-55 CP312andCP314outside_pending_non_graph executions each complete3204passed/0failed/0skipped in one attempt. Actual selections, setup/call/teardown/JUnit sets,397distinct hashed loaded origins and all six native modules perABI,904installed-product files before/afterandroot recheck agree. Root verifies1048archived payloads/85024237rawbytes; `final-version-complements.json` binds the actual frozen16b864fscope. Each still owes2469cost-overlap nodes; newD033/D035affected native/stereo qualification and final gates remain open. No model tier, repeated graph30suite, alternative5673selection or formal cost was executed.
+
+The owner now limits a concrete unresolved problem to three genuine repair/validation rounds before recording attempts/impact/dependencies and moving to independent work. Root will assess later-stage candidate/preparation work by actual upstream dependencies; this direction does not manufacture completion of any existing gate. One attempt to create a separate local read-only Stage14scout was refused by the agent-thread cap before a child started; no retry/new child occurred. After the successful one-roundD035repair, the existing known Sol/xhigh worker is reused for this bounded read-only dependency scout. Root continues current source/install/scientific delivery.
+
+
+### 2026-11-04 — Applied stereo repairs: actual main source and O0 checkpoint
+
+The bounded D035worker uses one production repair round:12original failures/9passes become21focused and161complete affected candidate passes, with known earlier command-provenance limits retained. Root reviews the exact six-line local carrier binding, preserved existing permutation logic, R/S/charged/copy/remap/implicitH/lone-pair/heavy-neighbour controls and independent numeric3Droundtrips. Applying only the writer/newtest changes yields a combined main D033/D035 selection of266passed/0failed/1existing scientific-tier skip under explicit source PYTHONPATH. Exact commands/results/native provenance remain in the two maintained correction records and234/33verified raw archives.
+
+The original O0standardAm case54route on the fresh main native completes rootseeds42/43/44(effective96/97/98), with all739source/model/native/runner bindings unchanged and identical original configuration. Saved final geometry independently givesR,Rat rows1/12for all three seeds. Selected energies1058.7348295159245,980.6768204464443,980.6325643601964kJ/mol remain actual finite observations; no historical energy target is imposed. All standard checks pass. Original S,Sobservations remain preserved. Installed/Eu/final wheel/version qualification is next; D033/D035/D007andglobalacceptance remain open. This coherent code/test/document/evidence checkpoint is intended for a normal business commit/push; no bookkeeping-only commit or B_expclaim is made.

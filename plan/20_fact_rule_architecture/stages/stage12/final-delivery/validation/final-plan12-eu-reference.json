@@ -1,0 +1,138 @@
+{
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/final-plan12-rebind16b864f/eu-reference/raw-reference-and-review.tar.gz",
+    "bytes": 42719936,
+    "sha256": "c2741b97282662d09d59b1cee9ac6c3bab00f21cfd37602d3e4d33dc8572c440",
+    "members": 2660,
+    "all_member_bytes_verified": true
+  },
+  "command": [
+    "taskset",
+    "--cpu-list",
+    "64-127",
+    "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+    "-s",
+    "-B",
+    "-m",
+    "tests.benchmarks.coordination_complexes",
+    "--suite",
+    "extractants-eu-187",
+    "--backend",
+    "hotpot",
+    "--profile",
+    "standard",
+    "--workers",
+    "16",
+    "--render",
+    "off",
+    "--epochs",
+    "100",
+    "--steps-per-epoch",
+    "100",
+    "--timeout",
+    "1000",
+    "--output",
+    "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-reference-installed01/results"
+  ],
+  "current_source_checkpoint": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
+  "cwd": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+  "draft_only": false,
+  "elapsed_seconds": 116.87781781330705,
+  "environment_overrides": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "HF_HUB_OFFLINE": "1",
+    "HOTPOT_CBOND_DEVICE": "cpu",
+    "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot_plan20/medium/cbond-model-cache-20261103/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+    "HOTPOT_EU_WORKER_OBSERVATIONS": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-reference-installed01/worker-observations",
+    "HOTPOT_EXPECTED_PRODUCT": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site",
+    "HOTPOT_MODEL_SOURCE": "local",
+    "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-reference-installed01/origins",
+    "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+    "LD_PRELOAD": "/tmp/hotpot-rdkit-toolchain/lib/libstdc++.so.6",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1",
+    "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/preparation01/observers/eu-reference-installed01:/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/qualification01/execution01/installed/cp311/site:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+    "PYTHONSAFEPATH": "1"
+  },
+  "formal_performance_accepted": false,
+  "limits": [
+    "Case61 retains two short Eu bonds and two bond/radius-ratio findings;37 outputs report nonconvergence and ring relations can remain mathematically undetermined. Five prior/current terminal energies differ (cases42,69,70,71,83; deltas-8.7889243772/-31.7196420124/+0.0000132459/+3.5166909629/-0.0679416999kJ/mol). Causal attribution remains unresolved; no numerical acceptance tolerance is introduced. Finite values are retained; root owns acceptance.",
+    "The actual182 CBond reports include quality-failure case61; existing UFF export reconstructs explicit-H topology and compares against each selected frame. That chemistry was not run by this review. A reconstruction mismatch must remain explicit; do not pad/filter the cohort.",
+    "2016 distinct model-worker threads have affinities extending outside requested CPU64-127; ORT session threads are default0. Functional observations only; no formal performance acceptance.",
+    "All captured Hotpot module hashes map to frozen installed files, but observer does not establish exhaustive dependency/shared-library byte identity or every instruction/feed. Copied manifest Git is null/dirty; use explicit source/wheel/site attribution.",
+    "This is one seed20260921+case reference invocation. It does not complete O0 seeds42/43/44, independent UFF, official xTB, GPU/performance/package/version/global gates; no dependent release is authorized by this review."
+  ],
+  "observations": {
+    "cbond_rejected_cases": [
+      139,
+      182,
+      185,
+      186,
+      187
+    ],
+    "eligible_trajectory_gaps": [],
+    "failed_quality_case": 61,
+    "input_records": 187,
+    "model_pool_threads_observed_outside_requested_affinity": 2016,
+    "natural_cbond_eligible": 182,
+    "status_counts": {
+      "failed_cbond": 5,
+      "failed_quality": 1,
+      "passed": 181
+    },
+    "validation_warning_counts": {
+      "bond_ring_piercing": 1269,
+      "forcefield_convergence": 37
+    },
+    "work": {
+      "epochs_completed": 8747,
+      "initialization_steps": 967,
+      "main_frames": 12336,
+      "steps_submitted": 873733
+    }
+  },
+  "retries": 0,
+  "returncode": 0,
+  "root_review": "/tmp/hotpot_plan20/long/stage12-final-plan12-rebind-20261104/eu-reference-installed01/review01/ROOT_DECISION_INPUT.json",
+  "schema": "hotpot.plan20.stage12.final-scientific-observation.v1",
+  "scientific_attempts": 1,
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "source_scope": "Final16b864f CP311 installed wheel/site. Actual runtime origins and4000 pre/post frozen bindings retain original corpus/model/harness attribution. No historical output equality or fixed scientific success target.",
+  "status": "ROOT_ACCEPTED_FINAL_INSTALLED_REFERENCE_OBSERVATIONS_WITH_RETAINED_FINDINGS_GLOBAL_GATES_OPEN",
+  "wheel": {
+    "bytes": 7381429,
+    "native_sha256": {
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": "ac4e807e0d20548cfdc77f084169b34af40bfd4ce497e12485f1317d381f4c6b",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": "1833230c31e6724963d13f69007a813527a9b15ba3a7cac7d1b83feade5582b6",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": "e65cf8de14b1c08ab66576c11b9375ae097af10c3fdb3fb5dffebce67d1d8685",
+      "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": "ac64084c071c59aae14ecf12bcc697cd966eecdff1211f85e62fafb2249ccccd",
+      "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": "e1b65924a2baf862144c9e06f0bf14b9dd5ee96890a0c04fa80bbea827ce2fc6",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": "386e743c129f75e89d662fdce34b751d3eee5da205ad9c42a062e42b95b0ca16"
+    },
+    "natives": [
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+      "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+      "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so"
+    ],
+    "path": "/tmp/hotpot_plan20/long/stage12-final-delivery-20261104/final16b864f/preparation01/future-native01/cp311/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+    "sha256": "8dd0ddc467501741d3464ef24d79e6792e4b43fbb5c8c91673f4f376a6f0a617"
+  },
+  "reviewed_utc": "2026-11-04T13:36:46.248068+00:00",
+  "root_decision": {
+    "bounded_execution_and_diagnostic_observations_accepted": true,
+    "quality_failure_61_remains_failed": true,
+    "all_case_quality_or_convergence_accepted": false,
+    "original_uff_reconstruction_released_separately": true,
+    "target_population": "187original ligand targets +182actual CBondpayload complex targets, includingcase61; no quality filtering.",
+    "historical_energy_differences": "Five changed finite observations remain unexplained after descriptive review; no historical equality threshold or causal attribution invented. Preserve them for independent UFF/xTBinterpretation.",
+    "formal_performance_accepted": false,
+    "scope": "One final installed reference invocation; no finalO0multi-seed/independentUFF/xTB/global acceptance."
+  }
+}

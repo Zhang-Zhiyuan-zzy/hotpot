@@ -5,6 +5,9 @@
 #include <openbabel/atom.h>
 #include <openbabel/bond.h>
 #include <openbabel/generic.h>
+#include <openbabel/stereo/tetrahedral.h>
+#include <openbabel/stereo/cistrans.h>
+#include <openbabel/stereo/squareplanar.h>
 
 #include <algorithm>
 #include <cmath>
@@ -194,7 +197,62 @@ OpenBabel::OBMol make_obmol(
 
 
 OpenBabel::OBMol make_obmol(const MoleculeData& molecule) {
-    return make_obmol(molecule.view());
+    auto obmol = make_obmol(molecule.view());
+    const auto atom_id = [&obmol](std::int32_t row) {
+        return obmol.GetAtom(row + 1)->GetId();
+    };
+    for (const auto& projected : molecule.stereo_configs) {
+        for (std::size_t index = 0; index < projected.anchors.size(); ++index) {
+            obmol.GetAtom(projected.anchors[index] + 1)->SetImplicitHCount(
+                projected.hydrogens[index]
+            );
+        }
+        OpenBabel::OBStereo::Refs refs;
+        for (const auto& reference : projected.references) {
+            refs.push_back(reference.has_value()
+                ? atom_id(*reference)
+                : static_cast<unsigned long>(OpenBabel::OBStereo::ImplicitRef));
+        }
+        if (projected.family == "TH") {
+            OpenBabel::OBTetrahedralStereo::Config config;
+            config.center = atom_id(projected.anchors[0]);
+            config.from = refs[0];
+            config.refs.assign(refs.begin() + 1, refs.end());
+            config.view = OpenBabel::OBStereo::ViewFrom;
+            config.winding = projected.value == "CW"
+                ? OpenBabel::OBStereo::Clockwise
+                : (projected.value == "CCW"
+                    ? OpenBabel::OBStereo::AntiClockwise
+                    : OpenBabel::OBStereo::UnknownWinding);
+            config.specified = projected.specified;
+            auto data = std::make_unique<OpenBabel::OBTetrahedralStereo>(&obmol);
+            data->SetConfig(config);
+            obmol.SetData(data.release());
+        } else if (projected.family == "CT") {
+            OpenBabel::OBCisTransStereo::Config config;
+            config.begin = atom_id(projected.anchors[0]);
+            config.end = atom_id(projected.anchors[1]);
+            config.refs = refs;
+            config.shape = OpenBabel::OBStereo::ShapeU;
+            config.specified = projected.specified;
+            auto data = std::make_unique<OpenBabel::OBCisTransStereo>(&obmol);
+            data->SetConfig(config);
+            obmol.SetData(data.release());
+        } else {
+            OpenBabel::OBSquarePlanarStereo::Config config;
+            config.center = atom_id(projected.anchors[0]);
+            config.refs = refs;
+            config.shape = OpenBabel::OBStereo::ShapeU;
+            config.specified = projected.specified;
+            auto data = std::make_unique<OpenBabel::OBSquarePlanarStereo>(&obmol);
+            data->SetConfig(config);
+            obmol.SetData(data.release());
+        }
+    }
+    if (!molecule.stereo_configs.empty()) {
+        obmol.SetChiralityPerceived(true);
+    }
+    return obmol;
 }
 
 

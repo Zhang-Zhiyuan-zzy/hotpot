@@ -1,0 +1,213 @@
+{
+  "status": "TERMINAL_ACTUAL_OBSERVATIONS_REVIEWED_D033_AFFECTED_GEOMETRY_OPEN",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "checks": {
+    "terminal_and_original_binding_guards": true,
+    "actual_manifest_input_cohort_backend": true,
+    "original187and_actual_cohort": true,
+    "all_route_stage_state_energy_artifact_and_finite_structure_checks": true,
+    "exact_actual_optimization_launches_and_threads": true,
+    "actual_process_origins": true
+  },
+  "execution_returncode": 0,
+  "source_binding_count": 4000,
+  "actual_case_count": 187,
+  "eligible_targets": 369,
+  "eligible_routes": 738,
+  "noteligible": [
+    {
+      "index": 139,
+      "target": "complex"
+    },
+    {
+      "index": 182,
+      "target": "complex"
+    },
+    {
+      "index": 185,
+      "target": "complex"
+    },
+    {
+      "index": 186,
+      "target": "complex"
+    },
+    {
+      "index": 187,
+      "target": "complex"
+    }
+  ],
+  "noteligible_route_slots": 10,
+  "route_outcomes": {
+    "ligand/direct-gfn2": {
+      "passed": 180,
+      "failed_final_quality": 4,
+      "failed_backend": 3
+    },
+    "ligand/gfnff-gfn2": {
+      "passed": 181,
+      "failed_final_quality": 4,
+      "failed_backend": 2
+    },
+    "complex/direct-gfn2": {
+      "passed": 161,
+      "failed_backend": 8,
+      "failed_final_quality": 13
+    },
+    "complex/gfnff-gfn2": {
+      "passed": 169,
+      "failed_backend": 4,
+      "failed_final_quality": 9
+    }
+  },
+  "stage_outcomes": {
+    "succeeded": 1088,
+    "failed_backend": 17
+  },
+  "stage_attempt_count": 1105,
+  "successful_finite_energies": 1088,
+  "retained_structure_counts": {
+    "passed": 691,
+    "failed_backend": 17,
+    "failed_final_quality": 30
+  },
+  "failed_quality_check_counts": {
+    "bond_length_ratio": 38,
+    "bond_ring_piercing": 4,
+    "bond_ring_scope_coverage": 6
+  },
+  "verified_declared_backend_artifacts": 9106,
+  "actual_optimization_launches": 1105,
+  "actual_version_launches": 2211,
+  "distinct_hashed_origins": 230,
+  "case54_affected": [
+    {
+      "index": 54,
+      "target": "ligand",
+      "route": "direct-gfn2",
+      "status": "passed",
+      "structure": {
+        "path": "results/cases/0054/ligand/direct-gfn2/final.sdf",
+        "atom_count": 54,
+        "sha256": "2f23ccefbee736a2d1578a6f7edfad90ef19a7465bd04f567d52aec1113e90ee"
+      }
+    },
+    {
+      "index": 54,
+      "target": "ligand",
+      "route": "gfnff-gfn2",
+      "status": "passed",
+      "structure": {
+        "path": "results/cases/0054/ligand/gfnff-gfn2/final.sdf",
+        "atom_count": 54,
+        "sha256": "39417f3b8cca9420676b94eed83c48833a1bca4aa98785397096be4198831df4"
+      }
+    },
+    {
+      "index": 54,
+      "target": "complex",
+      "route": "direct-gfn2",
+      "status": "failed_final_quality",
+      "structure": {
+        "path": "results/cases/0054/complex/direct-gfn2/final.sdf",
+        "atom_count": 55,
+        "sha256": "de992ed10e5e80fa12911bf1fe11c3a53fda1811bd0028503dd322baa6f21918"
+      },
+      "error_type": null,
+      "error_message": null,
+      "findings": [
+        {
+          "name": "bond_length_ratio",
+          "passed": false,
+          "severity": "error",
+          "measured": 2.7422866613299033,
+          "threshold": [
+            0.65,
+            1.45
+          ],
+          "atom_indices": [
+            8,
+            10
+          ],
+          "bond_indices": [
+            9
+          ],
+          "message": "Bond length is inconsistent with covalent radii"
+        }
+      ]
+    },
+    {
+      "index": 54,
+      "target": "complex",
+      "route": "gfnff-gfn2",
+      "status": "failed_final_quality",
+      "structure": {
+        "path": "results/cases/0054/complex/gfnff-gfn2/final.sdf",
+        "atom_count": 55,
+        "sha256": "1654caed291f17466d46c82779932c58ccdeb72ae2ab1465925003aaca3d531a"
+      },
+      "error_type": null,
+      "error_message": null,
+      "findings": [
+        {
+          "name": "bond_length_ratio",
+          "passed": false,
+          "severity": "error",
+          "measured": 2.8998627244869057,
+          "threshold": [
+            0.65,
+            1.45
+          ],
+          "atom_indices": [
+            8,
+            10
+          ],
+          "bond_indices": [
+            9
+          ],
+          "message": "Bond length is inconsistent with covalent radii"
+        }
+      ]
+    }
+  ],
+  "backend": {
+    "executable": "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+    "version": "6.7.1",
+    "revision": "edcfbbe",
+    "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+    "gfn_xtb_max_atomic_number": 86,
+    "gfnff_max_atomic_number": 86
+  },
+  "formal_performance": false,
+  "global_gate_closed": false,
+  "limits": [
+    "All actual values, failures and original denominator retained; no historical outcome-count target.",
+    "Existing geometry monitors do not establish stereochemical consistency; case54ligand/complex and both routes remain affected by D033upstream native builder.",
+    "Other observations may be reused only after actual affected-source/consumer applicability review; no blanket chemical qualification.",
+    "Shared instrumented execution is functionality/observation evidence, not formal performance."
+  ],
+  "archive": {
+    "status": "ARCHIVED_AND_INDEPENDENTLY_RECONSTRUCTED",
+    "payload_count": 14877,
+    "payload_bytes": 2280540640,
+    "manifest_sha256": "c7de0094ff2ec0c93496dd3887b7167422b59089750eb006dd2188a09a353ced",
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-plan12-eu-xtb16b864f/raw-evidence.tar.gz",
+    "archive_bytes": 342442117,
+    "archive_sha256": "52c4c6e00c2bafee63e3088cc14bf93f981b58c0512e4bcfdc4afca532262193",
+    "verified_unix": 1793803401.0445125,
+    "scientific_scope": "Actual final16b864finstalled officialxTBobservations; D033case54affected geometry and final gate remain open. No runtime repeated or formal performance claimed."
+  },
+  "evidence_read_on_demand": {
+    "review": "root-review/ACTUAL_REVIEW.json",
+    "failures": "root-review/ACTUAL_REVIEW.json:retained_failed_routes",
+    "energies": "root-review/FINITE_ENERGIES.json",
+    "backend_artifacts": "root-review/BACKEND_ARTIFACTS.json"
+  },
+  "declared_stereo_inventory": {
+    "method": "Read all187actual case input SMILES, checking @,/and\\declaration tokens; onlycase54has explicit stereo tokens. Native minimal geometry controls independently identify its concrete failure.",
+    "declared_case_indices": [
+      54
+    ]
+  },
+  "root_disposition": "Accept actual execution/state/attribution/finite-retention observations within their tested scope; finalcase54geometry requires repaired native/source/installed workflow. Unaffected results remain reusable by actual consumer applicability. No blanket science or final gate acceptance.",
+  "reviewed_unix": 1793803446.8451023
+}

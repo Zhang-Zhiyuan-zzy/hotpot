@@ -1,0 +1,15 @@
+{
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "status": "DEMONSTRATED_CORE_CHEMICAL_DEFECT_D033_REOPENED",
+  "actual_o0": "case54atroot42/43/44;3completed/0executionerrors;finite selected energies975.9683490672716,976.6375198283233,977.0448275608356kJ/mol;all existing standard monitors pass",
+  "semantic_defect": "Input SMILES specifies R,R at ligand atom rows1and12; independently derived saved selected geometry is S,S in all3runs. Metadata declarations remain R,R.",
+  "minimal_controls": "C[C@H](F)Cl and C[C@@H](F)Cl retain distinct declarations but current native builder emits Sgeometry for both. Existing complete adapter projection plus OBBuilder yields the correct R/Sgeometry respectively and correct R,Rforcase54.",
+  "root_cause": "_native_molecule_data packs only numeric graph/coordinates; private native MoleculeData/make_obmol carry no declared stereo to OBBuilder. The existing full adapter codec preserves it.",
+  "source_bindings_unchanged": 739,
+  "evidence_root": ".plan20-artifacts/20261104/stage12/native-builder-stereo-defect16b864f",
+  "evidence_index": ".plan20-artifacts/20261104/stage12/native-builder-stereo-defect16b864f/EVIDENCE_INDEX.json",
+  "current_boundary": "Existing converter/MCA metadata qualifications remain evidence for their exact operations; they do not prove native geometry preservation. Overall acceptance and formal dependent costs remain open.",
+  "repair_contract": "Preserve original stereo owner, authoritative declarations and direct native builder; project existing declared configurations at the OB boundary using one shared codec; no model/feature changes, generic SDKlayout change or hidden SWIG fallback.",
+  "rerun_policy": "After repair requalify affected native/stereo source/installed paths and actualcase54O0/Eu workflows. Reuse unaffected current observations by source/method/consumer applicability; preserve all original wrong geometries and counts.",
+  "global_gate_closed": false
+}

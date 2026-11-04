@@ -6,7 +6,8 @@
     "hotpot/dataset/README.md",
     "hotpot/dataset/docs",
     "hotpot/dataset/schemas",
-    "hotpot/dataset/manifests"
+    "hotpot/dataset/manifests",
+    "hotpot/dataset/resources"
   ],
   "ignored_payload_root": "hotpot/dataset/data",
   "payload_directories": {
@@ -22,5 +23,10 @@
   "default_store": "hotpot/dataset/data/store/active/datasets.sqlite3",
   "activation_contract": "The active directory is an atomically replaced symlink to one complete directory below store/generations.",
   "version_policy": "The checkout supports only its current schema; Git records implementation history.",
-  "benchmark_policy": "Benchmark readiness is a quality designation or subset, not a storage namespace."
+  "benchmark_policy": "Benchmark readiness is a quality designation or subset, not a storage namespace.",
+  "packaged_references": {
+    "root": "hotpot/dataset/resources",
+    "inventory": "hotpot/dataset/manifests/packaged-reference-assets.json",
+    "role": "Existing read-only package inputs; independent of formal local data/store and Bundle schemas."
+  }
 }

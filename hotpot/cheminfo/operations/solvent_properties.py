@@ -1,12 +1,6 @@
-"""
-@File Name:        sol_med_prop
-@Project:          
-@Author:           Zhiyuan Zhang
-@Created On:       2025/11/14 14:53
-@Project:          Hotpot
-"""
+"""Local queries for packaged solvent and medium property reference tables."""
 from typing import Literal, Union
-import os.path as osp
+from importlib.resources import as_file, files
 import pandas as pd
 
 __all__ = [
@@ -16,7 +10,6 @@ __all__ = [
     'query_medium'
 ]
 
-_root_dir = osp.dirname(osp.abspath(__file__))
 _type_node = {'CASs': 'str', 'Cid': 'int'}
 
 def _query_prop_by_cas(df, list_id, id_type: Literal['CASs', 'Cid']= 'CASs'):
@@ -43,10 +36,14 @@ def _query_prop_by_cas(df, list_id, id_type: Literal['CASs', 'Cid']= 'CASs'):
 
 
 def get_medium_dataframe(sub_sheet: Literal['clean', 'fill'] = 'clean'):
-    return pd.read_excel(osp.join(_root_dir, 'data', 'MedProp.xlsx'), sheet_name=sub_sheet)
+    resource = files('hotpot.dataset').joinpath('resources', 'properties', 'MedProp.xlsx')
+    with as_file(resource) as path:
+        return pd.read_excel(path, sheet_name=sub_sheet)
 
-def get_solvent_dataframe(sub_sheet: Literal['clean', 'fill'] = 'clean'):
-    return pd.read_excel(osp.join(_root_dir, 'data', 'SolProp.xlsx'), sheet_name=sub_sheet)
+def get_solvent_dataframe(sub_sheet: Literal['clean', 'total'] = 'clean'):
+    resource = files('hotpot.dataset').joinpath('resources', 'properties', 'SolProp.xlsx')
+    with as_file(resource) as path:
+        return pd.read_excel(path, sheet_name=sub_sheet)
 
 def query_medium(
         list_id: list[Union[str, int]],
@@ -70,7 +67,7 @@ def query_medium(
 def query_solvent(
         list_id: list[Union[str, int]],
         id_type: Literal['CASs', 'Cid']= 'CASs',
-        sub_sheet: Literal['clean', 'fill'] = 'clean'
+        sub_sheet: Literal['clean', 'total'] = 'clean'
 ) -> pd.DataFrame:
     """
     Query from Solvent Properties dataset by CAS or Cid.
@@ -78,7 +75,7 @@ def query_solvent(
     Args:
         list_id: List of identifiers.
         id_type: 'CASs' or 'Cid'.
-        sub_sheet: Which sheet to use ('clean' or 'fill').
+        sub_sheet: Which sheet to use ('clean' or 'total').
 
     Returns:
         Filtered DataFrame.

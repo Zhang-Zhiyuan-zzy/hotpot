@@ -1,0 +1,51 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE11C",
+  "root": "checkpoint.json",
+  "nodes": {
+    "contracts": "../contracts/decisions.md",
+    "implementation": ".plan20-artifacts/20261104/stage11/legacy-assets/authoring/FILE_CHANGES.json",
+    "source_and_installed": ".plan20-artifacts/20261104/stage11/legacy-assets/raw/integration/COMPARISON.json",
+    "actual_artifacts_and_site": ".plan20-artifacts/20261104/stage11/legacy-assets/raw/integration/INSTALLED_ARCHIVE_VERIFICATION.json",
+    "guide_and_mol2_source": ".plan20-artifacts/20261104/stage11/legacy-assets/raw/integration/source01/business/observations.json",
+    "guide_and_mol2_installed": ".plan20-artifacts/20261104/stage11/legacy-assets/raw/integration/installed01/business/observations.json",
+    "original_source_failure": ".plan20-artifacts/20261104/stage11/legacy-assets/raw/integration/SOURCE01_STATUS.md",
+    "metadata_harness_correction": ".plan20-artifacts/20261104/stage11/legacy-assets/raw/integration/METADATA_HARNESS_CORRECTION.json",
+    "independent_root_verification": "root-verification.json",
+    "immutable_archive": ".plan20-artifacts/20261104/stage11/legacy-assets/manifest.json"
+  },
+  "edges": [
+    [
+      "contracts",
+      "implementation"
+    ],
+    [
+      "implementation",
+      "source_and_installed"
+    ],
+    [
+      "source_and_installed",
+      "actual_artifacts_and_site"
+    ],
+    [
+      "source_and_installed",
+      "guide_and_mol2_source"
+    ],
+    [
+      "source_and_installed",
+      "guide_and_mol2_installed"
+    ],
+    [
+      "source_and_installed",
+      "original_source_failure"
+    ],
+    [
+      "actual_artifacts_and_site",
+      "metadata_harness_correction"
+    ],
+    [
+      "independent_root_verification",
+      "immutable_archive"
+    ]
+  ],
+  "interpretation": "Digests establish artifact attribution and byte-preserving asset moves; the known chemistry fixtures and actual query outputs establish the bounded business observations."
+}

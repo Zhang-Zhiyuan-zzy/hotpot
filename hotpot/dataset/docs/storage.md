@@ -6,7 +6,7 @@ implementations; each checkout reads and writes only its current schema.
 
 ## Local payload boundary
 
-All scientific payloads are local data under `hotpot/dataset/data/` and are
+Formal dataset payloads are local data under `hotpot/dataset/data/` and are
 excluded from Git:
 
 ```text
@@ -27,6 +27,19 @@ data/
 Tracked schemas, manifests, and explanatory documentation remain outside
 `data/`. They must not contain licensed coordinates, source records, private
 review notes, or normalized scientific payloads.
+
+## Shipped reference inputs
+
+The existing bounded chemistry references are tracked under
+`hotpot/dataset/resources/molecules/{coformers,solvent,frameworks}` and
+`resources/properties`. Their private
+[`packaged-reference-assets.json`](../manifests/packaged-reference-assets.json)
+inventory records original/final paths, roles, sizes and digests, including
+retired unused format identities. These are read-only package inputs, separate
+from the local store/Bundle lifecycle, licensed supplier data and audit outputs.
+The resource move changes no `hotpot.ds` API, schema, default path or ingestion
+policy. Framework references are not assembly definitions. Table presence does
+not imply complete properties or model suitability.
 
 ## Canonical Bundle root
 

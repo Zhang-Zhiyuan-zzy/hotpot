@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-04",
+  "status": "ROOT_RELEASED_CURRENT_SDK_QUALIFICATION",
+  "source_commit": "04e9d43c94c33e37bf3305ac03dc67d5bf7002b3",
+  "alignment": [
+    "Reuse active full-plan/governance alignment; inspect current goal, Stage10A/Stage12B SDK evidence, D006/D007, exact selected release lock and actual build/consumer owners.",
+    "Root read-only readiness found32/33old SDK closure inputs unchanged; changed molecule_builder.cpp is compiled into SDK core. Old SDK observation is insufficient for current H behavior."
+  ],
+  "scope": "One current Python-independent SDK from locked RDKit closure; C11/C++17 ABI0/ABI1/link/run/symbol/linkage and changed hydrogen behavior evidence. No public API or chemistry rule changes.",
+  "input_bindings": {
+    "path": "/tmp/hotpot_plan20/long/stage12-current-sdk-20261104/input-bindings.json",
+    "bytes": 8893,
+    "sha256": "210480a3bada3fb116ff950901650440792f70f19b3732a2c0f899e4b7956f48",
+    "count": 46
+  },
+  "release_profile": "manylinux_2_28_x86_64 exact pinned image/compiler/tools; Docker daemon available, selected image absent before task. Root authorizes fetching only selected pinned image and isolated build/runtime dependencies as needed.",
+  "fallback_limit": "If exact release image unavailable, retain actual failure and separately qualify current probe-profile SDK only if feasible; never label probe as release or close D007.",
+  "ownership": "Root owns scope/science/records/acceptance/Git. One local Sol/high verifier owns isolated output only; no nested delegation or main/shared environment modifications.",
+  "output": "/tmp/hotpot_plan20/long/stage12-current-sdk-20261104",
+  "holds": [
+    "No source/test/config/route/model/dependency-lock edits.",
+    "No main-source native replacement, shared build-tree mutation, system service changes, publishing, performance/GPU/model/engine computation.",
+    "Other final source/installed/version/native/science/report/B_exp/Stage13 gates remain independent."
+  ]
+}

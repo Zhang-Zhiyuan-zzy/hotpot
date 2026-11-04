@@ -2,8 +2,9 @@
 
 Clean outer commands and data ownership. Stage11A immutable reference assets and
 Stage11B command consolidation are accepted within their recorded CP311
-source/installed scopes. Decision13 legacy-data/distribution choices and actual
-optional research execution remain open; this is not whole Stage11 or global acceptance.
+source/installed scopes. Stage11C completes Decision13 resource/query ownership
+and closes D029. Actual optional research execution remains D028; global
+version/native/science/cost/delivery acceptance remains open.
 
 [Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
 
@@ -24,3 +25,12 @@ optional research execution remain open; this is not whole Stage11 or global acc
 - [Business and delivery report](commands/validation/report.md)
 - [Evidence graph](commands/validation/evidence_graph.json)
 - [Independent root verification](commands/validation/root-verification.json)
+
+## Stage11C reference resources and property queries
+
+- [Entry review](legacy-assets/entry_review.json)
+- [Accepted L1–L4 contracts](legacy-assets/contracts/decisions.md)
+- [Validation checkpoint](legacy-assets/validation/checkpoint.json)
+- [Business and delivery report](legacy-assets/validation/report.md)
+- [Evidence graph](legacy-assets/validation/evidence_graph.json)
+- [Independent root verification](legacy-assets/validation/root-verification.json)

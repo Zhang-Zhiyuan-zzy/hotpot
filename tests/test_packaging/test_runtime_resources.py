@@ -9,7 +9,7 @@ import pytest
 from pandas.testing import assert_frame_equal
 
 import hotpot
-from hotpot.cheminfo.MolProps import (
+from hotpot.cheminfo.operations.solvent_properties import (
     get_medium_dataframe,
     get_solvent_dataframe,
     query_medium,
@@ -77,3 +77,48 @@ def test_saved_colormap_leaf_reads_packaged_rgba_values():
     linear = colors.load_defined_cmap("BluesSat", "linear")
     np.testing.assert_allclose(linear(0.0), [1.0, 1.0, 1.0, 1.0])
     np.testing.assert_allclose(linear(1.0), [0.0, 0.0, 1.0, 1.0])
+
+
+@pytest.mark.parametrize(
+    ("reader", "query", "sheet", "shape", "identifiers"),
+    (
+        (get_medium_dataframe, query_medium, "fill", (96, 380),
+         ["7778-77-0", "13138-45-9", "299-28-5", "7778-77-0"]),
+        (get_solvent_dataframe, query_solvent, "total", (233, 86),
+         ["100-41-4", "100-42-5", "100-44-7", "100-41-4"]),
+    ),
+)
+def test_actual_nondefault_cas_queries_preserve_order_and_duplicates(
+    reader, query, sheet, shape, identifiers,
+):
+    table = reader(sheet)
+    assert table.shape == shape
+    assert "CASs" in table.columns and "Cid" not in table.columns
+    result = query(identifiers, "CASs", sheet)
+    assert result.index.tolist() == identifiers
+    assert_frame_equal(result, table.set_index("CASs").loc[identifiers])
+
+
+@pytest.mark.parametrize(
+    ("query", "sheet"),
+    ((query_medium, "fill"), (query_solvent, "total")),
+)
+def test_nondefault_property_queries_expose_unavailable_cid(query, sheet):
+    with pytest.raises(KeyError, match="Cid"):
+        query([176], "Cid", sheet)
+
+
+def test_solvent_fill_sheet_remains_unavailable():
+    with pytest.raises(ValueError, match="fill"):
+        get_solvent_dataframe("fill")
+    with pytest.raises(ValueError, match="fill"):
+        query_solvent(["100-41-4"], sub_sheet="fill")
+
+
+@pytest.mark.parametrize(
+    ("query", "sheet"),
+    ((query_medium, "fill"), (query_solvent, "total")),
+)
+def test_nondefault_property_queries_report_missing_cas(query, sheet):
+    with pytest.raises(ValueError, match="Undefined CASs"):
+        query(["not-in-the-property-table"], sub_sheet=sheet)

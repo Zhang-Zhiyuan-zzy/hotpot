@@ -7,7 +7,7 @@ actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
 assembly, local H/scaffold corrections and explicit exports/resources accepted;
 P20-D024 is closed. [Stage12B H representation](stages/stage12/hydrogen-representation/validation/checkpoint.json) closes P20-D026 within affected CP311 source/installed and rebuilt-RDKit-native scope.
 [Stage12C force-field science](stages/stage12/scientific-hardening/validation/checkpoint.json) accepts the ordinary terminal-frame publication fix and scoped phosphorus evidence; P20-D023 is closed and P20-D022 is an explicit accepted limitation.
-[Stage12D runtime resources](stages/stage12/package-resources/validation/checkpoint.json) closes the original41 D008 package omissions in its CP311 boundary; nondefault MolProps contracts remain D029 and Stage11 tail D028 remains open.
+[Stage12D runtime resources](stages/stage12/package-resources/validation/checkpoint.json) closes the original41 D008 package omissions in its CP311 boundary; [Stage11C resources/queries](stages/stage11/legacy-assets/validation/checkpoint.json) closes D029 and completes Decision13 ownership; D028 retains unverified optional research execution.
 Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
 boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
@@ -1370,10 +1370,10 @@ real core definition; it consolidates existing debt and creates no structure ali
 | `ChemData/ElementProperties.json` | `reference/data/element_properties.json` | move and load through one immutable reference module |
 | `ChemData/ideal_bond_length.json` | `reference/data/ideal_bond_lengths.json` | move and remove Bond class-level file-loading logic |
 | active `mol_assemble/FragTemplete.json` | `operations/assembly/data/fragment_template.json` | this code-referenced file is the provisional canonical default assembly asset; rename and package/test it with the operation |
-| zero-reference `ChemData/MolFragTemplate`, `MolFrameTemplate` candidates | merge into the canonical assembly schema or delete | compare schema/content during Stage 1; never move two apparent template sources forward as parallel defaults |
+| zero-reference `ChemData/MolFragTemplate`, `MolFrameTemplate` candidates | delete unused fragment formats; preserve the distinct framework collection at `dataset/resources/molecules/frameworks/` | Stage1 shows the framework is not an assembly schema; Stage11C L1/L4 preserve its bytes/meaning separately from the sole assembly default |
 | `ChemData/StructQueryTemplate` | `rules/chemistry/substructure/data/` | move only if still used; otherwise delete after zero-reference audit |
-| `ChemData/coformers`, `ChemData/solvent` | governed `hotpot/dataset/data/` assets | move molecule collections out of the code package with manifest/schema updates; do not instantiate all solvents at import time |
-| `MolProps/` | governed dataset assets plus a tested query operation if required | split spreadsheets/docs from code; delete empty or uncalled API rather than preserve a second property system |
+| `ChemData/coformers`, `ChemData/solvent` | manifested shipped `hotpot/dataset/resources/molecules/` inputs | Stage11C L1/L4 move existing distributed bytes to the dataset resource owner, preserving lazy live CCDC reads; local formal stores/private payloads remain ignored under dataset/data |
+| `MolProps/` | `dataset/resources/properties/` plus `operations/solvent_properties.py` and its guide | Stage11C L2/L3 retain the four actually used query functions at one operation, correct actual sheet domains, migrate consumers and retire old implementation without a shim |
 | `_clib/` | none | delete generated objects, SWIG wrapper, C/H/I files after build and reference audit; it has no active implementation caller |
 | `_io/` | `operations/io.py` plus `adapters/io/` | one MolReader/MolWriter implementation owns carrier orchestration/plugins; external input/format leaves do not allocate/install/write carriers; remove `sys.modules` cycle workaround |
 | `_native/` | `adapters/native/` | retain one generic field-selective molecule transport and shared C++ headers |
@@ -2433,8 +2433,7 @@ snapshot semantics changed. The [Stage11B command checkpoint](stages/stage11/com
 accepts Decision12's one commands owner, retired main/works implementations and
 actual multirecord/file/directory conversion within CP311 source/installed
 boundaries. All192applicable outcomes agree; actual optional training/optimization
-execution remains unverified because dependencies are absent. Decision13 legacy-template,
-MolProps and dataset distribution choices retain their separate scope and status.
+execution remains unverified because dependencies are absent. The [Stage11C checkpoint](stages/stage11/legacy-assets/validation/checkpoint.json) accepts Decision13's sole manifested reference-resource owner, four query operations and unused-format retirement: source70/installed69passed, all69applicable outcomes agree. Actual nondefault CAS/Cid/sheet domains close D029; optional research execution remains D028. Formal dataset/schema and assembly-default semantics are unchanged.
 
 1. Consolidate `main`/`works` command handlers into `commands` while retaining
    command names and arguments.
@@ -2464,7 +2463,7 @@ scope; P20-D022 retains unknown downstream variation and monitor coverage as an
 explicit accepted limitation after physical-graph/array comparison. Historical
 one-step values, all561O0slots, findings and original exclusions remain. This
 supplies no whole-Stage12, final scientific/cost/version/release or B_exp closure.
-The [Stage12D resource checkpoint](stages/stage12/package-resources/validation/checkpoint.json) accepts actual small-workbook/data delivery, source22/installed7 checks and all41original omission dispositions. It closes D008 only; default-query evidence does not imply nondefault D029 or optional-workflow acceptance, and D028 remains separate.
+The [Stage12D resource checkpoint](stages/stage12/package-resources/validation/checkpoint.json) accepts actual small-workbook/data delivery, source22/installed7 checks and all41original omission dispositions. It closes D008 only; subsequent Stage11C actual nondefault-query evidence closes D029. Optional-workflow execution remains D028, separate from resource delivery.
 
 1. Replace wildcard exports with the approved `__all__` lists.
 2. Remove the top-level RDKit preload and verify lazy RDKit/Open Babel load
@@ -2995,7 +2994,7 @@ approvals. Stage1 can collect baselines while public decisions are pending.
 | 10 | old core-path pickle compatibility requires an explicit migration decision; no silent compatibility module | pending historical-asset audit and owner decision |
 | 11 | **replace old keep-array recommendation** with benchmarked private `_AtomFactTable` typed columns/blocks, one schema and Atom projections; no unrelated Bond rewrite | new storage requirement owner-directed; public access signatures pending |
 | 12 | consolidate main/works command tree preserving commands/arguments | implemented; [Stage11B](stages/stage11/commands/validation/checkpoint.json) bounded CP311 source/installed acceptance, actual optional research execution remains unverified |
-| 13 | consolidate chemistry asset ownership with manifests; may defer independently | tail-stage scope pending |
+| 13 | consolidate chemistry asset ownership with manifests; may defer independently | implemented; [Stage11C L1–L4](stages/stage11/legacy-assets/contracts/decisions.md) and [CP311 source/installed checkpoint](stages/stage11/legacy-assets/validation/checkpoint.json) accept sole manifested shipped references, actual query domains and unused-format retirement; no second active asset owner |
 | 14 | documented advanced pure-rule imports may be public; mutating controllers stay private | any advanced public exports pending review |
 | 15 | amend Plan19 budget for sole Atom table, identity infrastructure, finite dirty metadata, typed facts/results; no second topology index/Graph/general cache | new private requirements owner-directed; full budget recorded for review |
 | 16 | preserve characterized constructor/detachment semantics; foreign-Atom insertion copies/remaps rather than steals | behavioral changes pending review |

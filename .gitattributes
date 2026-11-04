@@ -5,7 +5,7 @@
 *.q filter=lfs diff=lfs merge=lfs -text
 
 # Small runtime workbooks ship directly in source checkouts and distributions.
-hotpot/cheminfo/MolProps/data/MedProp.xlsx -filter -diff -merge -text
-hotpot/cheminfo/MolProps/data/SolProp.xlsx -filter -diff -merge -text
+hotpot/dataset/resources/properties/MedProp.xlsx -filter -diff -merge -text
+hotpot/dataset/resources/properties/SolProp.xlsx -filter -diff -merge -text
 hotpot/plugins/ml/features/solvents/solvents.xlsx -filter -diff -merge -text
 hotpot/plugins/ml/features/sol_media/sol_media.xlsx -filter -diff -merge -text

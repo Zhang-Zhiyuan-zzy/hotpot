@@ -1,0 +1,65 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE11C",
+  "source_commit_before_delivery": "04e9d43c94c33e37bf3305ac03dc67d5bf7002b3",
+  "source_bindings": 1540,
+  "native_bindings": 6,
+  "deleted_paths": 172,
+  "applied_final_bindings": 183,
+  "change_counts": {
+    "rename": 165,
+    "modify": 14,
+    "add": 4,
+    "delete": 7
+  },
+  "runs": {
+    "source02": {
+      "passed": 70,
+      "failed": 0,
+      "skipped": 0,
+      "origin_observations": 6174,
+      "origin_violations": 0
+    },
+    "installed01": {
+      "passed": 69,
+      "failed": 0,
+      "skipped": 0,
+      "origin_observations": 6174,
+      "origin_violations": 0
+    }
+  },
+  "applicable_ordered_cases_equal": 69,
+  "guide_blocks_equal": true,
+  "independent_known_molecules_equal": true,
+  "required_source_wheel_sdist_site_members": 738,
+  "all_wheel_product_members": 892,
+  "frozen_sdist_members": 925,
+  "wheel": {
+    "path": "/tmp/hotpot_plan20/long/stage11-legacy-assets-20261104/integration01/packaging01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "sha256": "75adb579f64dad79f902528ecaab9ce9db90ff1d74b1ac86ce1bd1b4777a9c58",
+    "bytes": 7106093
+  },
+  "sdist": {
+    "path": "/tmp/hotpot_plan20/long/stage11-legacy-assets-20261104/integration01/packaging01/dist/hotpot_zzy-0.5.4.5.tar.gz",
+    "sha256": "f9ec37af09f0e8bae5b64225d54c4ab0c13c8ea4b16286130fe82e8ce21e17ba",
+    "bytes": 2839101
+  },
+  "limits": [
+    "CP311 only; six unchanged native binaries transported, five imported; no clean native compilation here.",
+    "One source-layout-only node passed at source and was explicitly deselected installed; four actual resources verified directly.",
+    "Real CCDC/training/optimization dependencies and computations unverified; fake SDK tests qualify resource communication only.",
+    "Original source01 retired-bytecode failure and metadata comparator failure retained; no product/test weakening.",
+    "D029 actual sheet/CAS/Cid domain is dispositioned, not property completeness. D028 optional research remains.",
+    "Versions/release/science/cost/global acceptance/B_exp/Stage13 remain independent."
+  ],
+  "executed_command": [
+    "python",
+    "-B",
+    "/tmp/hotpot_plan20/long/stage11-legacy-assets-20261104/root-review01/verify.py"
+  ],
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage11/legacy-assets",
+    "payload_count": 159,
+    "payload_bytes": 18031072,
+    "manifest_sha256": "023dec6e2e40482cd42b3ab05e029288f8b3df9e81d51114a853ab06e2a2e966"
+  }
+}

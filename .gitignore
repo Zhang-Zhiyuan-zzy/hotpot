@@ -6,7 +6,8 @@ cpp/out/
 hotpot/__pycache__
 **/__pycache__
 hotpot_zzy.egg-infogit
-# Local dataset payloads, derived stores, certificates, and supplier records.
+# Local formal dataset payloads, derived stores, certificates, and supplier records.
+# Shipped read-only references under hotpot/dataset/resources remain tracked.
 # Only documentation, schemas, and manifests outside this directory are tracked.
 /hotpot/dataset/data/**
 /doc/html/

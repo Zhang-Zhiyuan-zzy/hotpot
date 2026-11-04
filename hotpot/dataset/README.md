@@ -2,8 +2,9 @@
 
 `hotpot.dataset` is the single filesystem home for Hotpot dataset resources.
 The public API, CLI, assessment engine, and ingestion implementation live in
-`hotpot.ds`; scientific payloads are local, ignored data rather than tracked or
-package-distributed resources.
+`hotpot.ds`. Formal dataset payloads remain local, ignored data. The existing
+small shipped chemistry references live separately in `resources/`; they are
+read-only package inputs, not formal datasets or new Bundle schemas.
 
 A benchmark is one governed archive class or subset within a dataset. It is not
 a parallel `benchmark/` database or package.
@@ -21,7 +22,10 @@ hotpot/
     |-- README.md                # this organization contract
     |-- docs/                    # scientific scope, attribution, storage rules
     |-- schemas/                 # tracked source/record definitions
-    |-- manifests/               # tracked inventories without payload bytes
+    |-- manifests/               # tracked inventories and reference-asset identities
+    |-- resources/               # existing small shipped read-only references
+    |   |-- molecules/            # coformers/, solvent/, frameworks/
+    |   `-- properties/           # MedProp.xlsx and SolProp.xlsx
     `-- data/                    # all local scientific data; ignored by Git
         |-- store/               # immutable generations and active pointer
         |-- bundles/             # canonical Bundle roots
@@ -32,7 +36,8 @@ hotpot/
 The entire `hotpot/dataset/data/**` tree is excluded from Git. This includes
 licensed structures, generated databases, Bundle facts, certificates,
 assessment generations, supplier records, and audit outputs. A clone contains
-schemas, rules, and documentation, but not scientific payloads. Restore data
+schemas, rules, documentation and the bounded shipped reference inputs, but not
+formal dataset payloads. Restore data
 from an authorized artifact source or rebuild it with current owner/admin
 tools.
 
@@ -68,13 +73,23 @@ not public query-time compatibility paths.
 | `hotpot.ds.providers` | Private readers for upstream distributions |
 | `hotpot.dataset/docs` | Scientific scope, evidence limits, licenses, provenance, and storage contracts |
 | `hotpot.dataset/schemas` | Tracked source-facing definitions in this checkout |
-| `hotpot.dataset/manifests` | Tracked inventory metadata without scientific records |
+| `hotpot.dataset/manifests` | Tracked inventory metadata, including original/final shipped-reference identities |
+| `hotpot.dataset/resources` | Existing shipped molecule/framework/property references, separate from formal stores |
 | `hotpot.dataset/data` | Untracked local sources, Bundles, target stores, assets, and reports |
 
 Git is the implementation and schema history. Any checkout exposes exactly one
 current Bundle format, target schema, Gate/checker protocol, certificate
 envelope, and CLI communication map. Superseded stores are retained only as
 explicit audit or rollback artifacts, never as compatibility backends.
+
+
+The private [packaged-reference inventory](manifests/packaged-reference-assets.json)
+records all 162 unchanged MOL2 files, the 36-literal framework collection and two
+unchanged property workbooks, plus the identities of four retired unused formats.
+It attributes package resources; it does not certify chemical validity or create
+an ingestion, certificate or public dataset schema. Query operations live in
+[`hotpot.cheminfo.operations.solvent_properties`](../cheminfo/operations/solvent_properties.md).
+The framework reference is distinct from the sole assembly default.
 
 ## Data model
 

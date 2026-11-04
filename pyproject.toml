@@ -131,6 +131,14 @@ all = [
 include-package-data = true
 
 [tool.setuptools.package-data]
+"hotpot.dataset" = [
+    "resources/molecules/coformers/*.mol2",
+    "resources/molecules/solvent/*.mol2",
+    "resources/molecules/frameworks/*.json",
+    "resources/properties/*.xlsx",
+    "manifests/packaged-reference-assets.json",
+]
+"hotpot.cheminfo.operations" = ["solvent_properties.md"]
 "hotpot.cheminfo.reference" = ["data/*.json"]
 "hotpot.cheminfo.rules.mathematics.geometry" = ["*.md", "_geometry_native.pyi"]
 "hotpot.cheminfo.rules.mathematics.graph" = ["README.md", "_graph_native.pyi"]

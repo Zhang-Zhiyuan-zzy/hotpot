@@ -1,0 +1,1187 @@
+{
+  "format": "hotpot-packaged-reference-assets/1",
+  "scope": "Existing shipped read-only chemistry reference inputs; separate from formal local dataset/data stores, Bundle schemas and scientific assessments.",
+  "assets": [
+    {
+      "original_path": "hotpot/cheminfo/ChemData/MolFrameTemplate/PhenBipyDerived.json",
+      "path": "hotpot/dataset/resources/molecules/frameworks/phen_bipy_derived.json",
+      "role": "framework_smiles_reference",
+      "bytes": 3691,
+      "sha256": "92f5f61b6da110c9d8f8c7db1fa528b8890000c14481354ee111b480b7b16b70"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/(+)-camphoric_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/(+)-camphoric_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 3013,
+      "sha256": "aa174b909df18a71c7a21995b11cfb76539ef0ff7f95626909e92f86065bd12b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/(-)-camphorsulfonic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/(-)-camphorsulfonic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 3136,
+      "sha256": "1e1c8238497954e55659a192359437ca5bd9343d89457283f95edd1b53cbc2c8"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/1-hydroxyethylidene-1,1-diphosphonic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/1-hydroxyethylidene-1,1-diphosphonic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1989,
+      "sha256": "148cecf3d7e95805e1faa873f679176f56bde47a1ba72813257d897c7db405a7"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/2-amino-5-methylbenzoic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/2-amino-5-methylbenzoic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2093,
+      "sha256": "466e1dae904710a2ddf6742dbd6ae3626fd3a48c849e4669b4504ea27ab01e3d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/3-methylpyridine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/3-methylpyridine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1523,
+      "sha256": "7877fb44a95f5e96349e99efd4c5fe4cceea6cc7303aa48de20ffe9131572507"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/4-acetamidobenzoic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/4-acetamidobenzoic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2274,
+      "sha256": "60067cc27dae5a4dd536bcac53354bb40aaa8894a39a9eb3b0f69a9c04f68714"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/4-aminobenzoic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/4-aminobenzoic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1805,
+      "sha256": "fb08fca359f8506667b030bc7bd3fc71a40fb7268ffaba2295973d9c217fd69b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/4-hydroxybenzoic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/4-hydroxybenzoic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1714,
+      "sha256": "6e07688948ed939317d7a88d30708451535b21fba34b5b9ecfb58db3a6b03ffe"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/D-alanine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/D-alanine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1399,
+      "sha256": "4b00a0b4a0753331ee3e72de8ce126ceff0bcb77856cc46249aaa4209058e551"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/D-glucuronic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/D-glucuronic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2337,
+      "sha256": "d8e9787bc053b5f83ccabcc97543b3a04a1c4df39143e7092b2c50f96763140f"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/D-pantothenol.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/D-pantothenol.mol2",
+      "role": "coformer_reference",
+      "bytes": 3263,
+      "sha256": "c08d83e9b06460a0ac2366e75785a060002ba1d110643e45e3f196d2e15eff2e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/EDTA.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/EDTA.mol2",
+      "role": "coformer_reference",
+      "bytes": 3533,
+      "sha256": "06ebed480e050e42ecc72f211a3717b20eb13784ed2f11b630b913b2dd4dc37b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-arginine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-arginine.mol2",
+      "role": "coformer_reference",
+      "bytes": 2609,
+      "sha256": "5fa9546575ee6ec94bddf939d2fd70e9a94191c9e930d80834892b078c055034"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-aspartic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-aspartic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1684,
+      "sha256": "c3b57481135cb4334af93232d5ebd2e02028d45e455249d452aaea1b53f4df2b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-aspartic_acid_z.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-aspartic_acid_z.mol2",
+      "role": "coformer_reference",
+      "bytes": 1686,
+      "sha256": "5bc7064122c920f4e5f20cdfce3d93d7808003fb52951f09f65904ac8df7b75e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-glutamic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-glutamic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1963,
+      "sha256": "8618899d39d2aeb79861a58c93f5e0e9020803be7584211b6852cbd8b989cf97"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-glutamic_acid_z.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-glutamic_acid_z.mol2",
+      "role": "coformer_reference",
+      "bytes": 1965,
+      "sha256": "2c971766e88c2dee3f4f7fc445f812bbf76682b06d8fa24915c2912512fe151e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-glutamine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-glutamine.mol2",
+      "role": "coformer_reference",
+      "bytes": 2052,
+      "sha256": "175d1fc5ce55328f677353426895de6278ca16d69a3e28c854ad95c29122b105"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-glutathione.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-glutathione.mol2",
+      "role": "coformer_reference",
+      "bytes": 3635,
+      "sha256": "a0cb4a7423a5f04cfdf1f66f741ae4a9f662fba9d3fd94b4ad73278a4a09816e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-lactic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-lactic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1310,
+      "sha256": "050c16280e601290be1425f2129b25ffb6df668689e76ddc03e3a2dd068519d6"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-leucine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-leucine.mol2",
+      "role": "coformer_reference",
+      "bytes": 2236,
+      "sha256": "d99683998e031f428e5dca191837f523ed28374b4160137fcda9c49caeb05b03"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-mandelic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-mandelic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1987,
+      "sha256": "e8e8cbd73caa639c037089ec51298c72729696d4742eba0b3fe2189a77210992"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-methionine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-methionine.mol2",
+      "role": "coformer_reference",
+      "bytes": 2053,
+      "sha256": "586f9fd7e55d596771f5a06f31bc0e92c07801c655fd9757efe60cd1555b2129"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-phenylalanine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-phenylalanine.mol2",
+      "role": "coformer_reference",
+      "bytes": 2359,
+      "sha256": "4d476e5d46e670c52da797a6e5daa20bd6eaf4910614d62e2334a00234e34f24"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-proline.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-proline.mol2",
+      "role": "coformer_reference",
+      "bytes": 1795,
+      "sha256": "dfa29527f3f3985a5f7ba7a88bb3374d2c3dcc0c4ef37f4106fba7ff4b0e4c23"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-serine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-serine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1491,
+      "sha256": "43f24411acf3d1c33f4f2f47b40ac136e3f7c7bba9c2794338ccd58b81bca1e1"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-tartaric_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-tartaric_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1684,
+      "sha256": "f030adb3da5a44c376d98872b79242dc3e6092438f30f4ceb2fe6d36d7f5e52c"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-tryptophan.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-tryptophan.mol2",
+      "role": "coformer_reference",
+      "bytes": 2752,
+      "sha256": "d3daca4448b1694d1b54be2ed7be29396a1a906f101266dc20ad1d0ec37d751c"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/L-tyrosine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/L-tyrosine.mol2",
+      "role": "coformer_reference",
+      "bytes": 2447,
+      "sha256": "db4a839c4b66219161059ac254a0991975bd1975c2f7c084df32d6ab19068a3a"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/N-ethylacetamide.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/N-ethylacetamide.mol2",
+      "role": "coformer_reference",
+      "bytes": 1592,
+      "sha256": "9a20a0cd4d24eda0a758854fee39f25aefb6d19a9d97f910abf6aea57315b1e8"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/acesulfame.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/acesulfame.mol2",
+      "role": "coformer_reference",
+      "bytes": 1610,
+      "sha256": "08fc03677838f390630f81519879a12ac35e62d2081e61cdda3c1f31524a7bd6"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/acetic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/acetic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 936,
+      "sha256": "4495ce32e5c13367742a631641b353e99cb95db5795f40eba786854ca9a8187e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/acetophenone_oxime.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/acetophenone_oxime.mol2",
+      "role": "coformer_reference",
+      "bytes": 1990,
+      "sha256": "3291370371f8e771bde7f43d1f5093c9887bfe6b9853236e08a1f9778f225ece"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/acetylenedicarboxylic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/acetylenedicarboxylic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1137,
+      "sha256": "70d60369ddb6c5a14c43c464c117cc57b4e9116d65f3773150192c892e8b1087"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/adipic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/adipic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2052,
+      "sha256": "65465c0022588c2ecd38d311193e4755aa635858bca9a9dd3f4b415038e4623e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/alitame.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/alitame.mol2",
+      "role": "coformer_reference",
+      "bytes": 4583,
+      "sha256": "37eb7c00eae45ab6099a96470372012a53c2777204c6e43eacba1492b6199a79"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/apigenin.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/apigenin.mol2",
+      "role": "coformer_reference",
+      "bytes": 3051,
+      "sha256": "ba8d49cec6807a31bf3d966232132252737de749aeee6d566553b1966f75f680"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/azelaic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/azelaic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2890,
+      "sha256": "21e56915fcec08840dcb80924eb50f8afbed1bcd3ceb41e9f27991041829fe0d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/benzoic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/benzoic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1612,
+      "sha256": "6092cbe05d41b33854ab231d298d314c4ec62464e9060de3cf2f12d5ea6de9fc"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/biotin.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/biotin.mol2",
+      "role": "coformer_reference",
+      "bytes": 3211,
+      "sha256": "d62279e5a38a0afdcb86e28adae6a1072d8b07fd2914d5ab9e3d978c3e53b8e7"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/caprolactam.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/caprolactam.mol2",
+      "role": "coformer_reference",
+      "bytes": 1983,
+      "sha256": "78112fd08b05b60882080c5ca0501778c227cbcb9e75880c860313913225f36f"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/capsaicin.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/capsaicin.mol2",
+      "role": "coformer_reference",
+      "bytes": 4771,
+      "sha256": "fa3214a2d36562aad576cdd8d5ac16c4a2e710c57edcd47290a7ec7d4663a432"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/cholic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/cholic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 6705,
+      "sha256": "e15f505ec13ff3152c1210879075746b3dbc0e6f06bc98913e6d0ae031ba76d8"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/citric_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/citric_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2145,
+      "sha256": "188e30e1c2f5b593576949949e846bf9828bab636dd72e2963b026b058c8da07"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/ethylparaben.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/ethylparaben.mol2",
+      "role": "coformer_reference",
+      "bytes": 2263,
+      "sha256": "9848b3a4d60c6bde6bebccbb4e135ae7d95f0466fcd38cb02c209ce9eeb89f5e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/folic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/folic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 5006,
+      "sha256": "b184307380db67211517504843f760e4ff3f5144913ea439f22252a2899561bb"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/fumaric_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/fumaric_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1309,
+      "sha256": "e891f2d85529644df0576be77210ee50cb93856a369bdb1601cee626a5ea55ee"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/gentisic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/gentisic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1799,
+      "sha256": "26c8d6e354e570bbc41caa389bac60a49db9b84837193565479693121054e4e5"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/glutaric_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/glutaric_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1775,
+      "sha256": "8e8e8b503dfb0055ef3a24e97d44a9648f68bfed73e7c36934722ace1a5f8477"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/glycine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/glycine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1118,
+      "sha256": "9d77322cf52541d31e5d0e3116e220fb93c7c47d1655b24dd22e86eae4f178ba"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/glycolic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/glycolic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1031,
+      "sha256": "8782ad3cdf53ddc7584aafcf1dab52996600d070e5a1c3df442f5aaf38656a01"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/hesperetin.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/hesperetin.mol2",
+      "role": "coformer_reference",
+      "bytes": 3611,
+      "sha256": "85f798081e553f935355b343fe1b3281a646c68f4482f5a5fff64102e7b6a59d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/hippuric_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/hippuric_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2264,
+      "sha256": "1505a78c81c41859b8561948e4b2ce2bc676350e982e59d8446164c32f7c1f1e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/hydrocinnamic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/hydrocinnamic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2176,
+      "sha256": "8a1fa9d48c9ef275b1530310c964f6bfc86949420e956e4ca13571f5594596d1"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/imidazole.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/imidazole.mol2",
+      "role": "coformer_reference",
+      "bytes": 1051,
+      "sha256": "e54607cd15e3694d065671b41d09f9698c629a0150c200070c0381c37604410a"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/isonicotinamide.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/isonicotinamide.mol2",
+      "role": "coformer_reference",
+      "bytes": 1615,
+      "sha256": "e3724176b225d57c3e3e8080bd34d73fbb6c36aba0d3445e50b9bd033878da01"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/ketoglutaric_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/ketoglutaric_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1686,
+      "sha256": "f195050498848edc3c7b5a6ccf5193e34bfa372dd9ad89da1a26a8cb4c274333"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/lactobionic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/lactobionic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 4499,
+      "sha256": "bda6140838cd0f957cb605a1e730ff2bb36489132425a462306101293c4c861a"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/lactose.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/lactose.mol2",
+      "role": "coformer_reference",
+      "bytes": 4421,
+      "sha256": "afbb33c89943abfed359f797cc7271f61c28873ecef440aeb702ffbbe5409e38"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/maleic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/maleic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1308,
+      "sha256": "1daf618339149e46a7fdbbda48136939d14878c3a901ab735d79e142658ce5f1"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/malic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/malic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1586,
+      "sha256": "c95c691b2082a765189d810a731c19eb95fd43bf27f89a81e18a7b69468b6322"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/malonic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/malonic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1216,
+      "sha256": "46d88c14a2c46359454433214c2a0394e52306244ff7e2f33d30c4e4c6eb537b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/maltitol.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/maltitol.mol2",
+      "role": "coformer_reference",
+      "bytes": 4584,
+      "sha256": "d99159cd304a7787b7c8b338ba873562f6570941626be9fabfe19fcbec150dbd"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/mannitol.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/mannitol.mol2",
+      "role": "coformer_reference",
+      "bytes": 2607,
+      "sha256": "ebf9cfc9733109bf37da9087c55944a84197e43d14243fb63c662c25e5861cff"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/methanesulfonic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/methanesulfonic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1038,
+      "sha256": "85bb3c3043f752a96971c5e65b18be111e059ea431d338676ea672f65b6dcdad"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/methylparaben.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/methylparaben.mol2",
+      "role": "coformer_reference",
+      "bytes": 1985,
+      "sha256": "ca97506af57198d18f8762402bf0cb2b8fe8392f04bfd598e905cbad798af602"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/monobutyrin.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/monobutyrin.mol2",
+      "role": "coformer_reference",
+      "bytes": 2517,
+      "sha256": "d164a1bb2b26d55f9d616b3c43f85a53a198e9aca2261d7ebac674225cfedeef"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/nicotinamide.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/nicotinamide.mol2",
+      "role": "coformer_reference",
+      "bytes": 1612,
+      "sha256": "4b7d2a3d5bb16d477f2b6156e1d5b357e5dcd90116588089cf2dc73ef8655311"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/oxalic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/oxalic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 936,
+      "sha256": "e720263b3788c9013f30a724a33b8153110a89908a25962840ff2707bdd02df1"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/pamoic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/pamoic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 4473,
+      "sha256": "244cdd367427101bc9d7f0fd53c33b25b3206575618d8a984d02ae4b7d7ae369"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/phthalamide.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/phthalamide.mol2",
+      "role": "coformer_reference",
+      "bytes": 2076,
+      "sha256": "c31b8dc96f7e2de1f8d164248de9852ce68a728fdb00ba7538864bc8381b91f8"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/pimelic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/pimelic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2332,
+      "sha256": "0f65a63dcbb0ce13da104590bdf15a6ccc7b003e63e70afbdd3157594cf04ba1"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/piperazine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/piperazine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1703,
+      "sha256": "0a7f06a112445c0720ad03c418c321c4e3f8cf59b69e982d42ab620602b99f70"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/propylparaben.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/propylparaben.mol2",
+      "role": "coformer_reference",
+      "bytes": 2543,
+      "sha256": "dc0c84aade5b7d306abd93b447b77662a79bcd7fb43dc4ec8846e172e9a9b47c"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/pyrazine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/pyrazine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1143,
+      "sha256": "8871fb649bd268e5e7510a5b7cd92f6e5b2d28fd4dbf8c9983b4c7763d96e476"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/riboflavin.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/riboflavin.mol2",
+      "role": "coformer_reference",
+      "bytes": 4634,
+      "sha256": "844a84800b30d12a4d2f1f973fbba706bb9bfbd3b00da8f4d3b038d69f605b5e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/saccharin.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/saccharin.mol2",
+      "role": "coformer_reference",
+      "bytes": 1819,
+      "sha256": "d935096fd340cd38b95c840744aac8c2bc9988cc2a524fe5911f4df282239656"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/sorbic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/sorbic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1680,
+      "sha256": "f4e6f4a72119bc624a0820a0ae1379f00eb8c082cfbb9a065c4e2e279f35c99c"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/suberic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/suberic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 2611,
+      "sha256": "389bfe6147b9d8aa832c4312f9940c47e67cbd4b9b065ec8d32c8e26dd3b9006"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/succinic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/succinic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 1496,
+      "sha256": "0acb1c740b220c489cbc61dfc0cc01ab07315c0120faf463ff720404ba95f674"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/t-butylamine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/t-butylamine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1681,
+      "sha256": "4bcf3eea58612c434651ebcb4758d3bf548ede0b3f478ff8676d02e4159f9f56"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/t-butylhydroxyanisole.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/t-butylhydroxyanisole.mol2",
+      "role": "coformer_reference",
+      "bytes": 2923,
+      "sha256": "a55484b151eb02efd7b49748d54798410db3d80a3b28860ee3ff52c7989c675a"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/theophylline.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/theophylline.mol2",
+      "role": "coformer_reference",
+      "bytes": 2194,
+      "sha256": "23a2971c1e0bb0380f73495ee1ba155a74ac0a559b718ca1783f99a4f17061e9"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/thymidine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/thymidine.mol2",
+      "role": "coformer_reference",
+      "bytes": 3121,
+      "sha256": "8af70e5d1685026d368f0c1cc61ddb8b15ea57e9184eacaabc6f3f6b3ec11566"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/triphenylacetic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/triphenylacetic_acid.mol2",
+      "role": "coformer_reference",
+      "bytes": 3807,
+      "sha256": "e06735adb120a12ed3af649a22e7a373a89f385fb35e5998c843207edfb84c51"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/urea.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/urea.mol2",
+      "role": "coformer_reference",
+      "bytes": 929,
+      "sha256": "d667fa412c05f88b39ce91b2a107a7ae6606d12c32b8d413e9c277286ff24035"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/valerolactam.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/valerolactam.mol2",
+      "role": "coformer_reference",
+      "bytes": 1705,
+      "sha256": "ffc1a0b0f2727c14e456455dd4d3708ea62983d963fe39cb3eec3a315ac8f4b0"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/coformers/xanthine.mol2",
+      "path": "hotpot/dataset/resources/molecules/coformers/xanthine.mol2",
+      "role": "coformer_reference",
+      "bytes": 1632,
+      "sha256": "77e5dfc090a3d266b4b598ae2ac4648dacf1c85cbeb250c7dc9dc5e15035d945"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,1,1-trichloroethane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,1,1-trichloroethane.mol2",
+      "role": "solvent_reference",
+      "bytes": 946,
+      "sha256": "1bc7aab9095ccde3c9e8a3f882efecdc6b6f311841216a2dc80d0c0bdd90ca91"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,1,1-trifluroethanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,1,1-trifluroethanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1039,
+      "sha256": "b229c4ce73e35a438ec1fdf4233f6c0337d6e0ebf2480aec86189034e9c7c4db"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,1,2-trichloroethene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,1,2-trichloroethene.mol2",
+      "role": "solvent_reference",
+      "bytes": 760,
+      "sha256": "7889f37b63fad5a800fa4253f4a48385e8dac4869bb363e58135d21b1b50af14"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,1-dichloroethene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,1-dichloroethene.mol2",
+      "role": "solvent_reference",
+      "bytes": 757,
+      "sha256": "6f83138e9a46ffcd54cf54d341864e5f5057fed7b9b04e569d1f883f9821081e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,1-diethoxypropane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,1-diethoxypropane.mol2",
+      "role": "solvent_reference",
+      "bytes": 2525,
+      "sha256": "96c14f11836b712cbd74074b41f7326ba51d119d0983a6d0c96bd2abcdcbaae7"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,1-dimethoxymethane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,1-dimethoxymethane.mol2",
+      "role": "solvent_reference",
+      "bytes": 1410,
+      "sha256": "34bc99290aa4f40bc2376927a77f385e04cffe18697c307c8b1c74f5eed270f7"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,2-dichloroethane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,2-dichloroethane.mol2",
+      "role": "solvent_reference",
+      "bytes": 943,
+      "sha256": "097d9ed7294237ecf8f38cf887f8744072a86eedf8d918313904370d95244ad9"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,2-dichloroethene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,2-dichloroethene.mol2",
+      "role": "solvent_reference",
+      "bytes": 757,
+      "sha256": "0ce989d173abfd855b24d74374084ba3eb6428b2fb43fee65366d13e5f3e54d1"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,2-dimethoxyethane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,2-dimethoxyethane.mol2",
+      "role": "solvent_reference",
+      "bytes": 1688,
+      "sha256": "20a8fd4b45cc1f7c0c864d2fe40901f6ac8237cb0b1c36dbbe31d593dd091e16"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1,4-dioxane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1,4-dioxane.mol2",
+      "role": "solvent_reference",
+      "bytes": 1518,
+      "sha256": "cf66fad1f618fa55bd8796ccd61de8c0c6141ec03f06f080213030b628929f86"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1-butanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1-butanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1585,
+      "sha256": "7497464611e909f8813cb6711455ae8637307b73874b94189b26ffee4885d552"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1-pentanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1-pentanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1865,
+      "sha256": "59f52b8215146de710dda8003764119fa0e607b23578a20f137ebbc76ba78e36"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/1-propanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/1-propanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1307,
+      "sha256": "dd847f5c24e28826347e666ea57609698b588f820dd0498bee0795c5213b5045"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/2,2-dimethoxypropane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/2,2-dimethoxypropane.mol2",
+      "role": "solvent_reference",
+      "bytes": 1968,
+      "sha256": "946656236ddd00f8f464dcb03e40fcbe7d2b45d85a00b1fd8041e1c6a0499be6"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/2-butanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/2-butanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1585,
+      "sha256": "12bc9d3ad9386c7ff269b541c72d4a12a5d41c237197a1c8b92bfc92c699d0a5"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/2-ethoxyethanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/2-ethoxyethanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1684,
+      "sha256": "e34c8f883f26e2f8f4c1a6c6fdb42b59fddf5a836bcb89c58b0a015540b8ca2b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/2-methoxyethanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/2-methoxyethanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1406,
+      "sha256": "3041cac687e067afc508388e54cc1b01cd9a83ea2ffc9f7d9d6304f8e7e3d10a"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/2-methyl-1-propanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/2-methyl-1-propanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1595,
+      "sha256": "9fabcf8db0b1085c9ce96936a874b2a8ce081ed8bdb1078a55250151578cb5ab"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/2-methyltetrahydrofuran.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/2-methyltetrahydrofuran.mol2",
+      "role": "solvent_reference",
+      "bytes": 1716,
+      "sha256": "7f2c28d21511a01309484b5ac8a9f8811268b195556ceaabda5b2d610edf1cff"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/3-methyl-1-butanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/3-methyl-1-butanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1873,
+      "sha256": "090e3fcf59cf27df9264f82f29256545927017f3d4cd38fcdee61877e6ed2cea"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/DCM.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/DCM.mol2",
+      "role": "solvent_reference",
+      "bytes": 649,
+      "sha256": "27026117557b0231b169e67f8289d4cc34f17e2ad083e007bf36bddf31d097ed"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/DMF.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/DMF.mol2",
+      "role": "solvent_reference",
+      "bytes": 1300,
+      "sha256": "30a363f840cdb50c371e2c9be67746fd3f5306e923b61f3631d21a6de1a5abd8"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/DMSO.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/DMSO.mol2",
+      "role": "solvent_reference",
+      "bytes": 1115,
+      "sha256": "c11a981fe683d7dfbc3dbe0827e12b47fc15c960c0e46cb78d5cd97183b9c670"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/N,N-dimethylacetamide.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/N,N-dimethylacetamide.mol2",
+      "role": "solvent_reference",
+      "bytes": 1597,
+      "sha256": "11d4c795cee07e58f4dbf4466d3401961bc947d7cace7cee802a105bc42a4a6f"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/N-methylpyrrolidone.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/N-methylpyrrolidone.mol2",
+      "role": "solvent_reference",
+      "bytes": 1712,
+      "sha256": "e3131d838217d98215e85d1d05df1eed831a66bff4cb80e824e44c1927f5a659"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/THF.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/THF.mol2",
+      "role": "solvent_reference",
+      "bytes": 1417,
+      "sha256": "410bc28fcbf98c8d234d4ba8e55a3982a826ba219899fc1bed484a8251f1fded"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/acetic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/acetic_acid.mol2",
+      "role": "solvent_reference",
+      "bytes": 936,
+      "sha256": "4495ce32e5c13367742a631641b353e99cb95db5795f40eba786854ca9a8187e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/acetone.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/acetone.mol2",
+      "role": "solvent_reference",
+      "bytes": 1118,
+      "sha256": "1abb7b6db44ed29c6dbeceacdf53eacfeba35d68e398c4b82ff7b209f22969a7"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/acetonitrile.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/acetonitrile.mol2",
+      "role": "solvent_reference",
+      "bytes": 751,
+      "sha256": "fd5c89e6c1463da470dd60f8e3b09c4b1148beabc827b0947e7265a8372a0d2d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/benzene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/benzene.mol2",
+      "role": "solvent_reference",
+      "bytes": 1328,
+      "sha256": "231e6e09aa8592e16d233c5e724ffda2d3ce0f0d231692f9c45a1cce1a3c62ba"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/butylacetate.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/butylacetate.mol2",
+      "role": "solvent_reference",
+      "bytes": 2053,
+      "sha256": "53a06fc6fc309324edec7ac12136a77717fe6824d0f6759645623ccbfd29e829"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/carbon_tetrachloride.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/carbon_tetrachloride.mol2",
+      "role": "solvent_reference",
+      "bytes": 666,
+      "sha256": "63e26195dec07226c296160a3589f0db6f30e024ca571255b3c01247d5b5ca2c"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/chlorobenzene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/chlorobenzene.mol2",
+      "role": "solvent_reference",
+      "bytes": 1334,
+      "sha256": "ea020ba35093e78fc0a4254145cdad8d0fd9cad7de5240f10ab25882f3f8bcde"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/chloroform.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/chloroform.mol2",
+      "role": "solvent_reference",
+      "bytes": 656,
+      "sha256": "5e9e4ac39d532aefed9fd83347d370b555b1db9714d1793b60bc86f65471d908"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/cumene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/cumene.mol2",
+      "role": "solvent_reference",
+      "bytes": 2164,
+      "sha256": "b700e900244b8ed39acab538623b99ed8e09ab3b85186aa1ba6678113bad7941"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/cyclohexane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/cyclohexane.mol2",
+      "role": "solvent_reference",
+      "bytes": 1890,
+      "sha256": "9404112fbe698a73bf0dc687ebd1f1a3ec5cc42a71f997c6b3eda3ba14d97b95"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/diethylether.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/diethylether.mol2",
+      "role": "solvent_reference",
+      "bytes": 1588,
+      "sha256": "fbc89484709abab412c1a88916a8b16e3a0a0d305d3e12e27892abbe7c9cb3e6"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/diisopropylamine.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/diisopropylamine.mol2",
+      "role": "solvent_reference",
+      "bytes": 2243,
+      "sha256": "0efcea49126fda9d8513d0d8122f46ea8227fc1fa5be961cb4638a8779f67a1a"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/ethanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/ethanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1025,
+      "sha256": "670d1ba460dd0a2ffc690e064683b3258b77c619bb7dce92fa2d4ed19099e8ab"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/ethyl_formate.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/ethyl_formate.mol2",
+      "role": "solvent_reference",
+      "bytes": 1217,
+      "sha256": "758f1740610d2793ebce8d58406eab7058fca8318804fde0c5c2ba45b56652fa"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/ethylacetate.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/ethylacetate.mol2",
+      "role": "solvent_reference",
+      "bytes": 1495,
+      "sha256": "5de26dafea091865c785644a730610d64fb560970ae17f809de073c59e544490"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/ethyleneglycol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/ethyleneglycol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1125,
+      "sha256": "de98cdb8f207e1a65610b13a3a615f090b780b30b9a3653408e1b71e83989b5b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/formamide.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/formamide.mol2",
+      "role": "solvent_reference",
+      "bytes": 748,
+      "sha256": "7a2697121f9e47b64c9bf2fb4a716f6c12c2493c2b379016f323bb3afee28cb9"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/formic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/formic_acid.mol2",
+      "role": "solvent_reference",
+      "bytes": 657,
+      "sha256": "7cf26013a7d00dd0dba148bf7268b256999dc4a3df7fc5ee74b43e58a2679b50"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/heptane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/heptane.mol2",
+      "role": "solvent_reference",
+      "bytes": 2327,
+      "sha256": "ceac930929067eec72c14297fdeffda383085247e3a94f937a17c78956bbbdfe"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/hexane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/hexane.mol2",
+      "role": "solvent_reference",
+      "bytes": 2047,
+      "sha256": "ac5ba5b0f7e4ed3e91e054fd4d1776511a93d0617d38d3d8b9697edcdaa38565"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/isobutyl_acetate.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/isobutyl_acetate.mol2",
+      "role": "solvent_reference",
+      "bytes": 2057,
+      "sha256": "3aca1e96c06430b3d2ac7133c3eec5b810c36d5e00a66eb3bccb69500c91758f"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/isooctane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/isooctane.mol2",
+      "role": "solvent_reference",
+      "bytes": 2608,
+      "sha256": "ca72675796dadc9c17531711ed283b3e8242b600e9a062c4a7ca47dace2ea26d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/isopropanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/isopropanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 1308,
+      "sha256": "5b15b7673215bd613c1ca5bfd5af646e88121f539732dfa259d93b951ca41c6b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/isopropylacetate.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/isopropylacetate.mol2",
+      "role": "solvent_reference",
+      "bytes": 1778,
+      "sha256": "f0f3e3188851136a203e87b9644942159caf8e6180a378d663d5eee1b55a9e77"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/isopropylether.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/isopropylether.mol2",
+      "role": "solvent_reference",
+      "bytes": 2148,
+      "sha256": "9160a7aa914775f2b2118eed2d422fbbb8d4a04475db4aba3fac38159fd97618"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/meta-xylene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/meta-xylene.mol2",
+      "role": "solvent_reference",
+      "bytes": 1890,
+      "sha256": "829b1378e5dd39002b8b17c80ef9c233b99fd5cb03b5cf4b64b8d0782360b3f8"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methanol.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methanol.mol2",
+      "role": "solvent_reference",
+      "bytes": 747,
+      "sha256": "348ddf430804128be12c91970c8bc4f444c08cd3a5239a46f7749bb855f72fe6"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methoxybenzene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methoxybenzene.mol2",
+      "role": "solvent_reference",
+      "bytes": 1707,
+      "sha256": "f57d8622bfc0032480806182686b00bdb932b356e74fedd82e313834e5e1cfe2"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methylacetate.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methylacetate.mol2",
+      "role": "solvent_reference",
+      "bytes": 1217,
+      "sha256": "56983fc330dcd09b12eba29c0dfbb4be3445218d80251b3b86e3ed0e486151c5"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methylbutylketone.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methylbutylketone.mol2",
+      "role": "solvent_reference",
+      "bytes": 1965,
+      "sha256": "483ba511713fc2ce6435a25773c11549d4ef9f58ef1e1f468b10a9604dd17428"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methylcyclohexane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methylcyclohexane.mol2",
+      "role": "solvent_reference",
+      "bytes": 2175,
+      "sha256": "d85d1003ae13c7ed6b41cb009a0fd8d275687cbd37855035b0c7ad3ef4d1ac15"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methylethylketone.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methylethylketone.mol2",
+      "role": "solvent_reference",
+      "bytes": 1407,
+      "sha256": "bc6f5ed088f1eb5d031274011681c197a3375fa72f150dc04fd95da7b547d691"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methylisobutylketone.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methylisobutylketone.mol2",
+      "role": "solvent_reference",
+      "bytes": 1968,
+      "sha256": "0711189c7380418e445027a2282e0c48bd5e1163192939afc4cbd8c8490d1bce"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/methylisopropylketone.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/methylisopropylketone.mol2",
+      "role": "solvent_reference",
+      "bytes": 1690,
+      "sha256": "05f49968d6c74d0341b91c697ba51ea12b3dc84d2f09dc3551afc6a4f831c66b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/morpholine.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/morpholine.mol2",
+      "role": "solvent_reference",
+      "bytes": 1610,
+      "sha256": "1253656455e6d24a60b70e260174c024ff06b098bb3ed8981233c0938881629d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/nitromethane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/nitromethane.mol2",
+      "role": "solvent_reference",
+      "bytes": 844,
+      "sha256": "991b30d658d52d2323d80201578b3309f944acba2e69c7f696ee08b8463f0de9"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/ortho-xylene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/ortho-xylene.mol2",
+      "role": "solvent_reference",
+      "bytes": 1891,
+      "sha256": "5df53c85135eb52da2851792d55f3e76655885ce46a5635dc4ac9122239254c2"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/para-xylene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/para-xylene.mol2",
+      "role": "solvent_reference",
+      "bytes": 1890,
+      "sha256": "761691a1fbc39da3a1f8424b93c29221e31ce30cf6a6f325b1aa1b2b213b081d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/pentane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/pentane.mol2",
+      "role": "solvent_reference",
+      "bytes": 1769,
+      "sha256": "0a9e35a4b4092f8ca4f333b5ff4b29570951a520e273cff897f1285b4a42494e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/propylacetate.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/propylacetate.mol2",
+      "role": "solvent_reference",
+      "bytes": 1775,
+      "sha256": "0371ca0cc64906523798660b71bad6fa42e50510a047886fcfbf53370f17db76"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/pyridine.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/pyridine.mol2",
+      "role": "solvent_reference",
+      "bytes": 1236,
+      "sha256": "380c6b8cbee7e559ca9c4e323e0543de86ff916a2ca2dd575e228851852b758b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/sulfolane.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/sulfolane.mol2",
+      "role": "solvent_reference",
+      "bytes": 1609,
+      "sha256": "bc8e1af18862e63b8a480eed7d05ca167dc2a43fbf25922b7513de80b846a1b4"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/t-butylmethylether.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/t-butylmethylether.mol2",
+      "role": "solvent_reference",
+      "bytes": 1873,
+      "sha256": "7f28610ca2127fb23f8cf800bce16717a862c8c1c2f17455a37d6799468b6e1b"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/tetralin.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/tetralin.mol2",
+      "role": "solvent_reference",
+      "bytes": 2283,
+      "sha256": "0c289ce49951cf79e1e53d9c974b8cf88ad7731d85efddd5baafd008a4426850"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/toluene.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/toluene.mol2",
+      "role": "solvent_reference",
+      "bytes": 1607,
+      "sha256": "62569f3347f8a80bd6ce0f055fb89d80750f6dee9689d2a33d244790f1f2f76e"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/trichloroacetic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/trichloroacetic_acid.mol2",
+      "role": "solvent_reference",
+      "bytes": 945,
+      "sha256": "e368d7fde84135f2570483ebeda8160c83264d01a738d1aa4e67a80c0d52145d"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/trifluoroacetic_acid.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/trifluoroacetic_acid.mol2",
+      "role": "solvent_reference",
+      "bytes": 945,
+      "sha256": "593253542acaff5db37fe0bb58bdc8d7fb0b151e533dcc3b1f9d11dce41772be"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/solvent/water.mol2",
+      "path": "hotpot/dataset/resources/molecules/solvent/water.mol2",
+      "role": "solvent_reference",
+      "bytes": 465,
+      "sha256": "c41b8e01f9affe6dd59235ee2480eda6fcdf50c97fe820d3e8611b0856e7a963"
+    },
+    {
+      "original_path": "hotpot/cheminfo/MolProps/data/MedProp.xlsx",
+      "path": "hotpot/dataset/resources/properties/MedProp.xlsx",
+      "role": "medium_properties",
+      "bytes": 286078,
+      "sha256": "2706c9d850dae5b92d69ede863a2fecf7608186d03e8b2dce86691baf7ade69a"
+    },
+    {
+      "original_path": "hotpot/cheminfo/MolProps/data/SolProp.xlsx",
+      "path": "hotpot/dataset/resources/properties/SolProp.xlsx",
+      "role": "solvent_properties",
+      "bytes": 339657,
+      "sha256": "03f836b52bf31409402a08d83bf47c7634b1544aac723d8665e680e12dd277bb"
+    }
+  ],
+  "retired": [
+    {
+      "original_path": "hotpot/cheminfo/ChemData/MolFragTemplate/FragDef.json",
+      "bytes": 31,
+      "sha256": "9960ab8217ecba57417ba4bc20be51a3ac19ce3ff21bd5a023b569237779ef13",
+      "disposition": "retired_unused_legacy_format"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/MolFragTemplate/phosphonic_acid.json",
+      "bytes": 151,
+      "sha256": "c022ec550e8a62be7138210978bb2ed49376deb3263f9f26f24588b17cb0c8a4",
+      "disposition": "retired_unused_legacy_format"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/StructQueryTemplate/H_carbon.json",
+      "bytes": 146,
+      "sha256": "68d545fd898d5e456e19292977f3423443209386880dbda064120abc871b59c9",
+      "disposition": "retired_unused_legacy_format"
+    },
+    {
+      "original_path": "hotpot/cheminfo/ChemData/StructQueryTemplate/sulfonic_acid.json",
+      "bytes": 389,
+      "sha256": "a179eb932648182c98435a9c038cc9160bb4f490a4ba8f3999908e7eea93f5f0",
+      "disposition": "retired_unused_legacy_format"
+    }
+  ]
+}

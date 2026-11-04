@@ -87,6 +87,12 @@ def test_dataset_metadata_uses_current_fact_and_payload_contracts() -> None:
         "hotpot/dataset/data/store/active/datasets.sqlite3"
     )
 
+    assert "hotpot/dataset/resources" in layout["tracked"]
+    assert layout["packaged_references"]["root"] == "hotpot/dataset/resources"
+    assert layout["packaged_references"]["inventory"] == (
+        "hotpot/dataset/manifests/packaged-reference-assets.json"
+    )
+
     decisions_path = (
         DATASET_ROOT / "manifests" / "evidence-regrade-owner-decisions.json"
     )

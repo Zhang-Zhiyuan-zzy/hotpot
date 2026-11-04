@@ -14,7 +14,7 @@ import torch
 
 
 import hotpot as hp
-from hotpot.cheminfo.MolProps import get_medium_dataframe, get_solvent_dataframe
+from hotpot.cheminfo.operations.solvent_properties import get_medium_dataframe, get_solvent_dataframe
 from hotpot.plugins.PyG.data.utils import graph_extraction
 from hotpot.plugins.ComplexFormer.data_process.sc_logk.data import ExtractionData
 from .utils import (

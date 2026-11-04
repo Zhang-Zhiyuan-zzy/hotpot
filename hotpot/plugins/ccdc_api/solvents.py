@@ -12,7 +12,7 @@ __all__ = ['solvents', 'solvents_smiles']
 def _solvent_data():
     from ccdc.io import MoleculeReader
 
-    directory = files("hotpot.cheminfo").joinpath("ChemData", "solvent")
+    directory = files("hotpot.dataset").joinpath("resources", "molecules", "solvent")
     solvents = OrderedDict()
     for resource in directory.iterdir():
         with as_file(resource) as path:

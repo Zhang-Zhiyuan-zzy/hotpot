@@ -7727,3 +7727,95 @@ bindings and maintained links/JSON/archive identities. No source drift or new
 business failure was established. Additional finalization manifest retains both
 attempts; no semantic test reran. The coherent command business commit containing
 these records is its delivery identity.
+
+
+### 2026-11-04 — Stage11C Decision13 entry and exact asset/query route
+
+Stage11B command commit04e9d43c94c33e37bf3305ac03dc67d5bf7002b3 is pushed.
+Root reuses accepted goal/governance alignment and rereads actual main-plan
+2.1/2.2/9.2/Stage11/Decision13/Section14, Stage1 asset review, dataset layout/storage,
+all connected query/CCDC/package consumers and D028/D029. The actual dataset
+contract excludes local scientific payloads from packages, while the162MOL2,
+framework collection and two property workbooks are existing shipped resources.
+Moving them blindly into ignored dataset/data would break real installed readers.
+Root settles L1-L4 before dependent authoring: one manifested read-only
+dataset/resources owner for these existing distributed inputs, preserving local
+formal store/Bundle/schema/ingestion ownership and no new public dataset schema.
+Stage1's36literal framework collection is preserved separately; four uncalled
+legacy query/fragment files retire, not a second assembly default.
+
+Root accepts the exact four-function import cutover to
+operations.solvent_properties with existing names/parameters/defaults/DataFrame
+returns and resource-aware reads; all consumers and guide migrate, no old shim.
+Actual `/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -B`
+pandas inspection reads medium clean92x29/fill96x380 and solvent clean227x39/
+total233x86. Clean sheets have CASs/Cid; both nondefault sheets CASs only. Correct
+solvent Literal clean/fill to clean/total, preserve actual invalid-sheet/Cid
+failures and test real nondefault CAS queries. No alias, invented value, network
+enrichment, quality label or speculative guard is authorized.
+
+The sole local Sol/high worker may author/test only in its isolated copy under
+/tmp/hotpot_plan20/long/stage11-legacy-assets-20261104; root owns maintained
+records/architecture, review/application/freeze/acceptance and Git. Entry and
+L1-L4 precede implementation. Frozen original-inputs.json binds existing asset
+bytes; current source before work is04e9d43. Actual source/installed resource,
+query/domain, known MOL2, lazy fake-SDK, assembly-default and dataset-path evidence
+will follow. D028/D029 and all broader gates remain open at entry.
+
+
+## 2026-11-04 — Current standalone SDK qualification entry
+
+Root inspected D006/D007 and the exact selected SDK/build/consumer closure after Stage11C application. Readiness proves32/33selected Stage10A SDK inputs unchanged; `molecule_builder.cpp` changed under accepted Stage12B H semantics and is compiled into the shared core, so old SDK runtime evidence cannot establish current behavior. Root releases one current Python-independent SDK build and C11/C++17 ABI0/ABI1/link/run/symbol/linkage/H observations in an isolated output. Input bindings and profile/ownership/limits are in `stages/stage12/sdk-current/entry_review.json`. Docker daemon is available; exact pinned release image is absent, and root permits fetching that selected image. Any unavailable release prerequisite remains an explicit gap; probe evidence cannot close release gates. No product, public contract, scientific threshold, dependency lock, model, route, shared environment or final acceptance change.
+
+
+## 2026-11-04 — Stage12 demonstrated PyG output edge entry
+
+D027 records an actual Torch2.7.1 rejection of `.pt` for an unnamed member. Root inspected the sole collection exporter and current source/installed tests, and accepts explicit nonempty-identifier/zero-based-ordinal naming under `stages/stage12/pyg-output/contracts/decisions.md` P1. Only isolated authoring is released before root application; named/collision/member-order/graph/prefix/materialization/error behavior remains. This repairs a demonstrated output bug, adds no speculative guard or chemistry/model change, and does not close D027 or global gates before actual affected source/installed evidence.
+
+
+### 2026-11-04 — Stage11C actual resource/query delivery and root acceptance
+
+The preceding owner-inquiry turn was read-only; it supplied no new delivery.
+Root resumes the already released Stage11C contract and current frozen source.
+The local Sol/high worker completed actual source02 70passed/0fail/0skip and
+outside-checkout installed01 69passed/0fail/0skip. All69applicable ordered case
+outcomes agree. Both guide blocks execute verbatim; public MolReader reads of
+water/methanol/benzene preserve independently expected chemistry. One unchanged
+source-layout-only metadata node passes at source and is explicitly deselected
+installed; all four actual resources are verified directly. The38affected
+writing cases are included, not extra distinct tests.
+
+Sole dataset/resources ownership receives165unchanged shipped assets (162MOL2,
+separate36literal framework JSON and2workbooks); four query functions/guide move
+to operations.solvent_properties, live lazy CCDC/example/package consumers migrate,
+and7oldfiles retire. Actual medium clean/fill and solvent clean/total CAS domains,
+nondefault Cid KeyError and invalid-sheet/missing-ID ValueError are documented
+and tested; no invented values/network/alias/compatibility path. D029 closes;
+D028 now retains actual optional research execution only. No formal dataset,
+assembly-default, chemical algorithm, model or native bytes change.
+
+Drivers in the frozen integration directory are run_source.py, run_source02.py,
+run_build.py, run_installed.py and compare_boundaries_final.py; exact subprocess
+argv/cwd/env/interpreter/time/status are retained in execution receipts. Each
+boundary has6174origin observations/0violations with five actual native imports.
+The original source01 69passed/1failed observes two preexisting generated MolProps
+pycs; root removes exactly these caches and empty directories, preserving every
+tracked input. Source02 passes. Original metadata comparator rejects equivalent
+Python-specifier order; parsed semantic comparison passes on unchanged artifacts.
+Both original failures remain; no product/test weakening or unrelated rerun.
+
+Root executes `python -B /tmp/hotpot_plan20/long/stage11-legacy-assets-20261104/root-review01/verify.py`:
+1540current source/test/resource inputs,6natives,172retired paths,183final bindings,
+738source/wheel/sdist/site rows,892actual wheel product members and925frozen sdist
+members verify. Actual wheel7106093bytes/SHA25675adb579f64dad79f902528ecaab9ce9db90ff1d74b1ac86ce1bd1b4777a9c58
+and sdist2839101bytes/SHA256f9ec37af09f0e8bae5b64225d54c4ab0c13c8ea4b16286130fe82e8ce21e17ba
+reuse six accepted CP311 binaries and seven generated license texts. Archive
+`.plan20-artifacts/20261104/stage11/legacy-assets` has159verified payloads/
+18031072bytes; manifestSHA256023dec6e2e40482cd42b3ab05e029288f8b3df9e81d51114a853ab06e2a2e966.
+Maintained checkpoint/report/evidence graph/root verification record bounded
+acceptance. Other versions, clean-native/release, optional research, final
+science/cost/Plan12/report/B_exp and separate Stage13 remain independent.
+
+Root retains decisions/records/Git. A local Sol/medium worker owns only the
+isolated settled PyG naming proposal; the prior SDK Sol/high worker performs
+read-only current D010/D011/D013 assessment. No external helper is active.

@@ -1,6 +1,7 @@
-"""Tracked resource namespace for Hotpot dataset documentation and schemas.
+"""Packaged reference inputs, dataset documentation and schemas.
 
-Use :mod:`hotpot.ds` for all public dataset loading and management operations.
-Scientific payloads are installed locally under ``hotpot/dataset/data`` and are
-not distributed as Python package data.
+Use :mod:`hotpot.ds` for public formal dataset loading and management.
+Small shipped read-only chemistry references live under ``resources``; their
+private inventory is ``manifests/packaged-reference-assets.json``. Formal dataset
+payloads remain local under ``hotpot/dataset/data`` and are not distributed.
 """

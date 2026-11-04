@@ -71,7 +71,7 @@ def test_ccdc_solvents_load_packaged_members_once_on_first_attribute(first_attri
         module = importlib.import_module("hotpot.plugins.ccdc_api.solvents")
         assert imports == reads == materialized == resource_owners == []
         assert "ccdc" not in sys.modules and "ccdc.io" not in sys.modules
-        declared = {resource.name for resource in original_files("hotpot.cheminfo").joinpath("ChemData", "solvent").iterdir()}
+        declared = {resource.name for resource in original_files("hotpot.dataset").joinpath("resources", "molecules", "solvent").iterdir()}
         assert {"methanol.mol2", "acetone.mol2", "benzene.mol2"} <= declared
         first = getattr(module, first_attribute)
         solvents, smiles = module.solvents, module.solvents_smiles
@@ -80,7 +80,7 @@ def test_ccdc_solvents_load_packaged_members_once_on_first_attribute(first_attri
         assert set(solvents) == declared
         assert smiles == {"fake:" + name for name in declared}
         assert imports == ["ccdc", "ccdc.io"]
-        assert resource_owners == ["hotpot.cheminfo"]
+        assert resource_owners == ["hotpot.dataset"]
         assert set(materialized) == declared and len(materialized) == len(declared)
         assert {Path(path).name for path in reads} == declared and len(reads) == len(declared)
         assert not active_paths

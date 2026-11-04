@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-04",
+  "status": "ROOT_RELEASED_ISOLATED_PYG_NAMING_FIX",
+  "source_commit": "04e9d43c94c33e37bf3305ac03dc67d5bf7002b3",
+  "alignment": [
+    "Current goal/governance and Stage12 consolidated hardening; D027 actual Torch2.7.1 unnamed export failure is already recorded under accepted Stage9C boundaries.",
+    "Root inspected sole operation, public method/function routes and actual source/installed collection tests. This fixes a demonstrated output-naming bug; no model/features/science change."
+  ],
+  "input_bindings": {
+    "path": "/tmp/hotpot_plan20/long/stage12-pyg-output-20261104/input-bindings.json",
+    "sha256": "c83e62f427a411fb29a086ce100ab64f83099a9ea1d9943669a06253ed36e609"
+  },
+  "decisions": "contracts/decisions.md P1",
+  "ownership": "Root owns scope/acceptance/apply/main records/Git. One local worker owns isolated code/test proposal only; no nested delegation.",
+  "validation": [
+    "Real Torch/PyG named, unnamed, mixed identifier, duplicate-name and conversion/save failure behavior at source and outside-checkout installed wheel.",
+    "Preserve graph encodings, order/duplicates, prefix behavior, public None return and existing method/function materialization boundary."
+  ],
+  "holds": [
+    "No main-checkout source/test edits before root application.",
+    "No product API/feature/schema/native/model, dependency, unknown-error fallback or name sanitization changes.",
+    "Root review/apply/freeze then actual source/installed validation before D027 closure."
+  ]
+}

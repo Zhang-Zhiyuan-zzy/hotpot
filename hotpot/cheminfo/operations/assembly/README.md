@@ -147,7 +147,8 @@ definitions to an optional caller collection. `load_assembler_file(path)` and
 ```
 
 Optional `ExStrct` supplies an exclusion SMILES. The packaged default contains
-five method kinds; RingWedge is supported through caller definitions. Older
-ChemData fragment/framework schemas are distinct and are not additional defaults.
+five method kinds; RingWedge is supported through caller definitions. The separate 36-literal framework reference is packaged at
+`hotpot/dataset/resources/molecules/frameworks/phen_bipy_derived.json`; it is not
+an assembly default. Unused legacy fragment/query formats have been retired.
 
 ![An assembly workflow illustration](Example-5step.svg)

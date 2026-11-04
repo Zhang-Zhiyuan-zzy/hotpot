@@ -1,0 +1,24 @@
+{
+  "date": "2026-11-04",
+  "status": "ROOT_RELEASED_ISOLATED_STAGE11C_AUTHORING",
+  "source_commit": "04e9d43c94c33e37bf3305ac03dc67d5bf7002b3",
+  "alignment": [
+    "Current approved goal and governance/stage/validation; reuse completed full-plan alignment and reread actual affected scope/requirements",
+    "Main-plan2.1/2.2/9.2/Stage11/Decision13/Section14; Stage1 asset review; current dataset layout/storage and live query/CCDC/package consumers",
+    "Stage11A/B and Stage12B/C/D evidence; D028/D029; no formal dataset API/schema changes"
+  ],
+  "decisions": "contracts/decisions.md L1-L4",
+  "input_snapshot": "/tmp/hotpot_plan20/long/stage11-legacy-assets-20261104/original-inputs.json",
+  "input_sha256": "b77fa035c3bfde1d2d1f11ded13a5ecc96f7985ad7966fef15f49fcf6ae46694",
+  "ownership": "Root owns architecture/main plan/records/application/final evidence/acceptance/Git. One local Sol/high worker owns isolated implementation only. No nested delegation.",
+  "validation": [
+    "Affected real query/known MOL2/assembly-default/fake CCDC/resource/dataset-path tests",
+    "Source and actual outside-checkout installed wheel; complete asset transport and old-owner deletion",
+    "Preserve actual nondefault failures and missing CCDC SDK; no new model/native/science computation implied"
+  ],
+  "holds": [
+    "No main-checkout source/test edits by the worker",
+    "Root patch review/apply/freeze before main validation",
+    "Other versions/native/SDK/release/cost/Plan12/report/B_exp and separate Stage13 remain open"
+  ]
+}

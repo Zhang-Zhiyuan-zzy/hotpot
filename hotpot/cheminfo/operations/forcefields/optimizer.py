@@ -196,6 +196,7 @@ class _OpenBabelOptimizer:
                         ),
                     ).index
                 )
+                trajectory.set_terminal(trajectory_frame_indices[-1])
 
         mol.coordinates = result.coordinates
         if records_trajectory:

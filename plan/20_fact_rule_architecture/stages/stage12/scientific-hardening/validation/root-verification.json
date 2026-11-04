@@ -1,0 +1,71 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12C",
+  "date": "2026-11-04",
+  "source_head_before_delivery": "ed1726d25b79d54804adec30037c245bca28fe43",
+  "production_change": "Publish ordinary optimizer actual terminal role separately from selected frame; numerical/native computation unchanged.",
+  "issue_dispositions": {
+    "P20-D022": "ACCEPTED_LIMITATION",
+    "P20-D023": "CLOSED"
+  },
+  "source_test_bindings": 1518,
+  "unchanged_cp311_native_bindings": 6,
+  "archive_payloads_verified": 8981,
+  "archive_payload_bytes": 569903858,
+  "archive_payload_index_sha256": "a27d44e5b3c55becbe34e2bfe228ec8922d196abff4d8cf683bd94cbc2fa5285",
+  "archive_manifest": {
+    "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/transport-manifest.json",
+    "bytes": 6994633,
+    "sha256": "138aa0badb811d5935a2f5491c569ad193066c77c083cef62d0428117896591c"
+  },
+  "scientific_disposition": {
+    "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/root-review/scientific-disposition.json",
+    "sha256": "6a545869fe6d02aebe5a2c3172c58558f675c459a118523755965be5335b9ec3"
+  },
+  "source": {
+    "passed": 640,
+    "failed": 0,
+    "skipped": 0
+  },
+  "installed": {
+    "passed": 639,
+    "failed": 0,
+    "skipped": 0,
+    "deselected_source_only": 1,
+    "origin_observations": 611,
+    "origin_violations": []
+  },
+  "actual_public_phosphorus": {
+    "source_slots": 45,
+    "installed_slots": 45,
+    "selected_P_sites_each_boundary": 84,
+    "terminal_P_sites_each_boundary": 84,
+    "selected_converged_each_boundary": 43,
+    "terminal_converged_each_boundary": 45,
+    "retained_selected_warning_slots": [
+      [
+        47,
+        44
+      ],
+      [
+        53,
+        42
+      ]
+    ],
+    "all_twelve_semantic_invariants_each_slot": true,
+    "actual_selected_terminal_attribution_verified": true
+  },
+  "O0": "All561slots retained;546completed,15ineligible,0executionerrors.546physical/selected-attribution comparisons valid;519exact/27changed selected pairs,552exactprovider frames.545quality passes/1unchangedcontact failure,107convergence-warning trials and incomplete ring coverage retained. Historical33B20 comparison distinct; cause unknown. Native-complex route is unaffected by ordinary marker fix.",
+  "remaining": [
+    "Whole Stage12/Stage11 tail, integrated Plan12/final acceptance",
+    "Consolidated cost/resources and applicable final scientific matrix",
+    "Other planned Python versions/platforms/release/native/SDK qualification",
+    "Final report and validated B_exp before separate Stage13A/B"
+  ],
+  "limits": [
+    "Root accepts method-bound attributable observations and existing finding/control behaviour, not universal chemical correctness.",
+    "D022 residual downstream variation remains an explicit accepted limitation with revalidation triggers; no RNG/cause or improvement assertion.",
+    "No fixed historical hash/numerical equality or success count was used as scientific gate.",
+    "Wheel/sdist reuse6acceptedCP311binaries; no new native compilation, clean SDK or sdist rebuild claim.",
+    "Actual prior model/pipeline evidence reused only within unchanged documented scope; no new model/engine tier claimed."
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "stage": "Stage12C",
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12C",
+  "date": "2026-11-04",
+  "source_commit": "ed1726d25b79d54804adec30037c245bca28fe43",
+  "issues": [
+    "P20-D022",
+    "P20-D023"
+  ],
+  "predecessor": "Stage12B accepted CP311, ed1726d",
+  "decision": "contracts/decisions.md",
+  "scope": "Existing force-field science and finding/control plus observed ordinary terminal-frame attribution correction; no algorithm/public/native change",
+  "remaining": [
+    "full final scientific corpus",
+    "global cost/version/release gates",
+    "whole Stage12",
+    "integrated Plan12 and global acceptance"
+  ],
+  "completion": "validation/checkpoint.json",
+  "issue_dispositions": {
+    "P20-D022": "ACCEPTED_LIMITATION",
+    "P20-D023": "CLOSED"
+  }
+}

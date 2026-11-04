@@ -7419,3 +7419,142 @@ Stage12, D028, other versions/release, Plan12 and global gates remain open.
 The coherent business commit containing this record is the delivery identity.
 
 Owner-requested debt inventory rebinds D007/D008 descriptions to accepted Stage10A/11A and current Stage12B evidence; neither item is closed. Six clean CP311 builds/probe-SDK evidence exist, while remaining release/version scopes and reconciliation of the historical41omissions remain open. After bounded D026 closure the index retains23open obligations:22DEFERRED and1OPEN(D013);5historical items are CLOSED.
+
+
+### 2026-11-04 — Stage12C observed scientific-boundary entry
+
+Previous goal turn completed ed1726d and its GitHub push; progress verified from
+current Git. Root aligns current goal, governance/stage/validation, main-plan
+Stage8B/12/Sections11/14, integrated requirements/Plan12 current precedence,
+D022/D023 and actual archived trajectories. Owned source is clean. The owner
+untracked quantitative rescore remains excluded. Root confirms phosphorus old
+fixture submits one SD step, and case21/root44's actual C28-Am54 contact first
+forms during post-O29-Am54 coordination relaxation. Fresh OBMol/session scientific
+equivalence is not established; numerical/runtime cause of33pairs stays unknown.
+
+Stage12C contracts/decisions.md releases only fixed45-slot phosphorus normal
+UFF public-workflow observations and bounded actual finding/control diagnosis.
+No threshold, method, model, public schema or native algorithm change. Inputs
+are15original retained input.smi files; missing corpus is not fabricated. Root
+freezes source/tests and6CP311natives at ed1726d under /tmp/hotpot_plan20/long/
+stage12c-scientific-20261104/freeze.json before actual execution. Local Sol/medium
+prepares the probe, local Sol/high inspects archived control, local Sol/medium
+explorer locates exact code/input contracts. Root retains scientific review,
+execution/apply/acceptance/Git. D022/D023 and all final gates remain open.
+
+
+### 2026-11-04 — Stage12C observed-contact regression application
+
+Root reviewed the isolated four-case test and literal61-Atom/72-Bond fixture.
+Apply both to the canonical forcefield tests, retaining archived selected
+coordinates/source identities without legacy-pickle conversion. Actual standard
+acceptance and rigid transforms reproduce C28–Am54 contact1.019069Angstrom versus
+1.408; patched stage controls preserve the finite observation and3-input
+denominator, default continuation and explicit middle-sample break. This is
+geometry/control evidence, not fresh engine or energy/gradient evidence. The
+local preparation passed4cases; two failed preparation attempts remain archived.
+Root rebinds unchanged production/6natives plus both new test files in
+freeze-with-contact-tests.json before source/installed focused verification.
+The fixed45-slot phosphorus experiment now proceeds under C1 unchanged.
+
+
+### 2026-11-04 — Stage12C first recorder failure and full-corpus release
+
+Canonical focused acceptance/contact/sample-control tests pass68/0fail/0skip
+in2.83s, with unchanged product/test/native bindings. Phosphorus source-attempt01
+records45failed slots in42.15s before any build3d/forcefield call: snapshot
+incorrectly reads removed Atom._attrs. Its historical stage label says
+operation_error; root diagnoses all45 as recorder errors, not chemistry errors.
+Original records remain unchanged. The local Sol/medium preparer owns only the
+probe repair and lightweight read/snapshot preflight; requested chemistry,
+seeds and budgets remain fixed before a new attempt.
+
+C4 now releases the complete current-source standard O0/Am187×3experiment,
+32workers/cores0–31, verified local CBond assets and existing100×100settings.
+Identity collector inspection confirms no unrelated owner content is read.
+No fixed success count, historical equality, installed-package or performance
+claim is implied. All eligibility, errors, observations and denominators remain.
+
+
+### 2026-11-04 — Stage12C actual phosphorus observations and terminal-role defect
+
+Both fixed45-slot normal UFF public-workflow runs complete with all12technical
+invariants per slot,84selected P sites, finite energy/geometry and quality45/45.
+Selected convergence43/45 and terminal45/45 remain distinct; each boundary retains
+2selected convergence warnings. Source/installed selected energy spans
+412.592–1086.203kJ/mol and RMS gradient0.918–2.984kJ/(mol*angstrom).
+All full trajectories survive. Root detects that ordinary optimizer never sets
+the terminal trajectory role, leaving90archives terminal_index=None despite
+actual epoch frames and terminal report fields. This is a demonstrated code
+omission, not a basis for imputing observations or rerunning a tuned algorithm.
+C5 releases only the owning optimizer/targeted-test correction and invalidates
+pre-fix terminal-publication claims before final source/installed delivery.
+
+Current full O0 completes546/561slots (15ineligible,0executionerrors), with
+quality545/546,1close-contact finding and107convergence-warning trials. Existing
+comparison tool verifies artifacts but excludes all561graph hashes; root uses
+actual business graph/H/coordinate comparison rather than forcing identity.
+All original outputs and exclusions remain preserved.
+
+
+### 2026-11-04 — Stage12C actual terminal-role correction and bounded acceptance
+
+The observed ordinary optimizer omission is corrected by designating each
+already recorded native epoch terminal; the actual final epoch remains terminal
+independently of selected best frame. No frame, calculation, numerical/native
+algorithm, threshold, public API or schema is added. Native6 remain unchanged.
+The local Sol/medium worker demonstrates13pre-fix regression failures then81pass
+with real public-UFF archive coverage across4starts×2movie modes. Root freezes
+1518source/test and6native bindings in freeze-final01.json before integration.
+
+Final35-file source selection passes640/0fail/0skip in36.59s. Real wheel/sdist
+member checks pass; all6acceptedCP311binaries are reused without new compilation,
+clean-native/SDK/sdist-build qualification. Fresh installed-final01 passes639and
+fails one source-private C++ inspection. That exact node passed in source; fresh
+installed-final02 excludes only it and passes639/0fail/0skip/1deselected in41.35s,
+611origin observations/0violations. Both installed sites have891identical files.
+The earlier launcher/installed failures and existing mock-overlap warning remain.
+Exact commands, origins and frozen-byte comparisons are in delivery-final01.
+
+Root repeats the original fixed15phosphorus inputs×seeds42/43/44 through normal
+public UFF/conjugate100×100/standard/movie under final source and actual final
+wheel outside checkout. Each returns45observations, all12graph/charge/H/history
+invariants and84selected/84terminalPsites. Existing neutral/four-neighbor/BOsum5/
+O-or-Sdouble/linear-collapse checks pass. Root independently checks selected and
+terminal array/archive/energy/gradient/convergence attribution across542stable
+artifacts. Both retain43selected/45terminal convergence and case47/44,53/42
+selected warnings; energies412.592–1086.203kJ/mol. Exact completed steps remain
+unavailable. OBBuilder ignores requested seed: no RNG-independence claim. Old
+one-step extreme values remain finite transport only. Source238.27s and
+installed242.85s are actual completed costs, without parity or speedup claim.
+Close P20-D023 only within this intended-use CP311 public-UFF evidence.
+
+Independent local Sol/high review inspects5536stable archived inputs, keeping
+the original all561hash-comparator exclusions. All182eligible physical graphs
+and H T/E/R inventories agree; only source-H transport was added. All546selected
+pairs have valid attribution,519exact and27changed across13cases;552provider
+build_complete arrays are exact. These Stage8B-to-Stage12C differences are not
+the earlier33B20-to-Stage8B pairs. Current545quality passes/1unchanged1.019069A
+C28-Am54contact,107convergence-warning trials,24undetermined ring trials and9
+incomplete scans remain. Cause stays unknown; historical/current wrapper bytes
+differ while model bytes agree. Root records P20-D022 as ACCEPTED_LIMITATION
+with explicit core-integrity/batch/method/monitor revalidation triggers, not a
+chemical truth, historical equality, fixed success-count or causal assertion.
+Four contact/control regressions retain finite observations and3inputs/3attempts/
+2outputs on explicit middle-sample break. This is measured geometry/control,
+not a fabricated fresh optimizer or energy run.
+
+The pre-marker-fix O0 numerical evidence remains valid for the unchanged native
+complete-complex route, which never calls the modified ordinary optimizer. Its
+561slots retain546complete/15ineligible/0executionerrors. Earlier actual12model
+and3official pipeline cases per source/installed boundary are reused within
+unchanged inference/GFN/xTB/complex-route dependencies; no new run is claimed.
+
+Root verifies8981archived payloads/569903858bytes and all final source/native
+bindings, accepts this bounded Stage12C checkpoint and preserves every original
+failure. Maintained checkpoint/report/evidence graph/root review index the raw
+archive .plan20-artifacts/20261104/stage12/scientific-hardening and its exact
+commands. Debt disposition is now20DEFERRED/1OPEN/6CLOSED/1ACCEPTED_LIMITATION.
+Whole Stage12, Stage11 D008/D028, consolidated cost/resources, other versions/
+release, Plan12, final report/B_exp and separate Stage13 remain open. The coherent
+terminal-role business commit containing this record is its delivery identity.

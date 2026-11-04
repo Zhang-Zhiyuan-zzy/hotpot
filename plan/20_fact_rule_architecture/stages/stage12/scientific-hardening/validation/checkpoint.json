@@ -1,0 +1,212 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12C",
+  "date": "2026-11-04",
+  "source_head_before_delivery": "ed1726d25b79d54804adec30037c245bca28fe43",
+  "issue_dispositions": {
+    "P20-D022": "ACCEPTED_LIMITATION",
+    "P20-D023": "CLOSED"
+  },
+  "change": "Publish actual ordinary-optimizer terminal trajectory role independently of selected frame; numerical/native algorithms, selected coordinates and public schemas unchanged.",
+  "freeze": {
+    "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/freeze-final01.json",
+    "sha256": "e9fb2d1c388ecb87a1a396c6c717c4144075a013700dad79c4b36801ecf0c840",
+    "source_test_bindings": 1518,
+    "cp311_native_bindings": 6
+  },
+  "source": {
+    "execution": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/runs/source-affected02/execution.json",
+    "counts": {
+      "failure": 0,
+      "error": 0,
+      "skipped": 0,
+      "total": 640,
+      "passed": 640
+    },
+    "elapsed_seconds": 36.59487178362906
+  },
+  "installed": {
+    "execution": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/installed-final02/test-execution.json",
+    "counts": {
+      "failure": 0,
+      "error": 0,
+      "skipped": 0,
+      "total": 639,
+      "passed": 639
+    },
+    "deselected": 1,
+    "deselected_node": "tests/test_cheminfo/forcefields/test_forcefield_native_placement.py::test_native_geometry_and_forcefield_responsibilities_are_separated",
+    "deselection_reason": "Reads repository-private C++ sources; passes in source; original installed failure retained.",
+    "elapsed_seconds": 41.35285680554807,
+    "origin_observations": 611,
+    "origin_violations": [],
+    "numerically_exercised_native_modules_in_pytest": 4,
+    "separate_all_six_native_load_check": true,
+    "identical_root_and_tested_install_files": 891
+  },
+  "packaging": {
+    "wheel": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/packaging-final01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+      "sha256": "c8fe086eaefd8e397d9620b8a7444723ec21b7eb2a4c7115a3bc5db53579373d",
+      "bytes": 6422767
+    },
+    "sdist": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/packaging-final01/dist/hotpot_zzy-0.5.4.5.tar.gz",
+      "sha256": "79d1110a90cc04c268e26d5cade391162132caedcbaf5ee2a73a5ccc6459d34f",
+      "bytes": 2157596
+    }
+  },
+  "native_scope": "Six unchanged accepted CP311 native binaries reused. No new compilation, clean-native, SDK, manylinux or sdist-rebuild qualification.",
+  "phosphorus": {
+    "source": {
+      "slots": 45,
+      "selected_P_sites": 84,
+      "terminal_P_sites": 84,
+      "quality_passes": 45,
+      "selected_converged": 43,
+      "terminal_converged": 45,
+      "distinct_selected_terminal_roles": 2,
+      "selected_energy_range_kj_mol": [
+        412.5923733269112,
+        1086.2030245534993
+      ],
+      "terminal_energy_range_kj_mol": [
+        412.5923733269112,
+        1086.2030245534993
+      ],
+      "manifest_elapsed_seconds": 238.27304724790156
+    },
+    "installed": {
+      "slots": 45,
+      "selected_P_sites": 84,
+      "terminal_P_sites": 84,
+      "quality_passes": 45,
+      "selected_converged": 43,
+      "terminal_converged": 45,
+      "distinct_selected_terminal_roles": 2,
+      "selected_energy_range_kj_mol": [
+        412.5923733269112,
+        1086.2030245534993
+      ],
+      "terminal_energy_range_kj_mol": [
+        412.5923733269112,
+        1086.2030245534993
+      ],
+      "manifest_elapsed_seconds": 242.85378283634782
+    }
+  },
+  "phosphorus_evidence": {
+    "summary": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/phosphorus/final-summary02/summary.json",
+    "selected_terminal_attribution": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/root-review/phosphorus-role-verification.json",
+    "attribution_consumed_artifacts": 542,
+    "all_twelve_semantic_invariants_each_slot": true,
+    "retained_nonconverged_selected_slots": [
+      [
+        47,
+        44
+      ],
+      [
+        53,
+        42
+      ]
+    ],
+    "seeds": [
+      42,
+      43,
+      44
+    ],
+    "seed_limit": "OBBuilder ignores requested sampling seed; no RNG-independence claim.",
+    "steps_completed": "Unavailable (None), not zero."
+  },
+  "O0": {
+    "actual_report": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/o0-full-source01/report.json",
+    "independent_review": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/o0-independent-review/review.json",
+    "denominators": {
+      "baseline": {
+        "attempted_trials": 546,
+        "case_count": 187,
+        "eligibility_counts": {
+          "eligible": 182,
+          "ineligible": 5
+        },
+        "execution_error_count": 0,
+        "trial_count": 561,
+        "trial_elapsed_seconds_sum": 4685.923557775095,
+        "trial_elapsed_unavailable_count": 0,
+        "trial_outcomes": {
+          "completed": 546,
+          "not_run_ineligible": 15
+        },
+        "unresolved_trials": 15
+      },
+      "current": {
+        "attempted_trials": 546,
+        "case_count": 187,
+        "eligibility_counts": {
+          "eligible": 182,
+          "ineligible": 5
+        },
+        "execution_error_count": 0,
+        "trial_count": 561,
+        "trial_elapsed_seconds_sum": 4728.348287740722,
+        "trial_elapsed_unavailable_count": 0,
+        "trial_outcomes": {
+          "completed": 546,
+          "not_run_ineligible": 15
+        },
+        "unresolved_trials": 15
+      },
+      "roster_cases": 187,
+      "roster_slots": 561,
+      "business_input_comparable_cases": 182,
+      "business_comparable_selected_pairs": 546,
+      "exact_selected_array_pairs": 519,
+      "changed_selected_array_pairs": 27
+    },
+    "provider_summary": {
+      "records": 552,
+      "paired": 552,
+      "unpaired": 0,
+      "same_graph_paired": 552,
+      "exact_array_paired": 552,
+      "changed_array_pairs": [],
+      "rmsd_all_paired_angstrom": {
+        "count": 552,
+        "min": 0.0,
+        "median": 0.0,
+        "mean": 0.0,
+        "p95": 0.0,
+        "max": 0.0
+      }
+    },
+    "current_quality_passed": 545,
+    "current_quality_failed": 1,
+    "current_convergence_warning_trials": 107,
+    "current_undetermined_relation_trials": 24,
+    "current_incomplete_ring_scan_trials": 9,
+    "cause": "Unknown downstream cause; historical/current wrapper binary identities differ.",
+    "historical_scope": "Earlier33B20-to-Stage8B differences and current27Stage8B-to-Stage12C differences are separate comparisons; no improvement or causal inference.",
+    "pre_fix_reuse": "O0 invokes the unchanged native complete-complex workflow, not modified ordinary optimizer. Pre-fix numerical evidence is retained without claiming terminal-marker validation there."
+  },
+  "retained_actual_model_pipeline_evidence": {
+    "index": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/retained-tiers.json",
+    "model_tests_each_boundary": 12,
+    "official_pipeline_tests_each_boundary": 3,
+    "new_model_or_engine_execution": false
+  },
+  "root_disposition": {
+    "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/root-review/scientific-disposition.json",
+    "sha256": "6a545869fe6d02aebe5a2c3172c58558f675c459a118523755965be5335b9ec3"
+  },
+  "remaining": [
+    "Whole Stage12 and Stage11 Decisions12/13/D028/D008",
+    "Consolidated cost/resources and applicable final scientific matrix",
+    "Other planned Python versions/platforms/release/native/SDK qualification",
+    "Integrated Plan12 final acceptance, final report and B_exp",
+    "Separate Stage13A/B after B_exp"
+  ],
+  "archive_transport": {
+    "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/transport-manifest.json",
+    "bytes": 6994633,
+    "sha256": "138aa0badb811d5935a2f5491c569ad193066c77c083cef62d0428117896591c"
+  }
+}

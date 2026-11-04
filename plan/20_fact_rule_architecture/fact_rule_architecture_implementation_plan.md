@@ -6,6 +6,7 @@ actual MCA workflows; Stage8D includes inference/conformer/artifact migration an
 actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
 assembly, local H/scaffold corrections and explicit exports/resources accepted;
 P20-D024 is closed. [Stage12B H representation](stages/stage12/hydrogen-representation/validation/checkpoint.json) closes P20-D026 within affected CP311 source/installed and rebuilt-RDKit-native scope.
+[Stage12C force-field science](stages/stage12/scientific-hardening/validation/checkpoint.json) accepts the ordinary terminal-frame publication fix and scoped phosphorus evidence; P20-D023 is closed and P20-D022 is an explicit accepted limitation.
 Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
 boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
@@ -2451,6 +2452,13 @@ accept the connected import/target/residual/materialization correction for P20-D
 within affected CP311 source/installed, rebuilt RDKit-native and actual model/workflow
 evidence, including intentional field14 and private-pickle effects. Independent Decisions12/13,
 final docs, other versions/release and global validation remain open.
+The [Stage12C checkpoint](stages/stage12/scientific-hardening/validation/checkpoint.json)
+accepts actual ordinary selected/terminal-frame publication, source640/installed639
+contracts and45+45public-UFF phosphorus observations. P20-D023 closes in that CP311
+scope; P20-D022 retains unknown downstream variation and monitor coverage as an
+explicit accepted limitation after physical-graph/array comparison. Historical
+one-step values, all561O0slots, findings and original exclusions remain. This
+supplies no whole-Stage12, final scientific/cost/version/release or B_exp closure.
 
 1. Replace wildcard exports with the approved `__all__` lists.
 2. Remove the top-level RDKit preload and verify lazy RDKit/Open Babel load

@@ -13,7 +13,10 @@ from hotpot.cheminfo.operations.forcefields import coordinates as coordinate_uti
 from hotpot.cheminfo.operations.forcefields import optimizer as optimizer_impl
 from hotpot.cheminfo.operations.forcefields import ff
 from hotpot.cheminfo.operations.forcefields import workflows
-from hotpot.cheminfo.operations.forcefields.trajectory import ForceFieldTrajectory
+from hotpot.cheminfo.operations.forcefields.trajectory import (
+    ForceFieldTrajectory,
+    ForceFieldTrajectoryArchive,
+)
 from hotpot.cheminfo.structure.forcefields import (
     OptimizationFrameEvidence,
     TrajectoryEvent,
@@ -258,7 +261,8 @@ def test_optimizer_forwards_native_controls_and_translates_report(monkeypatch):
     np.testing.assert_array_equal(molecule.coordinates, coordinates)
 
 
-def test_optimizer_maps_native_frames_to_shared_trajectory(monkeypatch):
+@pytest.mark.parametrize("start", tuple(TrajectoryStart))
+def test_optimizer_maps_native_frames_to_shared_trajectory(monkeypatch, start):
     frames = (
         _native_frame(np.full((2, 3), 3.0), 3.0, epoch_index=0),
         _native_frame(
@@ -299,7 +303,9 @@ def test_optimizer_maps_native_frames_to_shared_trajectory(monkeypatch):
     optimizer, _ = _optimizer(monkeypatch, result)
     molecule = _optimizer_molecule()
 
-    report, trajectory = _run_optimizer(optimizer, molecule)
+    trajectory = ForceFieldTrajectory.from_molecule(molecule, start=start)
+    report = optimizer.optimize(molecule, trajectory=trajectory)
+    trajectory.materialize(molecule, keep_all=True)
 
     assert tuple(frame.event for frame in trajectory) == (
         TrajectoryEvent.INITIAL,
@@ -324,6 +330,13 @@ def test_optimizer_maps_native_frames_to_shared_trajectory(monkeypatch):
     assert evidence[1].max_displacement_angstrom == pytest.approx(np.sqrt(12.0))
     assert evidence[2].converged is True
     assert trajectory.selected_index == 2
+    assert trajectory.terminal_index == 3
+    assert trajectory.selected_frame.energy_kj_mol == pytest.approx(report.best_energy)
+    assert trajectory.terminal_frame.energy_kj_mol == pytest.approx(report.final_energy)
+    assert trajectory.selected_frame.evidence.converged is report.converged is False
+    assert trajectory.terminal_frame.evidence.converged is report.terminal_converged is True
+    np.testing.assert_array_equal(trajectory.coordinates(trajectory.selected_index), result.coordinates)
+    np.testing.assert_array_equal(trajectory.coordinates(trajectory.terminal_index), result.terminal_coordinates)
     assert report.best_epoch == 1
     assert molecule.conformers_number == 4
     assert molecule._source_frames == ()
@@ -388,7 +401,15 @@ def test_optimizer_forwards_stopping_and_seeded_perturbation_controls(monkeypatc
     )
 
 
-def test_unrecorded_stage_does_not_request_or_materialize_native_frames(monkeypatch):
+@pytest.mark.parametrize(
+    ("start", "stage"),
+    (
+        (TrajectoryStart.FINAL_OPTIMIZATION, TrajectoryStage.LIGAND_BUILD),
+        (TrajectoryStart.FINAL_OPTIMIZATION, TrajectoryStage.COMPLEX_UNTANGLING),
+        (TrajectoryStart.COORDINATION_RESTORATION, TrajectoryStage.LIGAND_BUILD),
+    ),
+)
+def test_unrecorded_stage_does_not_request_or_materialize_native_frames(monkeypatch, start, stage):
     selected = np.full((2, 3), 2.0)
     result = _native_result(
         coordinates=selected,
@@ -400,19 +421,18 @@ def test_unrecorded_stage_does_not_request_or_materialize_native_frames(monkeypa
     )
     optimizer, calls = _optimizer(monkeypatch, result)
     molecule = _optimizer_molecule()
-    trajectory = ForceFieldTrajectory.from_molecule(
-        molecule,
-        start=TrajectoryStart.FINAL_OPTIMIZATION,
-    )
+    trajectory = ForceFieldTrajectory.from_molecule(molecule, start=start)
 
     report = optimizer.optimize(
         molecule,
         trajectory=trajectory,
-        trajectory_stage=TrajectoryStage.LIGAND_BUILD,
+        trajectory_stage=stage,
     )
 
     assert calls[0][2]["retain_frames"] is False
     assert len(trajectory) == 0
+    assert trajectory.selected_index is None
+    assert trajectory.terminal_index is None
     assert molecule.conformers_number == 0
     assert molecule._source_frames == ()
     assert molecule._conformer_results == ()
@@ -446,6 +466,11 @@ def test_initial_frame_sentinel_selects_the_preoptimization_structure(monkeypatc
     report, trajectory = _run_optimizer(optimizer, molecule)
 
     assert trajectory.selected_index == 0
+    assert trajectory.terminal_index == 1
+    assert trajectory.terminal_frame.energy_kj_mol is None
+    assert trajectory.terminal_frame.evidence.finite_coordinates is False
+    assert trajectory.terminal_frame.evidence.finite_energy is False
+    np.testing.assert_array_equal(trajectory.coordinates(trajectory.terminal_index), result.terminal_coordinates)
     assert report.best_epoch == -1
     assert report.selected_segment_epochs_completed == 0
     np.testing.assert_array_equal(molecule.coordinates, initial)
@@ -521,6 +546,11 @@ def test_native_setup_failure_is_translated_to_public_diagnostics(
     with pytest.raises(ff.ForceFieldSetupError) as caught:
         optimizer.optimize(molecule, trajectory=trajectory)
 
+    assert len(trajectory) == 1
+    assert trajectory[0].event is TrajectoryEvent.INITIAL
+    assert trajectory[0].energy_kj_mol is None
+    assert trajectory.selected_index is None
+    assert trajectory.terminal_index is None
     assert caught.value.report == ff.ForceFieldSetupReport(
         requested_forcefield="MMFF94s",
         effective_forcefield="MMFF94s",
@@ -737,3 +767,52 @@ def test_organic_build_and_optimize_integration():
     assert report.optimization.epochs_completed <= 2
     assert len(molecule.atoms) == 9
     assert np.all(np.isfinite(molecule.coordinates))
+
+
+@pytest.mark.parametrize("save_movie", (False, True))
+@pytest.mark.parametrize("trajectory_start", tuple(TrajectoryStart))
+def test_public_uff_trajectory_attributes_terminal_native_observation(
+    monkeypatch, tmp_path, save_movie, trajectory_start,
+):
+    native_optimize = optimizer_impl._native_optimize
+    native_results = []
+
+    def capture_native_result(*args, **kwargs):
+        result = native_optimize(*args, **kwargs)
+        native_results.append(result)
+        return result
+
+    monkeypatch.setattr(optimizer_impl, "_native_optimize", capture_native_result)
+    molecule = read_mol("CCO", "smi")
+    archive_path = tmp_path / "trajectory"
+
+    report = molecule.build3d(
+        forcefield="UFF", epochs=3, steps_per_epoch=20, seed=7,
+        save_movie=save_movie, trajectory_start=trajectory_start,
+        trajectory_path=archive_path,
+    )
+
+    assert len(native_results) == 1
+    native_result = native_results[0]
+    trajectory = report.trajectory.main
+    terminal = trajectory.terminal_frame
+    assert trajectory.terminal_index == len(trajectory) - 1
+    assert terminal.event is TrajectoryEvent.EPOCH_COMPLETE
+    assert terminal.energy_kj_mol == pytest.approx(report.optimization.final_energy)
+    assert terminal.evidence.converged is report.optimization.terminal_converged
+    np.testing.assert_array_equal(
+        trajectory.coordinates(trajectory.terminal_index), native_result.terminal_coordinates,
+    )
+    np.testing.assert_array_equal(
+        trajectory.coordinates(trajectory.selected_index), native_result.coordinates,
+    )
+    np.testing.assert_array_equal(molecule.coordinates, native_result.coordinates)
+    assert molecule.energy == pytest.approx(report.optimization.best_energy)
+    assert molecule.conformers_number == (len(trajectory) if save_movie else 1)
+    restored = ForceFieldTrajectoryArchive.read(archive_path).main
+    assert restored.terminal_index == trajectory.terminal_index
+    assert restored.selected_index == trajectory.selected_index
+    assert restored.terminal_frame == terminal
+    np.testing.assert_array_equal(
+        restored.coordinates(restored.terminal_index), native_result.terminal_coordinates,
+    )

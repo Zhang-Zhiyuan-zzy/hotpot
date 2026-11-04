@@ -1,0 +1,163 @@
+{
+  "entry": "report.md",
+  "nodes": {
+    "contract": {
+      "path": "../contracts/decisions.md",
+      "purpose": "Expected facts, fixed protocols and explicit root dispositions"
+    },
+    "freeze": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/freeze-final01.json",
+      "bytes": 193985,
+      "sha256": "e9fb2d1c388ecb87a1a396c6c717c4144075a013700dad79c4b36801ecf0c840"
+    },
+    "source": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/runs/source-affected02/execution.json",
+      "bytes": 393066,
+      "sha256": "dec916badf0b912e2e954a88c547bcc842389c5c1e93fab28cdaa7179dfae39a"
+    },
+    "package": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/archives.json",
+      "bytes": 3244,
+      "sha256": "bb6fe79614e4bf6da320faa878892a4cfa7dbe829dc4ca23901e6bca50c6a6c5"
+    },
+    "installed": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/installed-final02/test-execution.json",
+      "bytes": 780399,
+      "sha256": "d9198001f9ca6903d6c1bbaf9a43a23deffd7122ad53076aee6b3b6e05d4c619"
+    },
+    "phosphorus_source": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/phosphorus/source-final01/manifest.json",
+      "bytes": 250077,
+      "sha256": "51414f547cd7c45170a41b13003b58de78ec2170fbe76e5d4faaf51ee86f47e5"
+    },
+    "phosphorus_installed": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/phosphorus/installed-final01/manifest.json",
+      "bytes": 242634,
+      "sha256": "b828214f8e80c5638897e24e1c4ddbe9b327d2c4c1506785238118f44847d7cc"
+    },
+    "phosphorus_summary": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/phosphorus/final-summary02/summary.json",
+      "bytes": 4356760,
+      "sha256": "62cf909df1463bc0007fa2ecbf32e0c2ee6b44955f4c89d9dd906d85010e13e4"
+    },
+    "selected_terminal_roles": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/root-review/phosphorus-role-verification.json",
+      "bytes": 167674,
+      "sha256": "bf73a49d1dc8cf7fc6a71762ed1c2079110416e8efae42c6395161c979b1a096"
+    },
+    "O0": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/o0-full-source01/report.json",
+      "bytes": 60416052,
+      "sha256": "ca8883fe733f3765377599d11be494d91a6eaa3060e796fc17625fb0972a51fc"
+    },
+    "original_comparator": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/o0-stage8b-comparison01/comparison.json",
+      "bytes": 12354027,
+      "sha256": "5bbbbcb350cf381430a3b84b25141f3f2e2419c3472b8413af311a6c31d6b226"
+    },
+    "physical_comparison": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/o0-independent-review/review.json",
+      "bytes": 33491558,
+      "sha256": "bf2ac0a84ab96883ac98dba2937f2169794ce6990381c23a47cfe5b6a3985143"
+    },
+    "retained_actual_tiers": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/delivery-final01/retained-tiers.json",
+      "bytes": 2657,
+      "sha256": "d703349a0be55a65a10a82ca9add045238f049973ab1d6d3cdff47cdff2aecb8"
+    },
+    "root_disposition": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/root-review/scientific-disposition.json",
+      "bytes": 11524,
+      "sha256": "6a545869fe6d02aebe5a2c3172c58558f675c459a118523755965be5335b9ec3"
+    },
+    "transport_manifest": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/transport-manifest.json",
+      "bytes": 6994633,
+      "sha256": "138aa0badb811d5935a2f5491c569ad193066c77c083cef62d0428117896591c"
+    },
+    "root_acceptance": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/acceptance/root-verification.json",
+      "sha256": "1a0858ee3f8d2668a3cf13c96a9f1f98c24e750cb76ab73a94b87b1d51e9c30b"
+    }
+  },
+  "edges": [
+    [
+      "contract",
+      "freeze"
+    ],
+    [
+      "freeze",
+      "source"
+    ],
+    [
+      "freeze",
+      "package"
+    ],
+    [
+      "package",
+      "installed"
+    ],
+    [
+      "source",
+      "phosphorus_source"
+    ],
+    [
+      "installed",
+      "phosphorus_installed"
+    ],
+    [
+      "phosphorus_source",
+      "phosphorus_summary"
+    ],
+    [
+      "phosphorus_installed",
+      "phosphorus_summary"
+    ],
+    [
+      "phosphorus_summary",
+      "selected_terminal_roles"
+    ],
+    [
+      "O0",
+      "original_comparator"
+    ],
+    [
+      "O0",
+      "physical_comparison"
+    ],
+    [
+      "physical_comparison",
+      "root_disposition"
+    ],
+    [
+      "selected_terminal_roles",
+      "root_disposition"
+    ],
+    [
+      "retained_actual_tiers",
+      "root_disposition"
+    ],
+    [
+      "root_disposition",
+      "root_acceptance"
+    ],
+    [
+      "transport_manifest",
+      "root_acceptance"
+    ]
+  ],
+  "archive": ".plan20-artifacts/20261104/stage12/scientific-hardening",
+  "temp_to_archive_prefix": {
+    "source": "/tmp/hotpot_plan20/long/stage12c-scientific-20261104",
+    "destination": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw"
+  },
+  "retained_failures": [
+    "contact-regression/attempt01",
+    "contact-regression/attempt02",
+    "phosphorus/source-attempt01",
+    "terminal-fix/regression-before",
+    "delivery-final01/runs/source-affected01",
+    "delivery-final01/installed-final01"
+  ],
+  "scope": "Artifact digests establish identity/transport, not chemical truth. Numerical variation, warnings, failures and original denominators retained."
+}

@@ -15,5 +15,5 @@
 """
 from .train import LightPretrain
 from .run import run
-from .datacls import *
+from .datacls import merge_dataclass, RunArgs, DataModuleArgs, ConfigArgs
 from .cv import run_cv

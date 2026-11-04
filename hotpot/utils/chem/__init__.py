@@ -1,1 +1,1 @@
-from .atom import *
+from .atom import calc_electron_config

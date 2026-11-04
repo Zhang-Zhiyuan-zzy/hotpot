@@ -12,8 +12,29 @@ import shutil
 import matplotlib as mpl
 
 from .plotter import SciPlotter
-from .plots import *
-from .colors import *
+from .plots import (
+    Hist,
+    BayesDesignSpaceMap,
+    R2Regression,
+    FeatureImportance,
+    HierarchicalTree,
+    PearsonMatrix,
+    Pearson,
+    SciPlotter,
+    EmbeddingDataTo2dMap,
+    ConfusionMatrix,
+    ROCCurve,
+    DETCurve,
+    PrecisionRecallCurve,
+    MultiClassROCCurve,
+    SHAPlot,
+    Plot,
+    general,
+    beyes,
+    ml,
+    base,
+)
+from .colors import create_saturation_colormap, register_cmap_to_hotpot, load_defined_cmap
 
 
 def refresh_cache():

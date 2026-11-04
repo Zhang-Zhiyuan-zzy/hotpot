@@ -1,0 +1,314 @@
+{
+  "status": "EXPLICIT_PACKAGE_EXPORT_MIGRATION_AFFECTED_CP311_CHECKS_ACCEPTED_OPTIONAL_RUNTIME_OPEN",
+  "base_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "change": {
+    "package_initializers": 10,
+    "wildcard_imports_replaced": 20,
+    "current_package_wildcards": 0,
+    "remaining_allowlist_entries": 0,
+    "new_all_narrowing": false,
+    "algorithms_models_native_inputs_changed": false
+  },
+  "source_targets": {
+    "hotpot/plugins/ComplexFormer/data_process/sc_logk/__init__.py": {
+      "bytes": 489,
+      "sha256": "902af907b42ee87eb1192c1bd3fbee8c1e21f37dd44f99d6e14146c0f794548c"
+    },
+    "hotpot/plugins/ComplexFormer/models/__init__.py": {
+      "bytes": 1356,
+      "sha256": "01e2bfa03bfa0f47026e0112e0b724e0ce346c298bbdd1015290bbab389d1730"
+    },
+    "hotpot/plugins/ComplexFormer/models/core/__init__.py": {
+      "bytes": 688,
+      "sha256": "57dd04b1367ac0283935e64170d2ffa18e8d71fe1b7aee4442fe4ee765c40186"
+    },
+    "hotpot/plugins/ComplexFormer/run/__init__.py": {
+      "bytes": 571,
+      "sha256": "d3636c28d975ec7067af5d28c390997f3aa7025c4428d18a28a28edfd7f82fc6"
+    },
+    "hotpot/plugins/ComplexFormer/tasks/__init__.py": {
+      "bytes": 174,
+      "sha256": "6f858663ddbabd88148d038a4a4390c44c621a52ca1ce2b48d21a020ed4bd5f6"
+    },
+    "hotpot/plugins/plots/__init__.py": {
+      "bytes": 1314,
+      "sha256": "1072998a891712080d26e755491cae6d420a68ec23379cad509c6d7e069f06ca"
+    },
+    "hotpot/plugins/plots/plots/__init__.py": {
+      "bytes": 478,
+      "sha256": "b920f40125dd8fb5c95a06a5db2df70666d2fd84a60e7eb8cb8231a302d71c77"
+    },
+    "hotpot/plugins/zeoxx/__init__.py": {
+      "bytes": 772,
+      "sha256": "b8682dd613412b836ffcf3fcb993385a86d57f8e5ac1cb89ffb49f02d16dfce6"
+    },
+    "hotpot/utils/chem/__init__.py": {
+      "bytes": 39,
+      "sha256": "e66478a15294268845047cb0157b7401b1e12fdc95bfb31ba6c7ea0496e8403d"
+    },
+    "hotpot/utils/configs/__init__.py": {
+      "bytes": 492,
+      "sha256": "4bc34480d0fb2c193053cbd7c0dd35bd48deb4e86a1ba293b556860e41f77caf"
+    },
+    "plan/20_fact_rule_architecture/architecture_allowlist.json": {
+      "bytes": 13189,
+      "sha256": "cc64a082cc901cc5e7226807bae1bccde9d3b25b9bbe371f98ce9e59d6659e11"
+    }
+  },
+  "new_test": {
+    "path": "tests/test_plugin/test_explicit_package_exports.py",
+    "bytes": 6206,
+    "sha256": "8ef1e8d67e1dcd0e866c3cc987f2d0e02d05eee8547291045d3350d49f780393"
+  },
+  "architecture": {
+    "status": "passed",
+    "remaining_debt": 0,
+    "package_initializers_ast_checked": 99
+  },
+  "runtime": {
+    "existing-tests": {
+      "passed": 294,
+      "failed": 0,
+      "skipped": 1,
+      "returncode": 0,
+      "argv": [
+        "taskset",
+        "-c",
+        "72-127",
+        "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "-s",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "-o",
+        "cache_dir=/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests/pytest-cache",
+        "--junitxml=/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests/junit.xml",
+        "--basetemp=/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests/pytest-temp",
+        "-p",
+        "source_origins",
+        "-p",
+        "outcomes_plugin",
+        "-ra",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_plugin/test_zeopp.py",
+        "tests/test_cheminfo/test_elements.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cli/test_run_cli.py"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/observer:/home/zhangzhiyuan/hotpot",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HOTPOT_EXPECTED_PRODUCT": "/home/zhangzhiyuan/hotpot/hotpot",
+        "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests/process-origins",
+        "HOTPOT_RUN_OUTPUT": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests",
+        "HOTPOT_ARCHITECTURE_BASE_REF": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+        "HOTPOT_MODEL_SOURCE": "local",
+        "HF_HUB_OFFLINE": "1",
+        "HF_DATASETS_OFFLINE": "1",
+        "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+        "MPLBACKEND": "Agg",
+        "MPLCONFIGDIR": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests/cache/mpl",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests/tmp",
+        "XDG_CACHE_HOME": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/existing-tests/cache",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "elapsed_seconds_correctness_only": 19.317826369777322
+    },
+    "new-optional-tests": {
+      "passed": 4,
+      "failed": 6,
+      "skipped": 0,
+      "returncode": 1,
+      "argv": [
+        "taskset",
+        "-c",
+        "72-127",
+        "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "-s",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "-o",
+        "cache_dir=/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests/pytest-cache",
+        "--junitxml=/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests/junit.xml",
+        "--basetemp=/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests/pytest-temp",
+        "-p",
+        "source_origins",
+        "-p",
+        "outcomes_plugin",
+        "-ra",
+        "--run-optional",
+        "tests/test_plugin/test_explicit_package_exports.py"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/observer:/home/zhangzhiyuan/hotpot",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "HOTPOT_EXPECTED_PRODUCT": "/home/zhangzhiyuan/hotpot/hotpot",
+        "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests/process-origins",
+        "HOTPOT_RUN_OUTPUT": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests",
+        "HOTPOT_ARCHITECTURE_BASE_REF": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+        "HOTPOT_MODEL_SOURCE": "local",
+        "HF_HUB_OFFLINE": "1",
+        "HF_DATASETS_OFFLINE": "1",
+        "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+        "MPLBACKEND": "Agg",
+        "MPLCONFIGDIR": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests/cache/mpl",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests/tmp",
+        "XDG_CACHE_HOME": "/tmp/hotpot_plan20/long/stage12-final-exports-20261104/implementation01/new-optional-tests/cache",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1"
+      },
+      "elapsed_seconds_correctness_only": 21.041419867426157
+    }
+  },
+  "old_wheel_source_comparison": [
+    {
+      "target": "hotpot.plugins.ComplexFormer.data_process.sc_logk",
+      "old_status": "imported",
+      "new_status": "imported",
+      "old_exception": null,
+      "new_exception": null,
+      "namespace_exact": true,
+      "namespace_order_exact": true,
+      "same_exception_type_and_message": null,
+      "source_leaf_identity": true
+    },
+    {
+      "target": "hotpot.plugins.ComplexFormer.models",
+      "old_status": "failed",
+      "new_status": "failed",
+      "old_exception": "No module named 'lightning'",
+      "new_exception": "No module named 'lightning'",
+      "namespace_exact": null,
+      "namespace_order_exact": null,
+      "same_exception_type_and_message": true,
+      "source_leaf_identity": null
+    },
+    {
+      "target": "hotpot.plugins.ComplexFormer.models.core",
+      "old_status": "failed",
+      "new_status": "failed",
+      "old_exception": "No module named 'lightning'",
+      "new_exception": "No module named 'lightning'",
+      "namespace_exact": null,
+      "namespace_order_exact": null,
+      "same_exception_type_and_message": true,
+      "source_leaf_identity": null
+    },
+    {
+      "target": "hotpot.plugins.ComplexFormer.run",
+      "old_status": "failed",
+      "new_status": "failed",
+      "old_exception": "No module named 'sklearn'",
+      "new_exception": "No module named 'sklearn'",
+      "namespace_exact": null,
+      "namespace_order_exact": null,
+      "same_exception_type_and_message": true,
+      "source_leaf_identity": null
+    },
+    {
+      "target": "hotpot.plugins.ComplexFormer.tasks",
+      "old_status": "failed",
+      "new_status": "failed",
+      "old_exception": "No module named 'lightning'",
+      "new_exception": "No module named 'lightning'",
+      "namespace_exact": null,
+      "namespace_order_exact": null,
+      "same_exception_type_and_message": true,
+      "source_leaf_identity": null
+    },
+    {
+      "target": "hotpot.plugins.plots",
+      "old_status": "failed",
+      "new_status": "failed",
+      "old_exception": "No module named 'shap'",
+      "new_exception": "No module named 'shap'",
+      "namespace_exact": null,
+      "namespace_order_exact": null,
+      "same_exception_type_and_message": true,
+      "source_leaf_identity": null
+    },
+    {
+      "target": "hotpot.plugins.plots.plots",
+      "old_status": "failed",
+      "new_status": "failed",
+      "old_exception": "No module named 'shap'",
+      "new_exception": "No module named 'shap'",
+      "namespace_exact": null,
+      "namespace_order_exact": null,
+      "same_exception_type_and_message": true,
+      "source_leaf_identity": null
+    },
+    {
+      "target": "hotpot.plugins.zeoxx",
+      "old_status": "imported",
+      "new_status": "imported",
+      "old_exception": null,
+      "new_exception": null,
+      "namespace_exact": true,
+      "namespace_order_exact": true,
+      "same_exception_type_and_message": null,
+      "source_leaf_identity": true
+    },
+    {
+      "target": "hotpot.utils.chem",
+      "old_status": "imported",
+      "new_status": "imported",
+      "old_exception": null,
+      "new_exception": null,
+      "namespace_exact": true,
+      "namespace_order_exact": true,
+      "same_exception_type_and_message": null,
+      "source_leaf_identity": true
+    },
+    {
+      "target": "hotpot.utils.configs",
+      "old_status": "imported",
+      "new_status": "imported",
+      "old_exception": null,
+      "new_exception": null,
+      "namespace_exact": true,
+      "namespace_order_exact": true,
+      "same_exception_type_and_message": null,
+      "source_leaf_identity": true
+    }
+  ],
+  "optional_import_successes": 4,
+  "optional_imports_missing_environment": 6,
+  "baseline_wheel": {
+    "path": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+    "bytes": 7373644,
+    "sha256": "31ca3d416683603a4731788efe79d2206b92e9b9b5dec93d0c0848baff12d583"
+  },
+  "guards": {
+    "finite_existing_source_inputs": 1571,
+    "baseline_installed_site_files": 903,
+    "outside_scope_mismatches": [],
+    "baseline_site_mismatches": []
+  },
+  "root_review_utc": "2026-11-04T05:28:49.604044+00:00",
+  "archive": ".plan20-artifacts/20261104/stage12/final-explicit-package-exports",
+  "limits": [
+    "Six actual optional tests failed on preexisting missing lightning/sklearn/shap dependencies, exactly as the old wheel. They are unavailable evidence, not passes.",
+    "Four actual imported facades cover five of twenty changed imports; successful later execution of fifteen optional imports remains unobserved here.",
+    "This import-only migration preserves existing names, overwrite order and transitive aliases; it adds no __all__ narrowing, chemistry algorithm, new fallback or native/model change.",
+    "Original six failures and all exact observations are retained. External-engine skip remains unexecuted.",
+    "Prior full source, installed and workflow results retain their original source/wheel. Final-source packaging and affected installed/version checks remain required.",
+    "No final native/GPU/scientific/performance/main-scope acceptance or B_exp follows from these checks."
+  ],
+  "archive_manifest_sha256": "1f9f61adb9ad03f83e109840d8e86c9223cfa9d8f7987ef7c3036205f76d3f44",
+  "archive_payloads": 470,
+  "archive_bytes": 10944520
+}

@@ -1,0 +1,127 @@
+{
+  "status": "SCOPED_API_OWNERSHIP_RECONCILIATION_ACCEPTED_FINAL_WILDCARD_GATE_OPEN",
+  "source_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "review_scope": {
+    "historical_types": 384,
+    "families": 43,
+    "guarded_inputs": 560,
+    "durable_fact_domains": 16,
+    "root_exports": 31
+  },
+  "current_census": {
+    "python_files": 504,
+    "classes": 770,
+    "dataclasses": 355,
+    "protocols_direct_leaf": 8,
+    "protocols_generic_additional": 4,
+    "typed_dicts": 2
+  },
+  "wildcard_final_gate": {
+    "status": "OPEN",
+    "remaining_allowed_package_imports": 20,
+    "criterion": "Main Sections6.3 and14.7 require an empty final allowlist; passing current ratchet alone is insufficient.",
+    "next_step": "Bounded explicit-export preparation; current frozen business/native executions continue with attributed source."
+  },
+  "audited_family_dispositions": {
+    "D07": {
+      "decision": "RETAIN_RING_EDGE_DISTANCE_WITH_ACTUAL_PRODUCER",
+      "decision_authority": "Root under existing approved protected public contract; no signature or schema change.",
+      "owner": "hotpot.cheminfo.adapters.structure.geometry.RingEdgeDistance",
+      "producer": "hotpot.cheminfo.operations.geometry.closest_edge_to_bond",
+      "business_test": "tests/test_cheminfo/test_geometry_core_integration.py::test_ring_facades_preserve_sources_and_same_molecule_validation",
+      "observed_contract": "Actual Ring.closest_edge_to_bond yields RingEdgeDistance retaining the exact ring Bond and mathematical measurement, with approx1.0 distance fixture and foreign-owner rejection.",
+      "evidence": "Already-passed source02 and installed default; no new run or producer introduced.",
+      "review_addendum": "Sealed review01 located historical retention but missed existing current producer. Root directly inspected connected producer and test; original review is retained unchanged.",
+      "reduction_credit": 0
+    },
+    "D09": {
+      "decision": "RETAIN_EXISTING_PUBLIC_PROCESS_RECORDS_AND_FIELD_SCHEMAS",
+      "decision_authority": "Root approves retention under main14.14; scope audit Section8 permits retention/adjustment and budget excludes unrelated plugin records from precredited reduction.",
+      "owners": [
+        "hotpot.plugins._harness.contracts.NativeProcessResult",
+        "hotpot.plugins._harness.contracts.ProcessProvenance",
+        "hotpot.plugins.xtb.contracts.XTBRunReport"
+      ],
+      "roles": [
+        "Completed generic process observation with no backend semantics.",
+        "Executable and artifact content-bound immutable historical lineage built from that process.",
+        "xTB method/task/state/convergence/artifact/commit report read by plugin adapters, CLI and pipelines."
+      ],
+      "repeated_fields": [
+        "argv",
+        "cwd",
+        "return_code",
+        "stdout",
+        "stderr",
+        "elapsed_seconds"
+      ],
+      "construction": "run_process creates one process observation; build_process_provenance snapshots its exact fields with executable/artifacts; _build_report reuses the process fields and the provenance. Strings/tuples are shared immutable values; no second mutable molecular-fact owner is introduced.",
+      "public_consumers": [
+        "XTBRunReport.argv in xTB artifact adapter",
+        "XTBRunReport.stdout/stderr in CLI and stage native logs",
+        "NativeProcessResult in backend probe and error attribution",
+        "ProcessProvenance in report lineage"
+      ],
+      "limit": "Repeated field schemas remain. External callers can independently construct immutable records; this disposition claims no enforced arbitrary-constructor equivalence or field consolidation.",
+      "dataclass_reduction_credit": 0,
+      "field_reduction_credit": 0,
+      "implementation_change": "None; approved existing constructors/field order/JSON and plugin consumers retained."
+    }
+  },
+  "supplemental_source_inputs": {
+    "hotpot/plugins/_harness/contracts.py": {
+      "bytes": 1292,
+      "sha256": "84e46191cefd05a859b2505d1364efd8f40269775360db6eed5b28c721e666e6"
+    },
+    "hotpot/plugins/_harness/process.py": {
+      "bytes": 1453,
+      "sha256": "a31150029f487819d995fb41234ad8c7311acaa944ddb67df7da6230b78c1288"
+    },
+    "hotpot/plugins/_harness/provenance.py": {
+      "bytes": 1367,
+      "sha256": "863406c63e2e4bbb7a208615f82358a46ec3694b90f8dc7794a6bd0844102525"
+    },
+    "hotpot/plugins/xtb/contracts.py": {
+      "bytes": 5489,
+      "sha256": "c434f79907b377c4b4d5372986c81c0353af77630bbf830576e48a5c0c639e88"
+    },
+    "hotpot/plugins/xtb/runner.py": {
+      "bytes": 5071,
+      "sha256": "2f239acebf3b372737b01fcccda91b06313f5a1de510f5925dbd6d622618f29e"
+    },
+    "hotpot/plugins/xtb/adapter.py": {
+      "bytes": 15564,
+      "sha256": "1681c2bb05069e2c93a60f045e4e017bf8ddfb782b501f842464aeb0d8517a2b"
+    },
+    "hotpot/plugins/xtb/cli.py": {
+      "bytes": 20342,
+      "sha256": "14c6e218b1bb6b3182dc5d9a0618d31753d0355d13c5354b14f7472620c1b95b"
+    },
+    "hotpot/cheminfo/adapters/structure/geometry.py": {
+      "bytes": 33272,
+      "sha256": "b2d429b11b8078044e87f1845ec1ac7ab29193b63076206613b3bb528f161d9a"
+    },
+    "hotpot/cheminfo/operations/geometry.py": {
+      "bytes": 7428,
+      "sha256": "8883ec5d550d58e9d57b42eb6fdfd0f61d518c951c1801caec00cccf342e2672"
+    },
+    "tests/test_cheminfo/test_geometry_core_integration.py": {
+      "bytes": 3947,
+      "sha256": "8795fdf060cfd3e7c4e8f53ffea4566031fb14f8a8ae4046b3b0eb7406448a3c"
+    },
+    "tests/test_cheminfo/geometry/test_native_migration_characterization.py": {
+      "bytes": 3460,
+      "sha256": "a8d8c2e55d991f2f2ddf1ea72d546f827678161b5bf26ec90790e809c516c92e"
+    }
+  },
+  "root_review_utc": "2026-11-04T05:12:13.327579+00:00",
+  "limits": [
+    "Static role/owner/signature reconciliation plus reused owning runtime evidence; no fresh runtime exercise of every public member.",
+    "Current source CP311 and historical source/installed/native evidence retain original boundaries.",
+    "Final wildcard, complete current wheel/workflow/version/GPU/science/performance/Plan12/report/B_exp gates stay open."
+  ],
+  "archive": ".plan20-artifacts/20261104/stage12/final-api-reconciliation",
+  "archive_manifest_sha256": "46c67902b9d3f71030a0a3a20fff8086ac240aa865df848b3b5c01b51d8082f6",
+  "archive_payloads": 32,
+  "archive_bytes": 4492546
+}

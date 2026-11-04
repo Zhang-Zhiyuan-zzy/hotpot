@@ -59,3 +59,12 @@ Consolidated cross-stage optimization and deferred-item review use the
 
 - [Final delivery and full-default continuation](final-delivery/README.md)
 - [Accepted focused corrections](final-delivery/validation/corrections.json)
+
+- [Final CP311 full source/default](final-delivery/validation/source-default.json)
+- [Published source documentation examples](final-delivery/validation/documentation.json)
+
+- [Installed CP311 default with preserved support repair](final-delivery/validation/installed-default.json)
+- [Final API/family reconciliation and identified wildcard gap](final-delivery/validation/api-reconciliation.json)
+- [Final installed actual workflows and documentation](final-delivery/validation/installed-workflows.json)
+
+- [Explicit package exports and optional-runtime limits](final-delivery/validation/explicit-package-exports.json)

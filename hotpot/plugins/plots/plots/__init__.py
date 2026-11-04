@@ -6,7 +6,21 @@ python v3.9.0
 @Data   : 2024/10/19
 @Time   : 9:14
 """
-from .general import *
-from .beyes import *
-from .ml import *
-from .base import *
+from .general import Hist
+from .beyes import BayesDesignSpaceMap
+from .ml import (
+    R2Regression,
+    FeatureImportance,
+    HierarchicalTree,
+    PearsonMatrix,
+    Pearson,
+    SciPlotter,
+    EmbeddingDataTo2dMap,
+    ConfusionMatrix,
+    ROCCurve,
+    DETCurve,
+    PrecisionRecallCurve,
+    MultiClassROCCurve,
+    SHAPlot,
+)
+from .base import Plot

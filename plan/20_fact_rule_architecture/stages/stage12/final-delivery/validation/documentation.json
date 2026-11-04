@@ -1,0 +1,83 @@
+{
+  "status": "SIX_PUBLISHED_SOURCE_DOCUMENTATION_FILES_ACCEPTED_UNCHANGED_AT_FINAL_FREEZE",
+  "actual_execution_commit": "0233d84a5a6d90d954c206f44009b4fb46cdb59e",
+  "rebound_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "rebind": {
+    "unchanged_source_support_files": 1548,
+    "unchanged_native_files": 6,
+    "unchanged_original_model_files": 88,
+    "changed_outside_scope_paths": [
+      "plan/20_fact_rule_architecture/architecture_allowlist.json",
+      "plan/20_fact_rule_architecture/implementation_log.md",
+      "plan/20_fact_rule_architecture/stages/stage12/README.md",
+      "plan/20_fact_rule_architecture/stages/stage12/final-delivery/README.md",
+      "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/corrections.json",
+      "tests/test_cheminfo/structure/test_adapter_boundaries.py",
+      "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+      "tests/test_plugin/test_xtb/test_sample_failure_identity.py"
+    ]
+  },
+  "results": {
+    "passed": 201,
+    "failed": 0,
+    "skipped": 0,
+    "xfailed": 0,
+    "phase_outcomes_passed": 603,
+    "files": {
+      "tests/readme/test_readme_examples.py": 15,
+      "tests/documentation/test_verified_references.py": 19,
+      "tests/test_pipeline/test_documentation.py": 1,
+      "tests/test_cheminfo/geometry/test_documentation.py": 142,
+      "tests/test_cheminfo/geometry/test_readme_examples.py": 15,
+      "tests/test_ds/test_documentation.py": 9
+    },
+    "main_module_origins": 557,
+    "inherited_normal_exit_reports": 15,
+    "origin_violations": 0,
+    "raw_observation_rows": 23
+  },
+  "execution": {
+    "argv": [
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-s",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "-o",
+      "cache_dir=/tmp/hotpot_plan20/long/stage12-final-docs-20261104/source01/pytest-cache",
+      "--junitxml=/tmp/hotpot_plan20/long/stage12-final-docs-20261104/source01/junit.xml",
+      "--basetemp=/tmp/hotpot_plan20/long/stage12-final-docs-20261104/source01/pytest-temp",
+      "--run-model-artifacts",
+      "-p",
+      "origin_plugin",
+      "-p",
+      "outcomes_plugin",
+      "-p",
+      "raw_plugin",
+      "-ra",
+      "tests/readme/test_readme_examples.py",
+      "tests/documentation/test_verified_references.py",
+      "tests/test_pipeline/test_documentation.py",
+      "tests/test_cheminfo/geometry/test_documentation.py",
+      "tests/test_cheminfo/geometry/test_readme_examples.py",
+      "tests/test_ds/test_documentation.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "interpreter": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+    "returncode": 0,
+    "elapsed_seconds": 19.07864815555513
+  },
+  "limits": [
+    "Source CP311 six-file documentation scope, with actual model artifacts enabled; no complete R08/API lifecycle closure.",
+    "Other four explicit tiers off; no installed/default/native/version/GPU/performance acceptance.",
+    "Provider introspection is post-run; it is not per-session provider instrumentation.",
+    "Inherited origin reports cover observed normal exits; no claim for bypassed inheritance or abnormal exits."
+  ],
+  "root_review_utc": "2026-11-04T04:47:28.605009+00:00",
+  "archive": ".plan20-artifacts/20261104/stage12/final-source-documentation",
+  "archive_manifest_sha256": "0f047b826449a3e21f46265426132925203ddff883943168d55a50ccf74f9bed",
+  "archive_payloads": 147,
+  "archive_bytes": 159741694
+}

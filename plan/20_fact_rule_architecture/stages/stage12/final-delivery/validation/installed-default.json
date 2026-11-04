@@ -1,0 +1,244 @@
+{
+  "status": "CP311_INSTALLED_DEFAULT_ACCEPTED_WITH_PRESERVED_SUPPORT_FAILURES_AND_FOCUSED_REPAIR",
+  "source_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "wheel": {
+    "path": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+    "bytes": 7373644,
+    "sha256": "31ca3d416683603a4731788efe79d2206b92e9b9b5dec93d0c0848baff12d583"
+  },
+  "original_full_run": {
+    "returncode": 1,
+    "passed": 6833,
+    "failed": 6,
+    "skipped": 103,
+    "xfailed": 3,
+    "passed_subtests": 49,
+    "execution": {
+      "returncode": 1,
+      "elapsed_seconds": 348.78178709186614,
+      "selection_check": {
+        "expected_count": 6945,
+        "actual_count": 6945,
+        "exact_nodes_and_order": true,
+        "tier_switches": {
+          "--run-external": false,
+          "--run-optional": false,
+          "--run-scientific-boundary": false,
+          "--run-high-compute": false,
+          "--run-model-artifacts": false
+        },
+        "all_tiers_off": true
+      },
+      "session": {
+        "testscollected": 6945,
+        "testsfailed": 6,
+        "exitstatus": 1,
+        "terminal_stats": {
+          "": 13787,
+          "passed": 6833,
+          "skipped": 103,
+          "failed": 6,
+          "warnings": 5,
+          "xfailed": 3,
+          "subtests passed": 49
+        }
+      }
+    }
+  },
+  "focused_support_retry": {
+    "returncode": 0,
+    "passed": 6,
+    "failed": 0,
+    "nodes": [
+      "tests/benchmarks/coordination_complexes/test_am_gallery.py::test_gallery_writes_case_images_two_sheets_and_auditable_json",
+      "tests/benchmarks/coordination_complexes/test_validation_dataset.py::test_explicit_publication_preserves_incomplete_results_and_emits_inventory",
+      "tests/benchmarks/coordination_complexes/test_validation_dataset.py::test_prepare_materializes_only_success_structures_and_user_authority",
+      "tests/benchmarks/coordination_complexes/test_validation_publication.py::test_bundle_preparation_rejects_copy_time_evidence_drift",
+      "tests/benchmarks/coordination_complexes/test_validation_publication.py::test_prepare_bundle_freezes_and_certifies_complete_validation_evidence",
+      "tests/mca/test_all_atom_model.py::test_corrupt_external_cache_is_rebuilt"
+    ],
+    "whole_suite_repeat": false
+  },
+  "composed_applicable_results": {
+    "distinct_nodes": 6945,
+    "passed": 6839,
+    "passed_subtests": 49,
+    "skipped": 103,
+    "xfailed": 3,
+    "failed": 0
+  },
+  "source_only": {
+    "nodes": 33,
+    "passed": 7,
+    "tier_skipped": 26
+  },
+  "support_correction_decision": "Accepted: only copied test-helper real Git metadata cwd, exact installed schema as data fixture, and existing pinned model directory. No product overlay, assertion changes or exclusions.",
+  "guards_and_origins": {
+    "current_source_support_files": 1565,
+    "source_natives": 6,
+    "original_models": 88,
+    "installed_site_files": 903,
+    "wheel_product_members": 892,
+    "wheel_natives_reached": 6,
+    "normal_exit_process_reports": 444,
+    "actual_pickle_children_observed": 6,
+    "mismatches": []
+  },
+  "original_commands": {
+    "installed-run01": {
+      "cwd": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/observer:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support/plan/20_fact_rule_architecture",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+        "MPLBACKEND": "Agg",
+        "MPLCONFIGDIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/cache/mpl",
+        "XDG_CACHE_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/cache",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/tmp",
+        "PIP_CACHE_DIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/cache/pip",
+        "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+        "PIP_NO_INDEX": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "HF_HUB_OFFLINE": "1",
+        "HF_DATASETS_OFFLINE": "1",
+        "HF_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/cache/huggingface",
+        "HOTPOT_MODEL_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/model-home",
+        "HOTPOT_DERIVED_MODEL_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/derived",
+        "HOTPOT_EXPECTED_PRODUCT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site/hotpot",
+        "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/process-origins",
+        "HOTPOT_INSTALLED_SITE": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site",
+        "HOTPOT_ORIGIN_REPORT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/origins.json",
+        "HOTPOT_RUN_OUTPUT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01",
+        "HOTPOT_EXPECTED_NODEIDS": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-applicable-nodeids.txt",
+        "HOTPOT_TEST_INSTALLED_PACKAGE": "1",
+        "HOTPOT_TEST_WHEEL": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "HOTPOT_TEST_WORKDIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support"
+      },
+      "interpreter": {
+        "path": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "resolved_path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "bytes": 25548152,
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "elapsed_seconds": 348.78178709186614,
+      "returncode": 1,
+      "argv_prefix": [
+        "taskset",
+        "-c",
+        "64-127",
+        "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "-s",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "-o",
+        "cache_dir=/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/pytest-cache",
+        "--junitxml=/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/junit.xml",
+        "--basetemp=/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-run01/pytest-temp",
+        "-p",
+        "origin_plugin",
+        "-p",
+        "outcomes_plugin",
+        "-p",
+        "selection_guard",
+        "-ra"
+      ],
+      "selected_node_count": 6945,
+      "exact_argv_evidence": {
+        "path": ".plan20-artifacts/20261104/stage12/final-installed-default/installed-run01/execution.json",
+        "bytes": 955544,
+        "sha256": "0871671198c4d211d9e5248db4fc8ad4dd74fdc0e750b73b7c4195833ad98bf8"
+      },
+      "scope": "Full original argv and unchanged ordered node selection remain in this immutable execution receipt; omitted here to avoid duplicating thousands of node IDs."
+    },
+    "installed-support-retry01": {
+      "cwd": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/observer:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support/plan/20_fact_rule_architecture",
+        "PYTHONSAFEPATH": "1",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+        "MPLBACKEND": "Agg",
+        "MPLCONFIGDIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/cache/mpl",
+        "XDG_CACHE_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/cache",
+        "TMPDIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/tmp",
+        "PIP_CACHE_DIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/cache/pip",
+        "PIP_DISABLE_PIP_VERSION_CHECK": "1",
+        "PIP_NO_INDEX": "1",
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "HF_HUB_OFFLINE": "1",
+        "HF_DATASETS_OFFLINE": "1",
+        "HF_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/cache/huggingface",
+        "HOTPOT_MODEL_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/model-home",
+        "HOTPOT_DERIVED_MODEL_HOME": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/derived",
+        "HOTPOT_MCA_MODEL_DIR": "/home/zhangzhiyuan/.cache/hotpot/models/artifacts/mca/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/mca/v1",
+        "HOTPOT_EXPECTED_PRODUCT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site/hotpot",
+        "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/process-origins",
+        "HOTPOT_INSTALLED_SITE": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site",
+        "HOTPOT_ORIGIN_REPORT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/origins.json",
+        "HOTPOT_RUN_OUTPUT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01",
+        "HOTPOT_EXPECTED_NODEIDS": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/support-correction01/failed-nodeids.txt",
+        "HOTPOT_TEST_INSTALLED_PACKAGE": "1",
+        "HOTPOT_TEST_WHEEL": "/tmp/hotpot_plan20/long/stage12-final-native-20261104/build01/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+        "HOTPOT_TEST_WORKDIR": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support"
+      },
+      "interpreter": {
+        "path": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "resolved_path": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+        "bytes": 25548152,
+        "sha256": "ce2d79576ce9e6765de46a34a4d67fb04b174139270e036655078f4f9aa43b66"
+      },
+      "elapsed_seconds": 8.380201395601034,
+      "returncode": 0,
+      "argv_prefix": [
+        "taskset",
+        "-c",
+        "64-127",
+        "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "-s",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "-o",
+        "cache_dir=/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/pytest-cache",
+        "--junitxml=/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/junit.xml",
+        "--basetemp=/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/installed-support-retry01/pytest-temp",
+        "-p",
+        "origin_plugin",
+        "-p",
+        "outcomes_plugin",
+        "-p",
+        "selection_guard",
+        "-ra"
+      ],
+      "selected_node_count": 6,
+      "exact_argv_evidence": {
+        "path": ".plan20-artifacts/20261104/stage12/final-installed-default/installed-support-retry01/execution.json",
+        "bytes": 9096,
+        "sha256": "13859bede64db7608d066a7b38962e6c113070238c19f710c00c22ac28815e7b"
+      },
+      "scope": "Full original argv and unchanged ordered node selection remain in this immutable execution receipt; omitted here to avoid duplicating thousands of node IDs."
+    }
+  },
+  "root_review_utc": "2026-11-04T05:10:34.903290+00:00",
+  "limits": [
+    "Composed evidence, not one all-green full invocation; original six failures retained.",
+    "Default CP311 frozen-wheel boundary only. All five additional tiers OFF; skips and xfails are not passes.",
+    "No actual workflow/model/GPU, cross-version, scientific or performance acceptance from this default run.",
+    "No final wildcard-export or global acceptance; final Python export changes require affected requalification.",
+    "Observer covers encountered parent/normal-exit child imports; deliberate isolation/reset and abnormal exits retain stated limits."
+  ],
+  "archive": ".plan20-artifacts/20261104/stage12/final-installed-default",
+  "archive_manifest_sha256": "6e43faec47a59e4e9e6b48dfebaa5eafcf7f248ebf1bfea066d6863c2b7940e0",
+  "archive_payloads": 22796,
+  "archive_bytes": 670648275
+}

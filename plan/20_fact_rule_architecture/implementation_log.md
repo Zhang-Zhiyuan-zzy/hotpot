@@ -8030,3 +8030,219 @@ global/default/installed/native/version/GPU/performance gate closes. Root will
 commit/push these validated tests and ownership metadata with related records,
 then release the final full CP311 default+coverage on that committed snapshot
 and one-sdist native delivery. Unrelated owner work remains unaccessed.
+
+
+### 2026-11-04 — Stage12 final CP311 source/default and published examples
+
+Same final-delivery route under goal.md and Section14; no stage/design/public
+or scientific algorithm change. Frozen/pushed source556b21ef40668d728ccfa1b7e4b478a66c23f150
+contains the four accepted correction paths. The original source01 RC1 and all
+nine failures remain in their accepted correction archive, not relabeled.
+
+One full source02 command actually completes:
+`taskset -c 64-127 /tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -m coverage run --branch --source=hotpot -m pytest -q --import-mode=importlib -p no:cacheprovider -p origin_plugin -p outcomes_plugin --junitxml=/tmp/hotpot_plan20/long/stage12-final-default-20261104/source02/junit.xml -ra tests`
+from the checkout, RC0,450.742216s. All6978ordered nodes match the prior default:
+6846passed/129ordinary tier-disabled skips/3strict xfails/49passed subtests,
+17warnings; all20854phase/subtest rows and exact original reasons are retained.
+All five extra tiers remain disabled, not passed. All nine previously failed
+cases complete, including six unoptimized fresh-process pickle scripts.
+
+Root independently runs
+`python -B /tmp/hotpot_plan20/long/stage12-final-default-20261104/root-review/accept_source.py`:
+RC0. Actual raw JUnit/report counts, selection,1554source/support files,
+six reused native identities,66unchanged observer/coverage support files,
+912main-process origins and441normal-exit child reports verify;205children
+reach Hotpot, with zero observed foreign origins. The first archival checker
+incorrectly counted passed subtests as distinct JUnit testcase elements; its
+counting was corrected against raw20854reports and JUnit's6978elements/7027test
+attribute, with no business rerun or assertions relaxed. Main-process coverage
+exports JSON/XML/text/HTML all return0:34444/49399statements(69.726108%),
+9157/15384branches(59.522881%); combined67.303151%. Child branches are not measured.
+The immutable final-source-default archive holds1055payloads/87645869bytes,
+manifestSHA2563aac1ee45b30c0c44f7d6cd1336fd18a7e40a39e931ffc31037ecd670c601393.
+
+The actual six-file documentation command and full overrides are retained at
+/tmp/hotpot_plan20/long/stage12-final-docs-20261104/source01/execution.json:
+201passed/0failed/skipped/xfails, RC0,19.078648s, with only--run-model-artifacts
+enabled and real cached models. Raw CLI returns, numeric values and generated
+structures are preserved. Root runs accept_docs.py at the same root-review
+path: RC0;1548source/support,6natives and88original model files remain unchanged
+from0233d84at current556b21e. The four concurrently excluded paths are only
+part of the eight committed changes; the other changes are maintained records.
+The initial checker incorrectly equated that exclusion list to every changed
+record; rebind now checks the actual unchanged execution scope and separately
+classifies all eight paths, with no docs rerun. Main557origins and15inherited
+reports contain zero observed foreign origins. Its immutable source-documentation
+archive has147payloads/159741694bytes,
+manifestSHA2560f047b826449a3e21f46265426132925203ddff883943168d55a50ccf74f9bed.
+The corresponding maintained source-default/documentation checkpoints accept
+only these declared CP311 source boundaries; scopes overlap and are not summed.
+
+One actual final sdist(2857350bytes,
+SHA2566b393cf585b08b5fd52d71680f319dc6c9c9d912a02cf5452e8d2764f80afa69)
+feeds all five clean native builds. Actual native-cp31101 completes RC0 in
+712.7s with all six extensions compiled, maintained auditwheel repair/release
+smokes and wheel-content audit RC0. The CP311 wheel is7373644bytes,
+SHA25631ca3d416683603a4731788efe79d2206b92e9b9b5dec93d0c0848baff12d583;
+CP310then312/313/314continue sequentially under the original build session.
+Root releases that exact wheel for one6945node outside-checkout default run;
+33source-only assertions remain explicit and have source02outcomes. A local
+Sol/medium subagent owns private install/execution; the other local Sol/high
+subagent reconciles final API/ownership/migration evidence without source edits.
+No external helper is active. Formal timing remains blocked by competing builds;
+installed/native/version, actual final workflow/GPU, inherited Plan12/science,
+performance/resource, issue dispositions, final report and B_exp remain open.
+
+
+### 2026-11-04 — Stage12 installed default and final API reconciliation
+
+Bounded continuation at frozen556b21e; no source/test/interface or scientific
+route change. Root directly inspects the installed support failures and accepts
+only the copied gallery helper's real Git metadata cwd, exact installed schema
+JSON as test data, and existing pinned MCA model-directory binding. No assertion,
+product overlay, exclusion or scientific threshold changed. The original6945node
+full invocation remains RC1:6833passed/6failed/103skipped/3strict xfailed and
+49passed subtests; exactly the six failed nodes subsequently pass RC0. Composed
+results cover6839passed/103skipped/3xfailed/49subtests, with no remaining failed
+applicable node. This is preserved failed-full-plus-focused-repair evidence,
+not a single green full invocation. The33source-only nodes remain7source passes
+and26tier skips. All five additional tiers stay OFF, not passed.
+
+Root actually executes accept_installed.py under
+/tmp/hotpot_plan20/long/stage12-final-default-20261104/root-review: RC0.
+Independent raw phase accounting,6945ordered nodes,1565source/support files,
+six source natives,88original models,903post-install site files and all897
+immutable wheel members verify. Pip's rewritten RECORD remains separately
+attributed. All six wheel natives are observed across the complete selection;
+main origins and444normal-exit child reports show no foreign paths, including
+actual observations from all six fresh-pickle children. The first root checker
+wrongly required all six natives in the six-node focused repair too; original
+checker/failure attribution retained, corrected scope uses actual per-attempt
+origins and full-selection union, without business rerun. The immutable
+final-installed-default archive holds22796payloads/670648275bytes,
+manifestSHA2566e43faec47a59e4e9e6b48dfebaa5eafcf7f248ebf1bfea066d6863c2b7940e0.
+
+The local Sol/high API reconciliation maps384historical types/43families,
+31root exports,16durable-fact domains and560unchanged inputs. Root independently
+verifies/archives30review artifacts and applies the concrete D07/D09 dispositions
+in final-delivery/validation/api-reconciliation.json. RingEdgeDistance is retained
+at adapters/structure/geometry.py, with the actual operations.geometry producer
+and already-passed source/installed ring source-identity/distance tests; the
+sealed reviewer lookup omitted that existing producer and is preserved with
+this addendum. D09 retains the three existing immutable process-observation,
+content-bound provenance and xTB-domain report contracts and exact public fields.
+The six repeated process fields remain explicitly recorded, with zero claimed
+class/field consolidation; existing plugin/CLI/probe/lineage consumers retain
+their roles. This uses root's approved-retention authority, not a new schema.
+Its32payload/4492546byte archive manifest is
+46c67902b9d3f71030a0a3a20fff8086ac240aa865df848b3b5c01b51d8082f6.
+
+A literal final gap is now explicit:20package wildcard exports remain allowed
+by the passing ratchet, whereas main6.3/14.7require final zero exceptions.
+The same local reviewer prepares a bounded explicit-export patch outside the
+checkout while frozen builds/model runs continue. No wildcard/global gate is
+closed. A separate local Sol/medium task owns final installed actual CBond/FF/
+xTB,MCA and published-documentation selections on the exact released wheel;
+no full default repeat or external helper. CP310native build completes RC0
+in995.49s; CP312continues under the original driver. Root's separate ai-14MCA
+CPU64 and small-batch fallback cases complete; GPU cases remain in progress.
+Correctness timings under shared load are not performance evidence. Final
+source/export requalification, other versions/native, actual workflows/GPU,
+science/Plan12, performance/resources, issue dispositions, report and B_exp stay
+open. No documentation-only bookkeeping commit is created for this checkpoint.
+
+
+### 2026-11-04 — Stage12 final frozen-wheel actual workflows
+
+The local Sol/medium task completes all three released installed selections
+sequentially against556b21e/wheel31ca3d416683603a4731788efe79d2206b92e9b9b5dec93d0c0848baff12d583:
+actual_cbond_ff_xtb21passed, actual_mca_cpu_attachment52passed and
+docs_api_lifecycle97passed; no failures/skips/xfails/retries. Complete argv/cwd/
+overrides/interpreter and real raw outputs remain in each execution receipt.
+Root executes /tmp/hotpot_plan20/long/stage12-final-workflows-20261104/accept_workflows.py:
+RC0; independent raw170call/phase records, JUnit, exact655artifact identities,
+committed source export,903installed-site files,88original models,82support
+files and official xTB executable verify. All six installed natives are reached;
+110process-origin reports contain zero observed foreign origins/observer errors.
+The657payload/351724292byte archive manifest is
+d8708ec0448480e8ae44ea86ec6c856689bd5d95fa0357d4a702ce377a9e760a.
+
+Actual official xTB6.7.1revisionedcfbbe uses executable digest
+271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887.
+Three Zn/Eu CBond→UFF→optionalGFN-FF→GFN2 pipelines complete with retained
+energies/units, exact state/projection/handoff/geometry/artifact observations.
+Two mixed native batches retain order0,1,2/statusok,error,ok and local
+HARD-013.UHF_PARITY rejection. Actual MCA CPU model/site joins and charged
+record rejection execute; raw CLI records1/3survive around rejected record2.
+The48actual MCA observations remain separate from30deterministic lifecycle
+fixture observations. Neither model regression values nor pipeline geometry
+findings are experimental truths; successful first attempts do not prove
+fault-injected recovery or CUDA behavior. Shared-load timings are not performance
+evidence. These170cases overlap prior source/default/docs scopes and are not
+summed into a unique-coverage claim.
+
+After the last frozen installed invocation terminates, root releases only the
+prepared ten optional/utils package initializers, architecture_allowlist.json
+and one focused facade test to the same Sol/medium worker. Existing export names,
+source identities, overwrite/import order and eager/lazy behavior must remain;
+no algorithm/model/native/build input change is allowed. Other source/records
+remain root-owned; the original frozen build export/wheel is untouched. Its
+results retain their actual artifact identity. Root will review the source
+correction and affected tests before a coherent business-progress commit and
+final source/sdist/wheel requalification. A second local read-only task prepares
+remaining inherited Plan12 scientific inputs/commands; external helper remains
+offline. Global/source-export/native/version/GPU/scientific/performance/report/
+B_exp acceptance remains open.
+
+
+### 2026-11-04 — Stage12 explicit package exports and owner Crystal/PyG direction
+
+The existing local Sol/medium worker applies the settled import-only patch to
+exactly ten package initializers and architecture_allowlist.json, plus one
+fresh-process facade contract test. Twenty package wildcard imports become
+explicit names at the same import positions, preserving helper/module aliases,
+transitive child exposure and overwrite order. No new __all__ narrowing,
+scientific algorithm, trained encoding, native/build input or model changes.
+Root executes /tmp/hotpot_plan20/long/stage12-final-exports-20261104/root-review/accept_exports.py:
+RC0; original artifact index and eleven exact existing target identities verify,
+package-initializer AST has zero wildcard imports, allowlist entries are empty,
+and architecture audit against556b21e passes with remaining_debt0. Existing
+architecture/import/Zeo/element/cutover/CLI checks pass294/skip1external-engine.
+The ten new --run-optional cases return RC1:4passed/6failed. Four actual facades
+match the old wheel's full namespace/order and leaf identities; six fail on the
+same missing lightning/sklearn/shap dependencies in both old wheel and source.
+Those six/fifteen changed imports are unavailable evidence, never passes.
+All original failures and exact argv/cwd/overrides/interpreter receipts survive.
+The470payload/10944520byte root archive manifest is
+1f9f61adb9ad03f83e109840d8e86c9223cfa9d8f7987ef7c3036205f76d3f44.
+A separate bounded lookup finds no already-existing qualifying CP311 optional
+environment among six candidates; no installation or unchanged suite repeat.
+The source/native/model baseline guards remain valid. Final-source sdist/five-ABI
+packaging and affected installed/version checks must rebind the new initializers;
+original full source/installed/workflow and running native/GPU results retain
+their actual frozen bytes. This is a coherent source/test checkpoint, not final
+main-scope acceptance or B_exp.
+
+The owner requests minimal-loss Molecule/Crystal <-> PyG Data transport and a
+future Crystal aggregate with asymmetric-unit chemistry, crystallographic
+parameters, explicit equivalence mappings, unit-cell generation, supercell
+expansion and periodic geometry observations. Current to_pyg_data is a one-way
+trained-feature projection; current Crystal owns only six cell parameters.
+Record this as follow-on architectural direction, with no silent model-feature
+or Plan20 public-contract replacement. A separate design must distinguish
+asymmetric-unit content, completed molecules and cell contents; a symmetry-
+equivalent atom is not necessarily a coincident atom. A general-position molecule
+needs no nontrivial internal symmetry; an ordered molecule fixed by a site
+operation must respect that site's symmetry in its actual crystal conformation.
+Unknown third-party PyG facts cannot be reconstructed, attached stale results
+cannot become current, and periodic bonds require image mapping. No new plan
+number, schema or runtime implementation is enacted in this checkpoint.
+
+The other local Sol/high task prepares the exact current2,280-object inactive
+Plan12 dry/replay input independently of the absent historical registry. Root
+releases only the installed dry/replay run on CPUs80-87, profileplanned, replayon,
+with original per-case denominators and separate source/native/wheel origins.
+No Eu/FF/backend/model execution or optional-profile activation is released by
+that task. Direct root ai-14MCA and the original frozen native build continue.
+External helper remains terminated. Native/version/GPU/scientific/performance,
+optional/deferred dispositions, final report and B_exp remain open.

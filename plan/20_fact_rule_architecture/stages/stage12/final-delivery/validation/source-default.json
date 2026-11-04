@@ -1,0 +1,92 @@
+{
+  "status": "FINAL_CP311_FULL_SOURCE_DEFAULT_ACCEPTED_OTHER_DELIVERY_GATES_OPEN",
+  "source_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "execution": {
+    "argv": [
+      "taskset",
+      "-c",
+      "64-127",
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-m",
+      "coverage",
+      "run",
+      "--branch",
+      "--source=hotpot",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "-p",
+      "no:cacheprovider",
+      "-p",
+      "origin_plugin",
+      "-p",
+      "outcomes_plugin",
+      "--junitxml=/tmp/hotpot_plan20/long/stage12-final-default-20261104/source02/junit.xml",
+      "-ra",
+      "tests"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "returncode": 0,
+    "elapsed_seconds": 450.74221611209214,
+    "retries": 0,
+    "interpreter": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python"
+  },
+  "results": {
+    "collected": 6978,
+    "passed": 6846,
+    "failed": 0,
+    "skipped": 129,
+    "xfailed": 3,
+    "passed_subtests": 49,
+    "warnings": 17,
+    "all_nine_prior_failures_passed": true,
+    "raw_report_rows": 20854
+  },
+  "origins_and_guards": {
+    "source_support_files": 1554,
+    "reused_native_files": 6,
+    "main_origin_observations": 912,
+    "process_reports": 441,
+    "processes_reaching_hotpot": 205,
+    "observed_origin_violations": 0,
+    "mismatches": []
+  },
+  "coverage": {
+    "covered_lines": 34444,
+    "num_statements": 49399,
+    "percent_covered": 67.30315051788278,
+    "percent_covered_display": "67",
+    "missing_lines": 14955,
+    "excluded_lines": 189,
+    "percent_statements_covered": 69.72610781594769,
+    "percent_statements_covered_display": "70",
+    "num_branches": 15384,
+    "num_partial_branches": 1917,
+    "covered_branches": 9157,
+    "missing_branches": 6227,
+    "percent_branches_covered": 59.52288091523661,
+    "percent_branches_covered_display": "60",
+    "scope": "Single main pytest process; no subprocess branch coverage or new threshold"
+  },
+  "tier_switches": {
+    "--run-external": false,
+    "--run-optional": false,
+    "--run-scientific-boundary": false,
+    "--run-high-compute": false,
+    "--run-model-artifacts": false
+  },
+  "root_review_utc": "2026-11-04T04:51:07.662528+00:00",
+  "archive": ".plan20-artifacts/20261104/stage12/final-source-default",
+  "limits": [
+    "Accepted full current-source CP311 default boundary only, using six reused accepted native binaries.",
+    "Skipped tiers and three strict known-limit xfails remain explicit, not passes.",
+    "No installed, rebuilt native/ABI, other-version, actual backend/model/GPU, science or performance acceptance.",
+    "Normal-exit import observation is not a census of every child; main-process branch coverage excludes child branches.",
+    "Elapsed time under concurrent correctness/build load is not comparable performance evidence.",
+    "Main-scope acceptance, inherited Plan12 requirements, final reports and B_exp remain open."
+  ],
+  "archive_manifest_sha256": "3aac1ee45b30c0c44f7d6cd1336fd18a7e40a39e931ffc31037ecd670c601393",
+  "archive_payloads": 1055,
+  "archive_bytes": 87645869
+}

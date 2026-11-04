@@ -23,6 +23,15 @@ class Crystal:
         _initialize_crystal(value, matrix, molecule, space_group, site_relations, bond_images)
         return value
 
+    @classmethod
+    def from_cif(cls, source, *, block=None):
+        from ..operations.crystal_io import _from_cif
+        return _from_cif(cls, source, block)
+
+    def to_cif(self):
+        from ..operations.crystal_io import _to_cif
+        return _to_cif(self)
+
     @property
     def molecule(self):
         return self._molecule

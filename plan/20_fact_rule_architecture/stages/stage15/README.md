@@ -16,7 +16,10 @@ Explicit finite-loop linking has a bounded
 [1,128-test CP311 checkpoint](domain/validation/linking_report.md).
 Periodic contact/surface observations have a bounded
 [1,246-test CP311 checkpoint](domain/validation/geometry_report.md).
-Remaining15E–F remain open. The
+Pure CIF/current persistence and full domain delivery are accepted at the
+[1,715-test source/five-version installed checkpoint](domain/validation/persistence_report.md).
+Stage15A–F are complete within their accepted domain; Stage14D and final
+combined integration remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic
@@ -55,8 +58,8 @@ observations and zero linking number is not an unlink certificate. Crystal
 behavior uses Hotpot math/topology, with only a separately justified table/CIF
 lookup candidate. No direct or indirect OpenBabel/RDKit/CCDC Python API route.
 
-Standalone exact symmetry and connected cell/lifecycle are delivered. Molecular
-actions, findings and format closure remain accepted implementation scope. The
+The exact symmetry, connected lifecycle, molecular actions, findings and
+current format closure are delivered. The
 connected migration replaces the six-parameter ordinary cell record with one
 oriented record; six parameters remain only at declared external projections. Stage15A settles
 the exact public/export/codec/CIF/dependency/tolerance choices and the existing

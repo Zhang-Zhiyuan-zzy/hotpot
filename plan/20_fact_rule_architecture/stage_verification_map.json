@@ -5053,7 +5053,7 @@
     },
     "stage15": {
       "contract": "stages/stage15/domain/contracts/decisions.md",
-      "status": "15A/B/C/D CP311 bounded checkpoints accepted;15E/F open",
+      "status": "COMPLETE15A-F accepted domain; current source plus five-ABI installed/sdist/CIF/cost evidence",
       "checks": [
         "exact230group/4425operator algebra and changed-index settings",
         "standard oriented cell and complete lifecycle",
@@ -5064,18 +5064,16 @@
         "CP311 source/outside-checkout installed and affected support",
         "complete-work costs/resources"
       ],
-      "remaining": [
-        "15E format closure",
-        "15F current delivery/cost/support",
-        "Stage14D integration"
-      ],
+      "remaining": [],
       "checkpoint": "stages/stage15/domain/validation/exact_symmetry_checkpoint.json",
       "connected_checkpoint": "stages/stage15/domain/validation/connected_cell_checkpoint.json",
       "action_checkpoint": "stages/stage15/domain/validation/action_checkpoint.json",
       "generation_checkpoint": "stages/stage15/domain/validation/generation_checkpoint.json",
       "relation_checkpoint": "stages/stage15/domain/validation/relation_checkpoint.json",
       "linking_checkpoint": "stages/stage15/domain/validation/linking_checkpoint.json",
-      "geometry_checkpoint": "stages/stage15/domain/validation/geometry_checkpoint.json"
+      "geometry_checkpoint": "stages/stage15/domain/validation/geometry_checkpoint.json",
+      "persistence_checkpoint": "stages/stage15/domain/validation/persistence_checkpoint.json",
+      "external_consumer_remaining": "Stage14D and final combined branch integration, independently owned"
     }
   },
   "migration_inventory_file": "baseline_inventory/migration_inventory.json",

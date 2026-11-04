@@ -56,6 +56,9 @@ dependencies = [
 description = "A cheminformatics harness for coordination chemistry"
 
 [project.optional-dependencies]
+crystal = [
+    "gemmi>=0.7.5,<0.8",
+]
 pymol = [
     "numpy>=1.26.4,<2",
 ]
@@ -104,6 +107,7 @@ dev = [
     "twine>=5,<7",
 ]
 all = [
+    "gemmi>=0.7.5,<0.8",
     "beautifulsoup4>=4.12,<5",
     "e3nn>=0.5,<1",
     "gpytorch>=1.11,<2",
@@ -138,7 +142,7 @@ include-package-data = true
     "resources/properties/*.xlsx",
     "manifests/packaged-reference-assets.json",
 ]
-"hotpot.cheminfo.operations" = ["solvent_properties.md"]
+"hotpot.cheminfo.operations" = ["solvent_properties.md", "crystal.md"]
 "hotpot.cheminfo.reference" = ["data/*.json", "data/space_groups.*-LICENSE.txt"]
 "hotpot.cheminfo.rules.mathematics.geometry" = ["*.md", "_geometry_native.pyi"]
 "hotpot.cheminfo.rules.mathematics.graph" = ["README.md", "_graph_native.pyi"]

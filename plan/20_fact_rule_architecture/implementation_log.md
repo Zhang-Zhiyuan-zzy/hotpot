@@ -10278,3 +10278,71 @@ bind exact commands,source,wheel,failures,observations and remaining limits.
 15E/F,14D and final integration stay open; no fourth P20-D036 retry or unrelated
 owner file access/staging. The local child now prepares only an isolated pure
 portable-cell candidate while root retains worktree/acceptance/Git control.
+
+
+### 2026-11-05 — Stage15E pure persistence/CIF entry
+
+Pushedf7627336d5f74749d4ada1250bc99b93a07266b1 closes bounded15DCP311
+observations. Root reuses retained full-plan/companion alignment, rereads
+effectivegoal/governance/15A–D/review15E/6 and actual cell/group/record/builder,
+CIF corpus and connectedI/O/Stage14 owners. persistence.md settles the accepted
+CIF methods' exact standard/extension/loss map, optional lazy syntax-onlyGemmi,
+reference/setting and missing-image behavior, no guessed connectivity or
+self/parallel-edge collapse, original source retention and source/installed
+CP311 evidence. It does not claim whole live-sessionCIFpersistence. Full current
+pickle retains its existing domain. No scientific/toolkit algorithm is added.
+Root reviews and integrates the localSol/xhigh portable-cell candidate(73isolated
+checks passed;no worktree edits during its preparation). This is only a private
+plain-data projection of the sole nine-fieldrecord, through existing group and
+canonical-cell constructors. CIF and14D consume it; it adds no second fact owner.
+Child receives exclusive implementation files under this settled contract;
+root keeps integration/design/records/Git/acceptance.15E/F/14D stay open.
+
+
+### 2026-11-05 — Stage15E root CIF01 key review and validation freeze
+
+Reviewed syntax-only adapter, current-fact/Crystal/stereo codecs, complete CIF
+operation, facade/optional metadata and independent positive/negative/boundary
+fixtures against the settled persistence contract. A cell-only Crystal has no
+Molecule archive owner: accept the bounded private `_cif_source` input archive;
+it is never an active chemical/cell fact or an added public API. Publish the
+scientist-facing `operations/crystal.md` as package data. No external chemistry,
+symmetry, neighbor or structure API is used. Import rejection wraps the original
+cause and retains source text/block; it fabricates no result or unknown fallback.
+The repository corpus denominator remains11:10 supported read/write/read cases
+and1 exact simple-quotient-graph rejection (25 repeated endpoint pairs); the
+inherited all-dot-code shorthand is corrected by actual syntax evidence.
+Local Sol/xhigh subagent prepares delivery validation; root owns business key
+review, acceptance and Git. Freeze these product bytes for fresh source/installed
+qualification, documentation recipes and attributable read/write observations.
+Stage14D shared runtime integration waits on affected15E publication.
+
+
+### 2026-11-05 — Stage15E/F accepted: CIF current facts and complete domain delivery
+
+Implemented reviewed CIF/portable/Level1 codecs and the accepted thin Crystal
+facades; optional Gemmi0.7.5 syntax only. Standard/native consistency, original
+operator IDs and both endpoints, oriented/generated/history facts, missing/zero
+values and exact unsupported simple-graph rejection are qualified. No guessed
+chemistry or prohibited external API. Cell-only archive edge is documented.
+
+Actual `/tmp/hotpot_plan20/medium/stage15e-delivery-20261105/COMMANDS.txt` records
+source1715pass and outside-checkout installed CP310–3141715pass each, all0fail/
+error/skip, recipes/calls pass,210origins each/0violations and all guards stable.
+Fresh958-member sdist has actual backend Gemmi extras and required sources/data/
+licences; five RECORD-verified wheels reuse six attributed unchanged native
+payloads each, not fresh native builds. Original focused fixture failures and
+10/11successful corpus plus1exact rejected projection remain. CIF cost campaign
+completed45timed calls with9warmups/9separate memory calls: full468site
+read/write/read median80.304334ms; root accepts bounded usability, not parity.
+Hardware and raw/adverse/failed records are retained.
+
+Root source/key review, explicit domain limits, recipes, owner/consumer/removal
+closure and full evidence agree: accept15A–F and release the domain to14D.
+Archive42130839bytes/338verified payloads:
+`.plan20-artifacts/20261105/stage15/cif-final-delivery/evidence.tar.gz`,
+SHA256`4ad49c2c24bd189fabd6ce7c7eb29e1d19ee0d37ab3ce606609865cb6500b96e`.
+Maintained persistence report/checkpoint and verification map bind all results.
+Stage14D and final combined branch integration remain required; no overall
+completion or new scientific-truth claim. Proceed with a coherent business
+commit/push, then shared PyG integration.

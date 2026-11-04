@@ -482,17 +482,44 @@ def test_auto_build_cbond_real_runtime_smoke(runtime):
 
 @pytest.mark.model_artifact
 def test_documented_aminodiol_reference_matches_packaged_model(runtime):
+    from rdkit import Chem
+
+    ligand = read_mol("NCC(O)CO")
+    expected_atoms = [(7, 0, 2), (6, 0, 2), (6, 0, 1),
+                      (8, 0, 1), (6, 0, 2), (8, 0, 1)]
+    expected_edges = {(0, 1), (1, 2), (2, 3), (2, 4), (4, 5)}
     results = apply.build_all_possible_cbond(
-        read_mol("NCC(O)CO"),
+        ligand,
         "Eu",
         runtime=runtime,
         return_details=True,
     )
 
-    assert [result.molecule.smiles for result in results] == [
-        "C1O[Eu]2O[C@@H]1C[NH2+]2",
-        "NC[C@@H]1CO[Eu]O1",
-    ]
+    # Coordination prediction adds links, not proton/electron transfer or a
+    # stereochemical assignment to the unspecified input.
+    assert [(a.atomic_number, a.formal_charge, a.implicit_hydrogens)
+            for a in ligand.atoms] == expected_atoms
+    for result in results:
+        molecule = result.molecule
+        assert [(a.atomic_number, a.formal_charge, a.implicit_hydrogens)
+                for a in molecule.atoms if a.atomic_number != 1] == expected_atoms + [(63, 0, 0)]
+        assert {(b.atom1.idx, b.atom2.idx) for b in molecule.bonds
+                if b.atom1.idx < 6 and b.atom2.idx < 6} == expected_edges
+        metal = molecule.metals[0]
+        assert sorted(a.idx for a in metal.neighbours) == sorted(result.donor_indices)
+        # The deployed CBond materializer uses ordinary numeric single links.
+        assert all(b.bond_order == 1 and b.bond_kind.value == "single"
+                   for b in metal.bonds)
+
+        # Read literal encoded H/charge/tags independently. Sanitization would
+        # impose RDKit valence semantics on the documented OB coordination map.
+        encoded = Chem.MolFromSmiles(molecule.smiles, sanitize=False)
+        encoded.UpdatePropertyCache(strict=False)
+        assert sorted(a.GetAtomicNum() for a in encoded.GetAtoms()) == [6, 6, 6, 7, 8, 8, 63]
+        assert sum(a.GetFormalCharge() for a in encoded.GetAtoms()) == 0
+        assert sum(a.GetTotalNumHs() for a in encoded.GetAtoms()) == 9
+        assert all(a.GetChiralTag() == Chem.ChiralType.CHI_UNSPECIFIED
+                   for a in encoded.GetAtoms())
     assert [result.probability for result in results] == pytest.approx(
         [0.5787371244916796, 0.4212628755083204],
         abs=_ONNX_CROSS_PLATFORM_ATOL,

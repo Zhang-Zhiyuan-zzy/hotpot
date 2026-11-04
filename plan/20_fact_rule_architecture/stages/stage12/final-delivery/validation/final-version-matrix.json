@@ -1,0 +1,123 @@
+{
+  "status": "ROOT_ACCEPTED_VERSION_WORK_COMPLETION_WITH_FAILED_OLD_CHECKER_COST_LIMIT",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "original_logical_population": 2689,
+  "baseline_executable_per_ABI": 2689,
+  "candidate_executable_per_ABI": 2686,
+  "retired_unexecuted_slots_per_ABI": 3,
+  "actual_attempts": 60,
+  "warmup_attempts": 10,
+  "measured_attempts": 50,
+  "baseline_successful_attempts": 30,
+  "candidate_original_failed_attempts": 30,
+  "failed_assertion_occurrences": 30,
+  "original_inputs_reverified": 699,
+  "actual_pending_default_overlap": [
+    {
+      "abi": "cp310",
+      "all_pending_nodes_collected": true,
+      "pending_population": 2469,
+      "actual_pending_passes": 2466,
+      "retained_strict_known_limit_xfails": [
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromaticity_is_independent_of_relevant_cycle_order",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_azulene_is_perceived_without_imported_aromatic_flags"
+      ],
+      "corrected_actual_model_reference_passed": true
+    },
+    {
+      "abi": "cp311",
+      "all_pending_nodes_collected": true,
+      "pending_population": 2469,
+      "actual_pending_passes": 2466,
+      "retained_strict_known_limit_xfails": [
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromaticity_is_independent_of_relevant_cycle_order",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_azulene_is_perceived_without_imported_aromatic_flags"
+      ],
+      "corrected_actual_model_reference_passed": true
+    },
+    {
+      "abi": "cp312",
+      "all_pending_nodes_collected": true,
+      "pending_population": 2469,
+      "actual_pending_passes": 2466,
+      "retained_strict_known_limit_xfails": [
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromaticity_is_independent_of_relevant_cycle_order",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_azulene_is_perceived_without_imported_aromatic_flags"
+      ],
+      "corrected_actual_model_reference_passed": true
+    },
+    {
+      "abi": "cp313",
+      "all_pending_nodes_collected": true,
+      "pending_population": 2469,
+      "actual_pending_passes": 2466,
+      "retained_strict_known_limit_xfails": [
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromaticity_is_independent_of_relevant_cycle_order",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_azulene_is_perceived_without_imported_aromatic_flags"
+      ],
+      "corrected_actual_model_reference_passed": true
+    },
+    {
+      "abi": "cp314",
+      "all_pending_nodes_collected": true,
+      "pending_population": 2469,
+      "actual_pending_passes": 2466,
+      "retained_strict_known_limit_xfails": [
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_aromaticity_is_independent_of_relevant_cycle_order",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py::test_azulene_is_perceived_without_imported_aromatic_flags"
+      ],
+      "corrected_actual_model_reference_passed": true
+    }
+  ],
+  "by_version_attempt_wall_medians": [
+    {
+      "version": "3.10",
+      "baseline_seconds": 199.190777560696,
+      "candidate_failed_checker_seconds": 146.77116131596267
+    },
+    {
+      "version": "3.11",
+      "baseline_seconds": 95.88921583816409,
+      "candidate_failed_checker_seconds": 93.49879503622651
+    },
+    {
+      "version": "3.12",
+      "baseline_seconds": 207.11666344106197,
+      "candidate_failed_checker_seconds": 145.8432384673506
+    },
+    {
+      "version": "3.13",
+      "baseline_seconds": 216.37930339947343,
+      "candidate_failed_checker_seconds": 144.95854207500815
+    },
+    {
+      "version": "3.14",
+      "baseline_seconds": 230.09678244404495,
+      "candidate_failed_checker_seconds": 157.0212432667613
+    }
+  ],
+  "root_review": {
+    "path": "/tmp/hotpot_plan20/long/stage12-final-cost-execution-20261104/ROOT_VERSION_MATRIX_REVIEW.json",
+    "bytes": 138331,
+    "sha256": "005fd2bd437cbc8376480b8877bedfd1a0be56a6067cbec8f082bbd8d1997419"
+  },
+  "version_completion_review": {
+    "path": "/tmp/hotpot_plan20/long/stage12-final-cost-execution-20261104/ROOT_VERSION_COVERAGE_COMPLETION.json",
+    "bytes": 5100,
+    "sha256": "d69454eaa0c4cbdff7d36fd894f9ca8e2fe2635b94dd86a50bed8e790861ed59"
+  },
+  "cost_disposition": "ACCEPTED_LIMITATION: preserve allfailedcandidateattemptwall/RSSandalloriginal1+5work. No successfulcandidatefull-population timing, whole-populationratio, parity or speedup is claimed. Historical3948/62CPU/GPU/newmechanism/currentworkflowcosts and theseoriginalversionattempts suffice for boundedusable-costreview. Do not repeat unchangedpassedcohortsonlytogiveanobsoletecheckernewgreenexit; correctedfailedbusinesscasehasdirectactualevidenceineachABI.",
+  "limits": [
+    "Historical2689logicalmappingincludesapprovedmigrationsand3retiredslots, preventingfull-logicalpopulationidentity/speedupclaims.",
+    "JUnitcountsinclude49candidateinference subtests and repeatedwarmup/measuredexecutions; notuniquebusinesscontractcounts.",
+    "SharedCPU0\u201339/eightperABI,actualduringphaseload/memory retained; noexclusivehostclaim.",
+    "Correctedcaseispre-applicationtestauthoring; maintainedtest/docapply,currentpackageguide/supportandfinalreportremain.",
+    "Original699inputs/endpointidentitiesestablishattributiononly,notchemicaltruth."
+  ],
+  "global_gate_closed": false
+}

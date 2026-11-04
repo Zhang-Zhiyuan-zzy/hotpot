@@ -1,0 +1,96 @@
+{
+  "status": "ROOT_ACCEPTED_CHEMICAL_FACT_REFERENCE_AND_CURRENT_EXAMPLES",
+  "production_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "current_source_selection": {
+    "scope": "Current sourceED7plus four reviewed test/Markdown changes; full two CBondfiles, actualmodels, README CLI and downstreamFF pipeline. Source qualification only, no timing claim.",
+    "source_head": "ed7a64d463945360e669e858591d5ed399eb4535",
+    "returncode": 0,
+    "counts": {
+      "tests": 36,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "source_input_count": 536,
+    "changed_source_inputs": [],
+    "main_origin_passed": true,
+    "child_origin_reports": 4,
+    "origin_violations": [],
+    "native_origins": [
+      {
+        "module": "hotpot.cheminfo.rules.mathematics.geometry._geometry_native",
+        "native": true,
+        "path_kind": "__file__",
+        "resolved_path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "97acdb9652fa491cd3e2634a176519dd7dd87a5951fd99dda8ae6e72491a0c68",
+        "under_installed_site": true
+      },
+      {
+        "module": "hotpot.cheminfo.rules.mathematics.graph._graph_native",
+        "native": true,
+        "path_kind": "__file__",
+        "resolved_path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "477db3a9d2f315b655b0245802da0209089fb6dc85db8256f740acb27658c471",
+        "under_installed_site": true
+      },
+      {
+        "module": "hotpot.cheminfo.structure._fact_native",
+        "native": true,
+        "path_kind": "__file__",
+        "resolved_path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "42d0fd9edf3f3601cdc74008e7c6484e3ebc3351139119e42b32575ea0e8fb91",
+        "under_installed_site": true
+      }
+    ],
+    "passed": true
+  },
+  "source_execution": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-cbond-source-qualification-20261105/pytest-execution.json",
+    "bytes": 3167,
+    "sha256": "3a3118e0ab237d3c69e804c14eb501bc966556667a1ed7cad8adedcfa1cfa583"
+  },
+  "applied_files": [
+    {
+      "path": "tests/cbond/test_apply.py",
+      "baseline_sha256": "8c04a7b5b4832c61e6931998db9523bf626acad58bcb5be213bcf29b111914eb",
+      "candidate_sha256": "1bf864a0c4177b39c86c155a181c5cac239d5d64bff63f3066c2d7ab46c15327"
+    },
+    {
+      "path": "tests/cbond/test_cbond_cli.py",
+      "baseline_sha256": "6b6c7565640b23ac2ca5d5cee00a861d90ad2a1602c13dbf549a7e86fa5675de",
+      "candidate_sha256": "0df5da5b805e0eb693999cb38e41cb5acd2d6260604ad3fbdc6cb8d36bd147ce"
+    },
+    {
+      "path": "hotpot/commands/cbond.md",
+      "baseline_sha256": "6c00fec755a6b1e16e70b953812597a962bb54c28561fcbc3565eafd60e559d8",
+      "candidate_sha256": "b615b3c496708e43bc8f3a371ef18b2ad6905f73958ea6b464dcba235ad89fcf"
+    },
+    {
+      "path": "README.md",
+      "baseline_sha256": "3f82936f87ff5969d13c62af9b0cd064dffb7da2260cd82ed69be8e7f5b09435",
+      "candidate_sha256": "fea3a9a94709b4c01ff8fbe348600e9a479f31a9a0d8a0821bf0389835065f6b"
+    }
+  ],
+  "actual_five_ABI_checks": [
+    "/tmp/hotpot_plan20/medium/stage12-cbond-semantic-reference-20261104/qualification03/cp311/RESULT.json",
+    "/tmp/hotpot_plan20/medium/stage12-cbond-semantic-reference-20261104/qualification03/cp310/RESULT.json",
+    "/tmp/hotpot_plan20/medium/stage12-cbond-semantic-reference-20261104/qualification03/cp312/RESULT.json",
+    "/tmp/hotpot_plan20/medium/stage12-cbond-semantic-reference-20261104/qualification03/cp313/RESULT.json",
+    "/tmp/hotpot_plan20/medium/stage12-cbond-semantic-reference-20261104/qualification03/cp314/RESULT.json"
+  ],
+  "actual_model_witness": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-cbond-semantic-reference-20261104/FACT_WITNESS.json",
+    "bytes": 10696,
+    "sha256": "c76b71e9363317301129588570d78ffb275315de7d01492a967adf0385636f6f"
+  },
+  "eight_actual_operations": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-cbond-semantic-reference-20261104/EXECUTIONS.json",
+    "bytes": 27608,
+    "sha256": "55d56f8c95a312db61b477281f73e0892606803450cc4fa3b57bce9b5fb14abf"
+  },
+  "chemical_contract": "OriginalaminodiolC3H9NO2,totalH9,charge0,originalheavyedges/donorsanddeployednumericSINGLElinks; no stereoisomerassignment from unspecifiedinput. IndependentRDKitliteralunsanitizedSMILESreadingchecksH/charge/unspecifiedstereo, without imposingRDKitEuvalenceperception. AlloriginalfiveONNXlogits, tworesultprobabilitiesand5e-6tolerance retained.",
+  "retained_failures": "All30originalmatrixfailures plus isolatedcandidate1wrongno-explicitHassumption/candidate2wrongDATIVEassumption; candidate3correctexistingcontract passes5ABIs.",
+  "scope": "Two test files and two recorded-output Markdownfiles changed; no production/model/features/native/schema/budget/monitor changes.",
+  "remaining": "Docs-refreshedcurrentactualsdist/wheels and installedguide/READMEchecks; finalreport/B_exp.",
+  "global_gate_closed": false
+}

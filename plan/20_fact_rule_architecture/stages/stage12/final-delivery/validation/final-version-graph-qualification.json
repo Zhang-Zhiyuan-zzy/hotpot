@@ -80,7 +80,7 @@
     "python -B /tmp/hotpot_plan20/medium/stage12-final-version-graph-environments-20261104/preparation01/execution01/review_execution.py",
     "python -B /tmp/hotpot_plan20/medium/stage12-final-version-graph-environments-20261104/preparation01/root-review01/review.py"
   ],
-  "remaining_coverage": {
+  "historical_remaining_coverage": {
     "cp310": "No remaining default graph30gap in this frozen scope.",
     "cp313": "No remaining default graph30gap in this frozen scope.",
     "cp312": {
@@ -91,5 +91,7 @@
       "outside_pending_non_graph": 3204,
       "pending_cost_overlap": 2469
     }
-  }
+  },
+  "remaining_coverage": {},
+  "current_completion": "final-version-matrix.json and final-repaired-stereo-delivery.json; originalextra-importcheckerfailuresremain unchanged."
 }

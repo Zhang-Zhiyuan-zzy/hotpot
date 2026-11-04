@@ -94,7 +94,7 @@
     "payload_bytes": 85024237
   },
   "actual_commands": "Original COMMANDS.json3204outside_pending_non_graphcommands, CPUs48-55, ABIs sequential; no retries, dependency/test/product/native changes or formal timings.",
-  "remaining": "2469pendingcost-overlap nodes perCP312/314; changedD033native/D035stereoaffected source/wheel/version qualification remains separate. Current unrelated evidence reuse requires actual applicability, not chronology.",
+  "remaining": "Original2469pendingnodes now actuallycollected:2466pass+3strictknownlimitxfails perABI; seefinal-version-matrix.json. ED7affectednative/stereo verified separately. Currentdocs/package/finalreport/B_expremain.",
   "global_gate_closed": false,
   "reviewed_unix": 1793804275.7183712
 }

@@ -1,0 +1,606 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_ORIGINAL_GPU_COSTS_WITH_METADATA_AND_SHARED_LOAD_LIMITS",
+  "baseline_commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "current_repaired_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "invocations": 8,
+  "warmups": 8,
+  "measured_samples": 24,
+  "failures": 0,
+  "no_output": 0,
+  "pairs": {
+    "mca_fallback": {
+      "baseline": {
+        "seconds": [
+          2.355074554681778,
+          2.4140379894524813,
+          2.4759679473936558
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 7.245080491527915,
+          "median_seconds": 2.4140379894524813,
+          "mad_seconds": 0.058963434770703316,
+          "p95_seconds": 2.4697749515995384,
+          "peak_rss_bytes": 865542144
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          }
+        ],
+        "worker_peak_rss_bytes": 865542144,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/baseline/timing-mca_fallback/samples/result.json",
+          "bytes": 8716,
+          "sha256": "17d50363d4217546bda70baee3f36f50d0be1b0e0fbb84a599c332ba3c6cf48c"
+        }
+      },
+      "candidate": {
+        "seconds": [
+          2.6059259232133627,
+          2.63688968680799,
+          2.4505297541618347
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 7.6933453641831875,
+          "median_seconds": 2.6059259232133627,
+          "mad_seconds": 0.03096376359462738,
+          "p95_seconds": 2.633793310448527,
+          "peak_rss_bytes": 748195840
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 8,
+            "value.returned_molecules": 8,
+            "value.sites": 12,
+            "value.atom_predictions": 34,
+            "value.gpu_started": false
+          }
+        ],
+        "worker_peak_rss_bytes": 748195840,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/candidate/timing-mca_fallback/samples/result.json",
+          "bytes": 8735,
+          "sha256": "8df328b00f4b5572f10af82850be9d22c03b31b4e8b4f425938ebd75f1b83ae0"
+        }
+      },
+      "candidate_over_baseline_median": 1.0794883653858334,
+      "observed_relative_worker_peak_rss": 0.864424505711879,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE_COST_WITH_RETAINED_REGRESSION"
+    },
+    "mca_1gpu": {
+      "candidate": {
+        "seconds": [
+          4.880933899432421,
+          4.844943318516016,
+          4.788595709949732
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 14.514472927898169,
+          "median_seconds": 4.844943318516016,
+          "mad_seconds": 0.035990580916404724,
+          "p95_seconds": 4.87733484134078,
+          "peak_rss_bytes": 213684224
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          }
+        ],
+        "worker_peak_rss_bytes": 213684224,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/candidate/timing-mca_1gpu/samples/result.json",
+          "bytes": 32107,
+          "sha256": "7ffa022a7dcace73ef410d8ea874671c41285d6d1d8d09603f96aff9e9251df7"
+        }
+      },
+      "baseline": {
+        "seconds": [
+          2.6115511246025562,
+          2.684349836781621,
+          2.466758955270052
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 7.762659916654229,
+          "median_seconds": 2.6115511246025562,
+          "mad_seconds": 0.07279871217906475,
+          "p95_seconds": 2.6770699655637147,
+          "peak_rss_bytes": 264970240
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          }
+        ],
+        "worker_peak_rss_bytes": 264970240,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/baseline/timing-mca_1gpu/samples/result.json",
+          "bytes": 32088,
+          "sha256": "80518ac6020e7aee63fb4c37db19fca9aec24611c1d62dad65d9b6f9af9ae793"
+        }
+      },
+      "candidate_over_baseline_median": 1.855197576977687,
+      "observed_relative_worker_peak_rss": 0.8064461276858865,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE_COST_WITH_RETAINED_REGRESSION"
+    },
+    "mca_4gpu": {
+      "baseline": {
+        "seconds": [
+          2.4197339843958616,
+          2.317406153306365,
+          2.239677721634507
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 6.976817859336734,
+          "median_seconds": 2.317406153306365,
+          "mad_seconds": 0.07772843167185783,
+          "p95_seconds": 2.409501201286912,
+          "peak_rss_bytes": 268705792
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          }
+        ],
+        "worker_peak_rss_bytes": 268705792,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/baseline/timing-mca_4gpu/samples/result.json",
+          "bytes": 84474,
+          "sha256": "0f3cab4241f343810498ca00c1ea678e78b224fbddb28edde9436d2d8055a045"
+        }
+      },
+      "candidate": {
+        "seconds": [
+          4.713142352178693,
+          4.533086746931076,
+          4.653947297483683
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 13.900176396593451,
+          "median_seconds": 4.653947297483683,
+          "mad_seconds": 0.059195054695010185,
+          "p95_seconds": 4.707222846709191,
+          "peak_rss_bytes": 217153536
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          },
+          {
+            "completed_calls": 1,
+            "value.requested_molecules": 512,
+            "value.returned_molecules": 512,
+            "value.sites": 768,
+            "value.atom_predictions": 2176,
+            "value.gpu_started": true
+          }
+        ],
+        "worker_peak_rss_bytes": 217153536,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/candidate/timing-mca_4gpu/samples/result.json",
+          "bytes": 84494,
+          "sha256": "0d19da47db1748c4312a7c5e0780971c97ae50d40b87a067f743be648a9fcfb4"
+        }
+      },
+      "candidate_over_baseline_median": 2.008257072608378,
+      "observed_relative_worker_peak_rss": 0.8081460931069174,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE_COST_WITH_RETAINED_REGRESSION"
+    },
+    "cbond_cuda": {
+      "candidate": {
+        "seconds": [
+          0.055291758850216866,
+          0.057136718183755875,
+          0.05629724822938442
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.16872572526335716,
+          "median_seconds": 0.05629724822938442,
+          "mad_seconds": 0.0008394699543714523,
+          "p95_seconds": 0.05705277118831873,
+          "peak_rss_bytes": 685019136
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          },
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          },
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          },
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          }
+        ],
+        "worker_peak_rss_bytes": 685019136,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/candidate/timing-cbond_cuda/samples/result.json",
+          "bytes": 18273,
+          "sha256": "3596cc40195e944e431807802b597da2b7e5e6b2691c50b9aa4f2c4aaa90d128"
+        }
+      },
+      "baseline": {
+        "seconds": [
+          0.05564865656197071,
+          0.055487386882305145,
+          0.05677936039865017
+        ],
+        "summary": {
+          "attempts": 3,
+          "completed": 3,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.16791540384292603,
+          "median_seconds": 0.05564865656197071,
+          "mad_seconds": 0.0001612696796655655,
+          "p95_seconds": 0.056666290014982225,
+          "peak_rss_bytes": 787034112
+        },
+        "all_work_counters": [
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          },
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          },
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          },
+          {
+            "completed_calls": 20,
+            "value.predictions": 2
+          }
+        ],
+        "worker_peak_rss_bytes": 787034112,
+        "actual_result_identity": {
+          "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation04-ort1241/runtime/baseline/timing-cbond_cuda/samples/result.json",
+          "bytes": 18252,
+          "sha256": "484d429d2e6c8ffb9bd89c1dcad57b8d94a91bb6a255d2b1358ba10aeb6bd935"
+        }
+      },
+      "candidate_over_baseline_median": 1.0116551181553042,
+      "observed_relative_worker_peak_rss": 0.8703804899373917,
+      "root_disposition": "ACCEPTED_BOUNDED_USABLE_COST_WITH_RETAINED_REGRESSION"
+    }
+  },
+  "guard_summary": [
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/00-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/00-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/01-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/01-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/02-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/02-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/03-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/03-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/04-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/04-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/05-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/05-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/06-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/06-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/07-GUARD_BEFORE.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    },
+    {
+      "path": "/tmp/hotpot_plan20/long/stage12-final-gpu-performance-20261104/preparation05-direct-evidence/execution01/07-GUARD_AFTER.json",
+      "files": 3016,
+      "locks_not_opened": 2,
+      "inventories": 4
+    }
+  ],
+  "hardware": {
+    "observations": 36,
+    "maximum_reported_load1": 21.8,
+    "maximum_reported_GPU_used_MiB": {
+      "0": 15500.0,
+      "1": 548.0,
+      "2": 2338.0,
+      "3": 13488.0
+    },
+    "minimum_reported_GPU_free_MiB": {
+      "0": 33185.0,
+      "1": 48137.0,
+      "2": 46347.0,
+      "3": 35197.0
+    },
+    "shared_context": "All observations use same pinned Docker image/device context. GPU0/3retain existing foreign residents; clocks/utilization/load vary. Coarse during-run sampling is not a reservation or complete kernel/process census."
+  },
+  "decision": "All original work completes with equal declared counters and actualCUDAprovider requirements. Accept measured current usability: approximately2.61s/8fallbackmolecules,4.84s/512single-GPUmolecules,4.65s/512four-initialized-sessionmolecules and56.3ms/20CBondcalls. Preserve observed approximately1.85x/2.01xMCAGPUslowing; no speculative optimization or extra timing round required to progress business.",
+  "limits": [
+    "Endpoint remains frozenB0/16b864f, not exactED7timing. Changed stereochemical conversion has separate actual installed/source/model/workflow qualification.",
+    "All4raw ratios remain. Three measured repeats/oneprocess perinvocation/sharedhardware provide bounded observations, not statistically certain global rates.",
+    "Original129B0acidmetadata differences prevent a complete chemical-output parity claim; same-work counters/trained tensors do not repair that old failure.",
+    "512fixture infers on2of4initialized devices; no4-active scaling claim.",
+    "Per-worker RSS misses otherprocess/native/GPUaggregatepeaks; sampledshareddevicememory is not peakallocator ownership.",
+    "No algorithm/model/features, thresholds, workdenominators or sample budgets changed; original preflight failures remain."
+  ],
+  "global_gate_closed": false,
+  "reviewed_unix": 1793807733.4196675,
+  "archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-original-gpu-cost16b864f/raw-evidence.tar.gz",
+    "archive_bytes": 3480483,
+    "archive_sha256": "ceaf850ed53548ab9e7bb8cce018e6aa2afbcbac19544bc9e52381b3c708c7b5",
+    "manifest_sha256": "e0df888a96073939aea02a5cdfc994cca62c6ea4e1940f1ce2eaa3731ef747ac",
+    "verified_payload_count": 107,
+    "payload_bytes": 20729860,
+    "verified_unix": 1793807714.6381195,
+    "scope": "Original eight once-only B0/16b864f1warmup+3measured timing invocations, exact work counters/provider guards, retained metadata and2-of4inference limits, before/during/aftersharedGPUhardware and root usable-cost decision. NoED7runtime/globalparityclaim."
+  },
+  "root_review_identity": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-original-gpu-cost16b864f/ROOT_GPU_COST_REVIEW.json",
+    "bytes": 21300,
+    "sha256": "42a3703ceeaba42c5a83f575be65e91655d44d1ea4710ec9891b6366a5c19e62"
+  }
+}

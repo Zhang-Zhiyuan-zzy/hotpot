@@ -7,8 +7,8 @@ connectivity as SMILES; it does not optimize a three-dimensional structure.
 ## Verification basis
 
 The concrete output blocks below were captured from an installed
-`hotpot-zzy 0.5.3.0` wheel using the CBond v1 models, ONNX Runtime
-1.30.0, Open Babel 3.2.1, and CPU inference. They are command output, not
+`hotpot-zzy 0.5.4.5` wheel using the CBond v1 models, ONNX Runtime
+1.31.0, Open Babel 3.2.1, and CPU inference. They are command output, not
 invented formatting examples.
 
 Only standard output is shown. ONNX Runtime may independently print provider
@@ -16,6 +16,9 @@ or telemetry warnings to standard error. Such warnings are not part of the
 CBond result and are not written by `-o` or shell `>` redirection. Canonical
 SMILES spelling and stereochemical annotations can vary with the Open Babel
 version even when the predicted bond set is unchanged.
+Coordination links follow the registered Open Babel export map. Bond addition
+preserves the ligand's H and formal-charge facts; serialization does not select
+a stereoisomer for an unspecified centre.
 
 ## Command synopsis
 
@@ -36,7 +39,7 @@ $ hotpot cbond Eu 'CN' --device cpu
 ```
 
 ```text
-C[NH2+][Eu]
+C[NH2][Eu]
 ```
 
 The atomic-number form was verified to produce the same result:
@@ -59,7 +62,7 @@ $ hotpot cbond Eu morpholine.mol2 --device cpu
 ```
 
 ```text
-C1C[N@H+]2[Eu][O]1CC2
+C1C[O]2[Eu][NH]1CC2
 ```
 
 The same molecule converted to `morpholine.sdf` produced the same output.
@@ -87,14 +90,14 @@ $ hotpot cbond Eu 'NCC(O)CO' --device cpu --all-structures
 ```
 
 ```text
-C1O[Eu]2O[C@@H]1C[NH2+]2  --> Rank 1: Prob: 57.9%
+C1[NH2][Eu]2[OH]C1C[OH]2  --> Rank 1: Prob: 57.9%
 -----
-NC[C@@H]1CO[Eu]O1  --> Rank 2: Prob: 42.1%
+NCC1C[OH][Eu][OH]1  --> Rank 2: Prob: 42.1%
 -- End --
 ```
 
 For comparison, default greedy inference on the same SMILES printed
-`NC[C@@H]1CO[Eu]O1`, which is Rank 2 after full path aggregation. Therefore,
+`NCC1C[OH][Eu][OH]1`, which is Rank 2 after full path aggregation. Therefore,
 the default mode must not be interpreted as an alias for Rank 1.
 
 For each ordered construction path, the backend multiplies
@@ -125,7 +128,7 @@ $ hotpot cbond Eu 'CN' --device cpu --bond-detail
 ```
 
 ```text
-C[NH2+][Eu]
+C[NH2][Eu]
 Cbond Detail:
 AtomIdx  Atom  Score
 1        N     0.08525
@@ -141,14 +144,14 @@ $ hotpot cbond Eu 'NCC(O)CO' --device cpu --all-structures --bond-detail
 ```
 
 ```text
-C1O[Eu]2O[C@@H]1C[NH2+]2  --> Rank 1: Prob: 57.9%
+C1[NH2][Eu]2[OH]C1C[OH]2  --> Rank 1: Prob: 57.9%
 Cbond Detail:
 AtomIdx  Atom  Score
 0        N     0.89586
 3        O     3.60561
 5        O     4.41528
 -----
-NC[C@@H]1CO[Eu]O1  --> Rank 2: Prob: 42.1%
+NCC1C[OH][Eu][OH]1  --> Rank 2: Prob: 42.1%
 Cbond Detail:
 AtomIdx  Atom  Score
 3        O     2.32296

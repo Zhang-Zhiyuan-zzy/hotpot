@@ -274,7 +274,7 @@ def test_cbond_doc_contains_recorded_outputs_not_placeholder_results():
     assert (
         "They are command output, not\ninvented formatting examples." in documentation
     )
-    assert "C[NH2+][Eu]" in documentation
-    assert "C1O[Eu]2O[C@@H]1C[NH2+]2  --> Rank 1: Prob: 57.9%" in documentation
-    assert "NC[C@@H]1CO[Eu]O1  --> Rank 2: Prob: 42.1%" in documentation
+    assert "C[NH2][Eu]" in documentation
+    assert "C1[NH2][Eu]2[OH]C1C[OH]2  --> Rank 1: Prob: 57.9%" in documentation
+    assert "NCC1C[OH][Eu][OH]1  --> Rank 2: Prob: 42.1%" in documentation
     assert "1        N     0.08525" in documentation

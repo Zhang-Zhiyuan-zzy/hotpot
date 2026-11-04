@@ -1,0 +1,71 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_ADDITIONAL3183_COST_AND_COMPLETION",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "population": 3183,
+  "sampling": {
+    "warmups": 1,
+    "samples": 5
+  },
+  "actual_full_launches": 1,
+  "attempts": {
+    "attempts": 5,
+    "completed": 5,
+    "failed": 0,
+    "no_output": 0
+  },
+  "each_full_invocation": {
+    "passed": 3169,
+    "declared_tier_skips": 14,
+    "failed": 0,
+    "errors": 0,
+    "xfails": 0
+  },
+  "cost": {
+    "attempts": 5,
+    "completed": 5,
+    "failed": 0,
+    "no_output": 0,
+    "all_attempt_seconds": 605.9102430026978,
+    "median_seconds": 121.52464201673865,
+    "mad_seconds": 1.0211175791919231,
+    "p95_seconds": 122.50213357433677,
+    "peak_rss_bytes": 722071552
+  },
+  "origin_observations": {
+    "observed_normal_exit_records": 745,
+    "observed_product_origin_records": 547,
+    "observed_unique_product_files": 392,
+    "outside_installed_product_modules": 0,
+    "uff_workers_with169installed_modules": 48
+  },
+  "before_after_guards": {
+    "original_inputs": 456,
+    "installed_files": 903,
+    "candidate_inputs": 11
+  },
+  "root_review": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-added-test-origin-corrected-20261104/ROOT_ADDITIONAL_TEST_COST_REVIEW.json",
+    "bytes": 3282,
+    "sha256": "5aeb61f9887f53409af320557d8be556f8c12987e675825bf6392d8878e43b6f"
+  },
+  "report": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-added-test-origin-corrected-20261104/REPORT.md",
+    "bytes": 5912,
+    "sha256": "03d596709415c42018b887f377f18a6973923f6582d8d843f5e96db2a717439e"
+  },
+  "raw_index": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-added-test-origin-corrected-20261104/EVIDENCE_INDEX.json",
+    "bytes": 226274,
+    "sha256": "46b9eec206c89e1cf9058e6b3b83ab6fb3b9810fb042dd34f6b956acd738b494"
+  },
+  "original_failed_launch": "Actual warmup3169pass/14skip then8source-loadedUFFchildren rejectedbeforemeasuredsamples. Preserved; isolatedsetupprioritycorrection retainsverifier/driver/assertions/selection/defaulttiers.",
+  "limits": [
+    "Frozen16b endpoint only; no ED7 runtime claim",
+    "Complete3183additional-current execution; semantic novelty not proven",
+    "Default-disabled tiers remain skipped; no model execution claim for skips",
+    "Normal-exit origins observed; not an exhaustive subprocess census",
+    "Cost includes private probe, origin-serialization and path-priority maintenance overhead",
+    "No paired speedup, whole-suite total or Stage12 gate acceptance claim"
+  ],
+  "global_gate_closed": false
+}

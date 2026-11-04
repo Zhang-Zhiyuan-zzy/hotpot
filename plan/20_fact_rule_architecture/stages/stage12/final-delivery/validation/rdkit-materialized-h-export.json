@@ -1,5 +1,5 @@
 {
-  "status": "BOUNDED_D035_SOURCE_REPAIR_QUALIFIED_INSTALLED_PENDING",
+  "status": "ROOT_ACCEPTED_AFFECTED_SOURCE_AND_FIVE_ABI_INSTALLED_REPAIR",
   "deferred_issue": "P20-D035",
   "base_commit": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
   "production_repair_rounds": 1,
@@ -125,5 +125,9 @@
   "known_evidence_limit": "Earlier focused and pre-repair selection and identities are retained; the compacted worker context does not retain their complete shell invocations. Both selected the single new regression file. Final affected argv and environment are exact.",
   "formal_performance": false,
   "global_gate_closed": false,
-  "reviewed_unix": 1793804521.9913301
+  "reviewed_unix": 1793804521.9913301,
+  "historical_source_checkpoint_status": "BOUNDED_D035_SOURCE_REPAIR_QUALIFIED_INSTALLED_PENDING",
+  "post_delivery_completion": "final-repaired-stereo-delivery.json",
+  "post_delivery_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "historical_remaining_note": "Earlier remaining/scope strings describe that original source checkpoint; current affected completion is in the post_delivery_completion record. Global acceptance remains separate."
 }

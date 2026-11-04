@@ -9819,3 +9819,109 @@ The owner now limits a concrete unresolved problem to three genuine repair/valid
 The bounded D035worker uses one production repair round:12original failures/9passes become21focused and161complete affected candidate passes, with known earlier command-provenance limits retained. Root reviews the exact six-line local carrier binding, preserved existing permutation logic, R/S/charged/copy/remap/implicitH/lone-pair/heavy-neighbour controls and independent numeric3Droundtrips. Applying only the writer/newtest changes yields a combined main D033/D035 selection of266passed/0failed/1existing scientific-tier skip under explicit source PYTHONPATH. Exact commands/results/native provenance remain in the two maintained correction records and234/33verified raw archives.
 
 The original O0standardAm case54route on the fresh main native completes rootseeds42/43/44(effective96/97/98), with all739source/model/native/runner bindings unchanged and identical original configuration. Saved final geometry independently givesR,Rat rows1/12for all three seeds. Selected energies1058.7348295159245,980.6768204464443,980.6325643601964kJ/mol remain actual finite observations; no historical energy target is imposed. All standard checks pass. Original S,Sobservations remain preserved. Installed/Eu/final wheel/version qualification is next; D033/D035/D007andglobalacceptance remain open. This coherent code/test/document/evidence checkpoint is intended for a normal business commit/push; no bookkeeping-only commit or B_expclaim is made.
+
+
+### 2026-11-04 — Stage12 D033/D035 committed repair delivery continuation
+
+Main-source stereo repairs and their combined266-pass/1-existing-boundary-skip
+selection are committed and normally pushed as
+`ed7a64d463945360e669e858591d5ed399eb4535`. Existing Stage12 governance,
+scientific route and acceptance requirements remain aligned; no stage-entry or
+scientific-policy change is introduced. One finite product/build/test Git export
+(1547files, every file bound to its committed blob) and one actual sdist now
+contain these repairs. All `plan/` material, unrelated/untracked owner work and
+prebuilt native objects are excluded before archive creation. The sdist is
+`031de9f1f09f35d102b9e56048fc710e9c57d53d79e0c196d57735e8389c4e36`
+(2864523bytes), under
+`/tmp/hotpot_plan20/long/stage12-stereo-repaired-delivery-20261104/`.
+
+Root releases one clean six-component wheel build/release-smoke per ABI from
+that same sdist, CP311 first in scheduling priority, with eight disjoint CPUs
+each and separate mutable caches. Source pins, image/profile, compiler route,
+repair exclusions and original release smokes remain unchanged. Exact commands,
+environments, actual process returns and product identities are retained by
+`prepare.py`, `NEXT_COMMANDS.json` and `build_five.py`; no automatic retries.
+These builds establish no formal timing or scientific acceptance. Actual
+outside-checkout CP311 affected tests/model/backend use and case54Eu
+reference/UFF/both official xTB routes are next. Unchanged SDK and unaffected
+corpus/version evidence may be reused only by actual owner/consumer
+applicability. Supported-ABI affected qualification, pending cost populations
+and final global gates remain open. After three genuine unsuccessful rounds on
+one bounded issue, retain the attempt/dependency record and progress independent
+work, including eligible Stage14A preparation; later production gates remain
+unchanged.
+
+
+### 2026-11-04 — Stage12 original2689version-cost population released once
+
+Root verified all699frozen recipe inputs of the prepared
+`preparation02-parameter-bindings` packet unchanged. The two original
+B0/16b864ffive-ABI controllers are released once, retaining all2689logical
+slots, three retired slots without manufactured outcomes, actual migrations,
+all preflights/round barriers and original1+5sampling. Each ABI has eight CPUs
+within0-39. Shared-resource load/procstat/memory observations accompany every
+phase; concurrent build/smoke work uses72-111. Root will judge comparability
+and usable absolute cost, including failed attempts. No automatic retry or
+strict whole-population speedup claim. Exact original installed endpoints
+remain frozen16b864f/B0; these are neither newED7stereo repair runtime nor
+whole-current-source timing. New repaired installed/native/affected-version
+and case54workflow qualification stays separate. Commands/release/results:
+`/tmp/hotpot_plan20/long/stage12-final-cost-execution-20261104/`.
+
+
+### 2026-11-04 — Stage12 complete original3183additional-current cost released
+
+All456prepared recipe inputs remain unchanged. Root releases the original
+3183-node additional-current installed16b864fselection with original collection
+preflight and1warmup+5measured attempts, retaining tier skips, strict xfails,
+failures and actual origins. Its single eight-CPU allocation moves8-15to48-55
+to avoid the five-version controllers0-39and repaired installed checks40-47.
+The sole command delta and during-run shared CPU/memory conditions are recorded
+in `stage12-final-cost-execution-20261104/run_added.py` and its release/results.
+This remains the original frozen3183population, not a claim that the63new
+ED7regressions are included; those42native-builder+21RDKitcases have their
+separate actual267case affected selection. No semantic-novelty proof, paired
+speedup, whole-current-source timing or global gate pass is inferred.
+
+
+### 2026-11-04 — Stage12 installed repaired delivery and affected replay support correction
+
+All five fresh six-native builds/release smokes completed from the same committedED7sdist. Each outside-checkout ABI(CP310–314)affected selection returned267total/266pass/1existing declared boundary skip, no failures/errors, zero observed child-origin violations or changed installed product members. These are affected stereo/native/lifecycle boundaries, not all-final acceptance. The first repaired installedcase54reference launch failed before chemistry with FileNotFoundError for support/molecules/extractant/extractants.smi(0.220s); the original failure remains intact. A separate attempt02input-support copies the identical187-input dataset and unchanged committed tests, preserves original100×100/16workers/1000sbudgets, models and monitors, and will replay only the affectedcase54before independent coordinate-derived stereo review. No production/harness repair or scientific-route change is made. Paths and identities remain under stage12-stereo-repaired-{delivery,case54}-20261104.
+
+
+### 2026-11-04 — Stage12 affected installed chemistry reviewed; original GPUcost release
+
+Repairedcase54actualEu reference and independently rebuiltUFFligand/complex complete;9saved geometries(reference1/UFF2/actualxTB6)independently derive originalR,R. All6actualGFN-FF/GFN2optimizers succeed and commit mapped finite coordinates. Bothligandroutespass; bothEucomplexroutesretain failed_final_quality(P–Sbond_length_ratio2.596239/2.393746), withfiniteobservations/unchangedthresholds and original187/182/738populations retained. Original input-support failure and missing phase-specific exit-resource telemetry remain explicit; origin/product checks pass. Root accepts affectedD033/D035closure and boundedD002integration cost, without scientific-truth/parity/all-memoryclaims. Detailed actualcommands/observations/resources are in stage12-stereo-repaired-case54-20261104/attempt02-input-support/ROOT_SCIENCE_REVIEW.json.
+
+All8originalGPUpreflights are previously reviewed. New same-image telemetry observes0compute onall4shared GPUs, resident~13GBon0/3andadequatecapacity; noexclusivity. Root releases exactly8originalB0/16b864ftiming invocations with1+3sampling andbefore/during/afterhardware observations. CPUs64–127do notoverlap2689matrix0–39oradditional48–55. Frozenendpointtimings are notrelabeledED7runtime;129B0acidmetadata differences and2-of4inferencefixturelimitsremain. release.json and ROOT_TIMING_RELEASE_REVIEW.json bindterminalscience/hardwareevidence;noautomaticretry, alteredbudgets, scientificgateweakeningorB_expclaim.
+
+
+### 2026-11-04 — Stage12 completed GPU/new-mechanism evidence and cross-stage dispositions
+
+All8originalGPUinvocations complete once,8warmups/24measuredsamples/0failures/nooutput; allpre/postguardsand actualCUDA/workcounters pass. Same-image36hardwareobservations retainsharedforeignresidents, varyingclocks/load and >33GiBminimumreportedfreeGPUmemory. B0/16b864fmedianratios1.079fallback,1.855singleGPU,2.008four-initializedsessionfixture,1.012CBond areactualboundedobservations; approximately2.61s/8fallbackmolecules,4.84s/512singleGPU,4.65s/512four-sessionwork,56.3ms/20CBondcallsareusable. Alladversevalues,129B0acidmetadata differences,2-of4inferencelimit andworkerRSSscope remain; noexactED7runtime/globalparityclaim. Rootreviewhelper initiallyfailedonstrPathhandlingbeforereview; oneprivatecorrectioncompletedthereviewwithoutrepeatingbusiness.
+
+The twoidentifiedmicrofixturefailures receiveoneoutside-timerspecificformalcharge-seedsetupcorrection. Original12assertions/full19independentoracle/currentness/ownership checks remain; all12cells/36warmups/120measuredsamples/12memoryprobescompletewithzerofailure. N4096full19completeprojectionis72.191ms/read; sparse20marking58.071microseconds; denseall1.350371ms. Actualoriginal16bendpointandallguardcounts/resourcesare retained. Rootacceptsboundednewmechanismcosts.
+
+Rootreviewsfinitehistorical/currentownerconsumerapplicabilityandactualfinalCPU/SDF/science/resourceevidence; D001/D002/D005/D017/D018/D019/D025receiveexplicitACCEPTED_LIMITATION, with every originaladverse/inconclusivemetricandfailure preserved, namedreopenconditionsandnouniversalparity/scaling/leakclaim. D007/D033/D035closeonlytheaffectednative/stereo/deliveryboundaries. Verifiedarchives contain482delivery/sciencepayloads,33microevidencepayloads,107GPUrawpayloadsand2dispositionsupportfiles; newmaintainedrecordsindexactualresults. Original2689matrix, additional3183originrepair, currentCBonddoc/referenceupdateandfinalglobalreport/reconciliationremainopen. NoB_exporglobalgateclosure.
+
+
+### 2026-11-05 — Stage12 original version matrix and CBond semantic reference correction
+
+Original2689logicalfive-ABImatrix completesbothphases/allpreflights/all60attemptswithoriginal1+5sampling. B0controllerreturns0;candidate16bcontrollerreturns1. Inall30candidateattemptstheonlyfailingcaseisthedocumentedaminodiolmodelreferenceexpectingformerlossyMOL2SMILES(+Ncharge/lostOH/inventedstereo); allotherphysicalnodesexecuteandpassorretaintheirdeclaredtieroutcome. All699recipeinputsremainunchangedatpostreview. Threeapprovedretiredlogicalslotsarenotpassed. Retainall30originalassertionfailures, wall/RSS, migrations/retirementsanddenominators; no successfulcandidatefull-populationtiming/ratio/parityclaim. Rootacceptsanexplicitinconclusivecostlimitation: actualbusinessqualitycomesfromdirectcorrectedcaseobservations, notforcingoldcheckerstrings or repeatingunchangedpassedcohorts. ROOT_VERSION_MATRIX_REVIEW.json recordsallroundsandperABIresults.
+
+IndependentactualunchangedCBondv1modelsconfirmaminodiolligandC3H9NO2,netcharge0, originaldonorstates(0,3,5)/(3,5), samefiveoriginalrawscoresand0.578737/0.421263weights; currentserializationpreservesH9/charge0/unspecifiedstereo. SevenactualCLIcommandsandonefactwitnessrecapturemethylamine, aminodiol,morpholineMOL2/SDFandrootREADMEextractant. Originalguideoutputsfrom0.5.3.0arenotcurrentreferences. ThefirstnewtestcandidateincorrectlyassumednoexplicitHparticles; the secondincorrectlyrequiredDATIVEinstead ofthedeployedCBondnumericSINGLElinks. Bothfailures/candidatesarepreserved; thirdcandidateusesactualsite-totalH/nonHrowsandexistinglinkcontract, andpassesactualmodelchecksoneachCP310–314. Alloriginalrawscore/probabilityassertionsat5e-6remain.
+
+Afterbothfrozenmatrix/additional-costjobsareterminalwithpostguards,rootappliesexactlyfourreviewedfiles: tests/cbond/test_apply.py,test_cbond_cli.py,hotpot/commands/cbond.md,README.md. Applicationonlycorrectstestchemicaloraclesandactuallyrecapturedguideexamples; noproductionalgorithm/model/native/schema/timeout/thresholdchange. Currentguide/source/installedpackagechecks anddocs-onlysdistrib/wheelrebindfollow. B_exp/globalcompletionremainopen.
+
+
+## 2026-11-05 — Stage12 chemical CBond reference, terminal costs and version coverage
+
+Continued the accepted Stage12 route at `ed7a64d463945360e669e858591d5ed399eb4535`, reusing the completed alignment and unaffected owner/consumer evidence. Applied only two CBond test files, the shipped CBond guide and the root README after both frozen cost jobs became terminal. The former reference demanded lossy MOL2-derived H/charge and invented stereo. The new reference checks original ligand facts, donor/edge mapping, deployed numeric SINGLE links and independently read literal SMILES H9/charge0/unspecified stereo; all original five model logits, two probabilities and tolerance5e-6 remain. Original30matrixfailures and the first two incorrect isolated test candidates remain retained.
+
+Actual command recorded in `/tmp/hotpot_plan20/medium/stage12-cbond-source-qualification-20261105/pytest-intent.json`: CP311 `python -s -B -m pytest -q -ra --import-mode=importlib --run-model-artifacts tests/cbond/test_apply.py tests/cbond/test_cbond_cli.py tests/readme/test_readme_examples.py::test_readme_cbond_cli_output tests/readme/test_readme_examples.py::test_readme_cbond_forcefield_pipeline`, with taskset40–47, private origin observer, no cache and exact JUnit/effective environment. Result36passed/0failed/error/skip, 536source/native/test/doc inputs unchanged, four child-origin reports and zero observed violations. Prior isolated corrected actual model case passes all five ED7installedABIs. Eight actual model/CLI observations supply recorded command outputs. No production algorithm, model encoding, native, scientific budget, schema or gate changed.
+
+Root independently reconciled the five-version pending2469-node subset against actual measured invocation probes and JUnit in every ABI:2466pass plus three pre-existing strict aromatic xfails, no missing nodes. Compose with actual CP312/3143204complements, fournonCP311graph30 routes and previously reviewed unchanged broad/source/installed evidence. ED7changed paths have their own fresh fiveABI native and266pass/1existingboundaryskip affected qualifications. D006closes in this declared adaptation scope; no fictional single full final command or disabled-tier pass is claimed. All60originalmatrixattempts and30old-checkerfailures remain; candidate failed-attempt elapsed/RSS is retained with explicit inconclusive successful-full-population cost and no speedup/parity claim.
+
+Local Sol/xhigh subagent completed the original3183additional-current selection after the identified source-support `sys.path` leak was corrected in isolated test setup. Root checks all six JUnit populations and exact pre/post original456+installed903+private11guards, unchanged collection/contracts/parent origins. Each1warmup+5measured invocation records3169pass/14declaredtier-skips; median121.524642s, p95122.502134s, max wait4RSS688.621MiB. Observed745normal-exit reports/547withproduct/392uniqueinstalledfiles, all48UFFworkers169installedmembers, zero observed source violations. Frozen16b runtime only; no ED7cost or pairedspeedup claim. Original warmup-origin failure is preserved.
+
+Maintained cost/science/version and deferred records now reflect actual terminal evidence, including D001/D002/D005/D017/D018/D019/D025 bounded accepted costs and D007/D033/D035 repaired delivery closure. Current docs still require refreshed actual sdist/wheels and installed examples. Main-scope final report/acceptance and validatedB_exp remain open; Stage13/14/15 production is not released. Apply the owner's three-unsuccessful-round rule by retaining each bounded failure and advancing independent work only when its upstream gates remain satisfied.

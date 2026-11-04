@@ -1,5 +1,5 @@
 {
-  "status": "BOUNDED_MAIN_SOURCE_REPAIR_AND_O0_CASE54_QUALIFIED_INSTALLED_EU_PENDING",
+  "status": "ROOT_ACCEPTED_AFFECTED_SOURCE_AND_FIVE_ABI_INSTALLED_REPAIR",
   "base_commit": "9ba0b0b9041af6264c38eabb2ecb5ccd1aeffc56",
   "source_results": {
     "original_affected": {
@@ -163,5 +163,9 @@
     "No fixed historical energy/CIPmetadata-only oracle, feature/schema/algorithm substitution or SWIGfallback.",
     "D035separateRDKitexport repair is applied and included in combinedsource266passes/oneexisting boundary skip."
   ],
-  "reviewed_unix": 1793804521.990495
+  "reviewed_unix": 1793804521.990495,
+  "historical_source_checkpoint_status": "BOUNDED_MAIN_SOURCE_REPAIR_AND_O0_CASE54_QUALIFIED_INSTALLED_EU_PENDING",
+  "post_delivery_completion": "final-repaired-stereo-delivery.json",
+  "post_delivery_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "historical_remaining_note": "Earlier remaining/scope strings describe that original source checkpoint; current affected completion is in the post_delivery_completion record. Global acceptance remains separate."
 }

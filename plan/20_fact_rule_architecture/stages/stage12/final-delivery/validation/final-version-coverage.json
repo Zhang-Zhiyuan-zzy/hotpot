@@ -1,7 +1,16 @@
 {
   "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
-  "status": "ROOT_REVIEWED_CONCRETE_COVERAGE_GAPS_NOT_SUPPORT_ACCEPTANCE",
-  "default_runtime_gaps": {
+  "status": "ROOT_ACCEPTED_COMPOSED_DECLARED_FIVE_VERSION_COVERAGE",
+  "root_review": ".plan20-artifacts/20261104/stage12/final-version-disposition16b864f/review01/ROOT_REVIEW.json",
+  "report": ".plan20-artifacts/20261104/stage12/final-version-disposition16b864f/review01/REPORT.md",
+  "prospective_route": "3204 non-graph complement per CP312/314 plus actual2469 overlapping observations from the separately frozen five-version cost selection. Four non-CP311 graph30 routes need qualified Torch/PyG environments. No command released by this record.",
+  "limits": [
+    "Originalrootassessmentisretainedinlinkedarchive; nohistoricalfailedinvocationrelabeledpass.",
+    "Evidenceiscomposedbyactualunchangedowners/consumersandaffectedfiveABIchecks; nocurrentfullsinglecommandpassoneachABIclaimed.",
+    "Disabledtiers,3strictknownaromaticxfails,3retiredlogicalslots and scientificboundaryskip retainoriginalmeanings."
+  ],
+  "global_gate_closed": false,
+  "original_gap_assessment": {
     "cp310": {
       "graph": 30
     },
@@ -18,13 +27,9 @@
       "default_runtime": 5703
     }
   },
-  "root_review": ".plan20-artifacts/20261104/stage12/final-version-disposition16b864f/review01/ROOT_REVIEW.json",
-  "report": ".plan20-artifacts/20261104/stage12/final-version-disposition16b864f/review01/REPORT.md",
-  "prospective_route": "3204 non-graph complement per CP312/314 plus actual2469 overlapping observations from the separately frozen five-version cost selection. Four non-CP311 graph30 routes need qualified Torch/PyG environments. No command released by this record.",
-  "limits": [
-    "No new product import, collection, tests, install or scientific execution.",
-    "Disabled tiers and strict known-limit xfails remain distinct from passing runtime contracts.",
-    "D006, global acceptance and B_exp remain open."
-  ],
-  "global_gate_closed": false
+  "current_affected_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "default_runtime_gaps": {},
+  "completion": "final-version-matrix.json",
+  "D006_closed_for_declared_version_adaptation": true,
+  "remaining": "Currentdocumentationpackage refresh and finalmain-scope acceptance/B_exp remain separate."
 }

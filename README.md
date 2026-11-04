@@ -136,7 +136,7 @@ $ hotpot cbond Eu \
 ```
 
 ```text
-CCCN(C1=[O][Eu@]23n4c1ccc1c4c4n3c(-[c]3n2nc2c(n3)C(C)(C)CCC2(C)C)ccc4cc1)C
+CCCN(C1=[O][Eu]23[n]4c1ccc1c4c4[n]3c(-c3[n]2nc2c(n3)C(C)(C)CCC2(C)C)ccc4cc1)C
 Cbond Detail:
 AtomIdx  Atom  Score
 10       N     4.04834

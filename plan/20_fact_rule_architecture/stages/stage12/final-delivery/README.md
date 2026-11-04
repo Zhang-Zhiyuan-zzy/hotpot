@@ -171,26 +171,33 @@ correspondence remains separate, with no claimed delivered patch or speedup.
 No runtime was repeated; final SDF and global gates remain open.
 
 
-## Remaining closure work
+## Current closure work — 2026-11-05
 
-These twelve reporting items track the final Stage12 delivery. The fifteen
-main-plan acceptance criteria remain authoritative; a prepared command is not
-an executed result, and passed scopes retain their source/version boundaries.
+The twelve items below describe current delivery. Earlier paragraphs and original
+failed observations are historical checkpoints; the linked completion records
+supply the current affected source and installation boundaries. The fifteen
+main-plan acceptance criteria remain authoritative.
 
 | Item | Required closure | Current state |
 |---|---|---|
-| 1. Final Plan12 scientific observations | Bind actual corpus/workflow results to final affected owners; retain eligibility, failures, finite findings and stochastic variation. | [Final inactive2280-objectcorpus/replay](validation/final-plan12-inactive-dry2280.json) is accepted within its inactive-profile boundary. [Final Eu reference](validation/final-plan12-eu-reference.json) is accepted as observed:181monitor passes/1quality failure/5CBondrejections. [FinalUFF](validation/final-plan12-eu-uff.json) completes369dynamic targets with6retained monitor failures. [Final officialxTB](validation/final-plan12-eu-xtb.json) completes738eligible route slots:691existing-monitor passes,30quality failures and17backend failures, with1105actual optimizer launches and all finite observations retained. case54geometry remains affected byD033and requires repaired-workflow qualification. Earlier556b21e workflow evidence stays historical. |
-| 2. CBond CUDA environment and functionality | Load both unchanged models and complete original CUDA work with actual attribution. | [Bounded direct-work review](validation/final-gpu-preflight-disposition.json) accepts20CBondcalls per endpoint and actual graph/head CUDAkernels; extra candidate native import failure stays retained. Complete container-native capability is not claimed. |
-| 3. Four GPU paired costs | Eight full untimed preflights, then eight original paired timing invocations with1+3sampling and hardware/load review. | Eight business preflights reviewed with ordered outputs/origins/actual kernels. Peripheral failures and129old acid metadata differences stay explicit; only2of4initialized GPUsinfer in this512fixture. Original timing-driver preparation allowed; actual timing held. |
-| 4. Five-version coverage | Applicable source/installed/native evidence without transferring CP311to other ABIs. | [Actual four-ABI graph qualification](validation/final-version-graph-qualification.json) passes30cases eachCP310/312/313/314. [Actual CP312/314complements](validation/final-version-complements.json) each pass3204cases, with all six native modules observed and unchanged installed products. Each retains2469nodes in the pendingcost-selection overlap; changedD033native/D035stereo qualification remains separately open. |
-| 5. Common test and version costs | Preserve3948logical/common2689version selections, migrations and3retirements; original1+5sampling. | [Four common cells complete](validation/final-common-test-cost.json), each1+5samples and0failures; current execution median230.87s. Full-population strict speedup ineligible;2689version matrix open. |
-| 6. Additional-current test cost | All3183additional current nodes, separately reported1+5sampling. | Complete selection reviewed; final installed timing held. |
-| 7. New mechanism costs | Marking-only sizes8/64/256/4096and full19-column float64projection,3+10sampling. | Recipes reviewed; execution held. |
-| 8. Complete SDF writes/resources |581public writes/1162records, independent semantic read-back and bounded retained/peak series. | [Final581write/1162record observation](validation/final-sdf-write-resources.json) passes both read-back oracles.32.328ms per complete call; resource-windowRSS+1.031MiB. D003/D004have explicit accepted bounded limitations; no fresh paired speedup or universal leak claim. |
-| 9. Cross-stage cost dispositions | Explicit current usable-cost/scaling/resource decisions forD001/D002/D005/D017/D018/D019/D025. | Final62CPU pairs accepted; individual consolidated closure remains open. |
-| 10. Validation/navigation tools | Trustworthy replacement/retirement ofD014tool limitations and realD015navigation omissions. | [Bounded tool disposition](validation/final-validation-tools.json): real omissions repaired;36applied checks pass; one bare-SMILES false positive remains a raw scanner failure. |
-| 11. Documentation and final acceptance review | Current examples/API/fact-role/lifecycle/consolidation maps and requirement-by-requirement review. | Existing passed evidence reusable; final reconciliation open. |
-| 12. Final report and validated Git baseline | Complete results/limits/commit map, then actual validatedB_expcommit and normal push. | B_expnot established; Stage13entry remains held. |
+| 1. Final Plan12 scientific observations | Final affected owners, full populations, failures and finite observations. | Original187-input Eu reference,369UFFtargets and738xTBroute slots complete with retained failures. [Repaired ED7delivery/science](validation/final-repaired-stereo-delivery.json) independently verifies case54Eu/UFF/all6actualxTBstage coordinates R,R; both complex quality failures remain. |
+| 2. CBond CUDA environment and functionality | Original model work with actual CUDA attribution. | [Direct-work disposition](validation/final-gpu-preflight-disposition.json) accepts20calls per endpoint and actual graph/head CUDAkernels. Extra unrelated native-import failure remains; full container-native capability is not claimed. |
+| 3. Four GPU paired costs | Original1warmup+3measured sampling and hardware/load observations. | [Eight original invocations complete](validation/final-gpu-performance.json), zerofailed/no-output. Median ratios MCAfallback1.079x,1GPU1.855x,4initializedsessions2.008x,CBond1.012x accepted as usable. Two of four initialized devices infer in that timing fixture; foreign GPU residents and original metadata differences remain. |
+| 4. Five-version coverage | Applicable source/installed/native results by actual owner/consumer. | [Composed coverage](validation/final-version-coverage.json) closesD006: graph30pernonCP311ABI, CP312/314complement3204each, matrix overlap2466pass/3strictknownxfails eachABI, existing broad/default results and ED7affectedfiveABI266pass/1existingboundaryskip. No fictional full-single-command pass or disabled-tier pass. |
+| 5. Common test and version costs | Original populations, migrations, retirements and1+5sampling. | [Four common cells](validation/final-common-test-cost.json) complete. [All60version attempts](validation/final-version-matrix.json) complete with30retained candidate old-reference failures. Corrected actualmodelcase passesfiveABIs; no successful candidate full-population timing, parity or speedup claim. |
+| 6. Additional-current test cost | All3183nodes, separate1+5sampling. | [Complete](validation/final-added-test-cost.json): each3169pass/14tier-skips, median121.524642s,maxwait4RSS688.621MiB. Exact source/installation guards and48UFFworker origins pass. Original origin failure retained; frozen16b cost only. |
+| 7. New mechanism costs | Marking8/64/256/4096 and full19projection,3+10sampling. | [Complete](validation/final-new-mechanism-cost.json):12cells,36warmups,120measured and12separatememoryprobes. Original fixture failure retained; sole formal-charge seed correction stays outside timers. |
+| 8. Complete SDF writes/resources |581writes/1162records and independent semantic/resource review. | [Complete](validation/final-sdf-write-resources.json),32.328ms/call. Bounded accepted resource limits retained; no universal leak claim. |
+| 9. Cross-stage cost dispositions | Explicit current decisions forD001/D002/D005/D017/D018/D019/D025. | [Seven root decisions complete](validation/final-cross-stage-cost-dispositions.json). All adverse/inconclusive measurements remain, with reopen conditions; universal parity is not required. |
+| 10. Validation/navigation tools | Resolve realD015omissions and disposeD014limitations. | [Complete in bounded scope](validation/final-validation-tools.json):36applied checks pass; bare-SMILES scanner false positive remains a raw failure. |
+| 11. Documentation and final acceptance review | Current examples/API/fact-role/lifecycle/consolidation and15criteria. | [Chemical CBond reference and current examples](validation/cbond-chemical-reference.json) pass source36and actualmodelcasefiveABIs, without production/model changes. Currentguide/README must ship in refreshed package; final15criteria reconciliation remains. |
+| 12. Final report and validated Git baseline | Complete reports/limits/commit map, then actual validatedB_exp and push. | B_exp not established. Final report and documentation-package refresh remain; Stage13/14/15 production gates remain. |
+
+## Historical continuation notes
+
+The following native-builder defect and source-repair notes retain their
+original checkpoint meaning. Their then-open repaired delivery/geometry gates
+are now closed by [the actual ED7five-ABI and affected-science completion](validation/final-repaired-stereo-delivery.json).
 
 Mechanical process and hardware sampling uses private standard-library scripts;
 main-agent judgment owns chemistry, comparable work and closure. GPU telemetry

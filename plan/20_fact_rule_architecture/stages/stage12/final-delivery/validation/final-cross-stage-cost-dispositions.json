@@ -1,0 +1,62 @@
+{
+  "status": "ROOT_ACCEPTED_SEVEN_BOUNDED_CROSS_STAGE_COST_DISPOSITIONS",
+  "current_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "accepted_ids": [
+    "P20-D001",
+    "P20-D002",
+    "P20-D005",
+    "P20-D017",
+    "P20-D018",
+    "P20-D019",
+    "P20-D025"
+  ],
+  "support_report": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-deferred-cost-dispositions-20261104/REPORT.md",
+    "bytes": 5982,
+    "sha256": "79c29c60396bfacf8be4675fb44df9eabd66f3008592f2171e9aa4f8082b61ad"
+  },
+  "support_index": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-deferred-cost-dispositions-20261104/DISPOSITIONS.json",
+    "bytes": 24304,
+    "sha256": "d5accf93bc91ad53d454b5e41980401d9f0af996beed8f4aaf44ffd4012be79e"
+  },
+  "support_archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-cost-disposition-support/raw-evidence.tar.gz",
+    "archive_bytes": 12912,
+    "archive_sha256": "b27fcad42b7398361a9b1b0d921aed7323acaf566f95eabf93934fe6b84c3fea",
+    "manifest_sha256": "5c2a42bc94a4c99c4ab100410a82ee4bbcd4f34dce9aa14fd68bdb370b26ca5e",
+    "verified_payload_count": 2,
+    "payload_bytes": 30286,
+    "verified_unix": 1793807581.2184806,
+    "scope": "Read-only local Sol recommendations and finite historical/current owner/consumer source-applicability evidence; root retains decisions."
+  },
+  "D002_additional_actual_completion": "final-repaired-stereo-delivery.json: actual unchanged-seedO0, installedEu/UFFand6xTBstagegeometries; allR,R. Originalcase54supportfailure and missingUFF/xTBexit-onlytelemetry retained. Reference observedworkerVmHWMup to247644KiB, notwhole-treepeak.",
+  "decision": "Accept explained usable costs and bounded sampledscaling/allocations in the named historical/currentworkloads; preserve every adverse/inconclusive observation and originalfailedattempt. Newformal full19/marking costs are accepted separately. No globalparity, linearity or leak claim.",
+  "scope_by_issue": {
+    "P20-D001": "Storage/H/graph/view representative costs, including20N256write/requiredHloops389.230ms/9.548xand20graphqueries34.853ms/3.294x; trackedretention575140vs519336bytes retained.",
+    "P20-D002": "Stereo capture/packing, original72adversemetrics/54allocations/inconclusivechain512, plus repairedactualintegrationcompletion; no freshchain512oruniversalresourceclaim.",
+    "P20-D005": "Selectiveaxis6.276\u201319.854x/6.772ms; fullBond2.651\u20132.741x/21.097ms; ligand8192at4.145swithsamplednonlinearNscaling. All14adversemedians/10peaks retained.",
+    "P20-D017": "Frame/conformer scalarandbatch/rollbackcosts; finalN64twoframe1.308ms/call,5.820x; nofresh256frameornativeleakproof.",
+    "P20-D018": "Canonicalstereo/rollback, isolatedN2564.512ms/155621Bpeakandfullrollback4.289ms; canonicalownerunchanged, correctedconverters separatelyqualified.",
+    "P20-D019": "Stateextract0.782\u20131.070ms,resolve0.337\u20130.338ms,project0.049\u20130.051ms;actualxTBstate/projectioncomplete, no large-systemcopybound.",
+    "P20-D025": "All233adversesearch/SMARTS/MCAvalues retained; concurrentcompile1.252x; final actualMCA/graphowners complete. No cross-processglobalrateclaim."
+  },
+  "reopen_for": [
+    "Changedsemanticwork/owner/contracts invalidatingreusedobservations",
+    "Mandatory-workbottleneck, sustainedproblematicgrowth/OOMorincompletebatches",
+    "Expandedinput/platform/resourceguarantees"
+  ],
+  "global_gate_closed": false,
+  "remaining_at_original_review": [
+    "Five-versioncost/checkerreferenceandfunctionalreconciliation",
+    "Additional3183costoriginvalidation",
+    "Currentdocs/release/finalreport/B_exp"
+  ],
+  "remaining_separate": [
+    "Currentdocs/release/finalreport/B_exp"
+  ],
+  "current_completed_evidence": [
+    "final-version-matrix.json",
+    "final-added-test-cost.json"
+  ]
+}

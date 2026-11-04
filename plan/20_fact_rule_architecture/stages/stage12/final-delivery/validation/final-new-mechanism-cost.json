@@ -1,0 +1,76 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_NEW_MECHANISM_COSTS",
+  "source_commit": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+  "current_repaired_source_commit": "ed7a64d463945360e669e858591d5ed399eb4535",
+  "mechanisms": [
+    "marking_only",
+    "schema_projection_internal"
+  ],
+  "actual_cells": 12,
+  "warmups": 36,
+  "measured_samples": 120,
+  "separate_memory_probes": 12,
+  "failed": 0,
+  "no_output": 0,
+  "sampling": "Original3warmup+10measured percell, N8/64/256/4096.",
+  "fixture_correction": "Only identified unrelated FORMAL_CHARGE_COVERAGE seeds are cleared during initial setup before all-clearassertion,outside timers. Literal full19/independent-buffer/currentness/presence/source/stereo checks and12originalassertions preserved; production unchanged. Original failures retained.",
+  "usable_costs": {
+    "sparse20_marking_microseconds": [
+      54.745,
+      57.55,
+      57.709,
+      58.071
+    ],
+    "dense_marking_microseconds": [
+      15.779,
+      35.848,
+      100.313,
+      1350.371
+    ],
+    "full19_twenty_reads_ms": [
+      4.781,
+      24.262,
+      90.8,
+      1443.829
+    ],
+    "N4096_complete_projection_ms_per_read": 72.191,
+    "command_peak_RSS_KiB": {
+      "marking": 109572,
+      "projection": 110672
+    }
+  },
+  "guards": {
+    "original_inputs": 387,
+    "candidate_files": 11,
+    "installed_files": 903,
+    "actual_loaded_members_per_recipe": 159,
+    "origin_errors": 0
+  },
+  "decision": "Accept the bounded observed primitive costs and sampled scaling; complete full19projection includes real currentness and independentfloat64return. Retain all allocations and whole-command/workerscope distinctions. No speculativeoptimization or extra timing to force parity.",
+  "evidence_report": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-micro-fixture-corrected-20261104/REPORT.md",
+    "bytes": 4938,
+    "sha256": "705e5f274712bc40d235325fd37421ce3973c4a025b0eebb8b004d4091821887"
+  },
+  "evidence_index": {
+    "path": "/tmp/hotpot_plan20/medium/stage12-micro-fixture-corrected-20261104/EVIDENCE_INDEX.json",
+    "bytes": 19350,
+    "sha256": "6a57cac426116effb7b366c6908150a7239a548a167d7b4cdea3d5e9d2c0c2b4"
+  },
+  "archive": {
+    "archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-new-mechanisms16b864f/raw-evidence.tar.gz",
+    "archive_bytes": 444024,
+    "archive_sha256": "38f93ee6483e71ae534dd21f96876794b30d54e53e1721a7bdfa6fe501981599",
+    "manifest_sha256": "cce6ce0b7111bcca1863e267fd65fdcbceb67618e7bb737867db3d43bb43f5eb",
+    "verified_payload_count": 33,
+    "payload_bytes": 2552482,
+    "verified_unix": 1793807581.215721,
+    "scope": "Original failed fixture assertions, independent full19diagnosis, single authorized outside-timer formal-charge seed cleanup, all12cells/36warmups/120measured/12memoryprobes on original installed16b864f; noB0ratio."
+  },
+  "limits": [
+    "Candidate-only16b864fmechanisms, noB0counterpart orspeedratio.",
+    "Unchanged atom-table/dependency/chemistry-projection owner evidence supports reuse after finalstereo changes, not exactED7timing.",
+    "Tracemalloc excludes untracednativeallocation; worker/whole-commandRSSis not a universal leak or process-tree bound."
+  ],
+  "global_gate_closed": false
+}

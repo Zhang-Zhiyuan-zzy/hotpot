@@ -1,9 +1,17 @@
 # Stage13 records
 
-kekulize/aromatic experimental rule-interface protocol. This directory is navigation for a planned stage; no stage-entry or execution record has been created. Its prerequisites, scope and gates remain in the [main implementation plan](../../fact_rule_architecture_implementation_plan.md), Section 17.
-
-[Catalog and filename meanings](../README.md) · [Main project index](../../README.md)
+Separate post-`B_exp` aromatic/Kekulé rule-interface experiment under main-plan
+Section17. Stage0–12 delivery is root accepted and pushed as
+`5a7b19396328eee964a8f3c65bc3345c013eaec6` (`B_exp`). The experiment branch is
+`experiment/plan20-kekulize-aromatic-protocol`. Stage13A defines and verifies
+only a private domain binding; production integration waits for committed
+`D_exp`. Stage14/15 retain independent branches and owning gates.
 
 ## Complete record index
 
-There are no stage-owned records beyond this navigation index. Add actual Markdown records using the catalog's defined filenames and index every Markdown/JSON record here when the authorized stage work produces it.
+- [Stage13A entry alignment and exact validated baseline](entry_review.json)
+- [Exact private connection and response contract](contracts/review.md)
+- [Actual isolated CP311 definition validation](definition/validation/checkpoint.json)
+- [Main-plan protocol scope and separate milestones](../../fact_rule_architecture_implementation_plan.md#17-最后阶段kekulizearomatic-实验性规则接口协议)
+
+[Stage catalog](../README.md) · [Project index](../../README.md)

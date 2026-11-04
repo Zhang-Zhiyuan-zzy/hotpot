@@ -1,0 +1,49 @@
+{
+  "stage": "Stage13A",
+  "status": "ROOT_ACCEPTED_PRIVATE_DEFINITION_PENDING_D_exp_COMMIT",
+  "recorded_local": "2026-11-05T00:43:33.511513+08:00",
+  "B_exp": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+  "source_sha256": {
+    "hotpot/cheminfo/operations/_aromatic_protocol.py": "685eb8d786eca837da5848957db48db5894415797752501fc447019b3fbf3396",
+    "tests/test_cheminfo/kekulize/test_protocol_contract.py": "1b81356a104bd40681a6341fcdc010fde96cbda4a020df8c2af14a40e9816074",
+    "hotpot/cheminfo/operations/chemistry.py": "b9c618aa8cad10e034dbe7b3bacb53244ffbe9fd0930c76bf0a9665d0e17e003",
+    "hotpot/cheminfo/rules/chemistry/bonding/kekule.py": "3e7e565aa5aba4006a03e23748b68df559fd072c424b4467828f047b4472c603",
+    "hotpot/cheminfo/rules/chemistry/bonding/aromaticity.py": "99813565cbddad0eea4bc20715929406bfab9d2c8d797581ace3ab748f1220df",
+    "hotpot/cheminfo/structure/snapshots.py": "56225cd56a324f6f82c0b57c7b75a4eb4843e4d97ddbb8773cd754a93a6a9e3d"
+  },
+  "result": {
+    "passed": 15,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds": 0.761729134246707,
+    "actual_command": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage13/definition-contract/intent.json",
+    "production_callchain_unchanged_from_B_exp": true,
+    "guarded_inputs": 533,
+    "changed_inputs": []
+  },
+  "definition": "../../contracts/review.md",
+  "binding": "hotpot.cheminfo.operations._aromatic_protocol._evaluate_aromatic_assignment",
+  "types_added": {
+    "class": 0,
+    "dataclass": 0,
+    "Protocol": 0,
+    "TypedDict": 0,
+    "enum": 0,
+    "ABI": 0
+  },
+  "evidence_archive": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage13/definition-contract",
+  "archive_manifest_sha256": "ccc226e17380fcc79d5216a3fa3165278ee0888882cd1b44a02176d6fb9135eb",
+  "coverage_limits": [
+    "IsolatedCP311actual-rule contracts, not production integration",
+    "No newlybuilt wheel/native, default-suite, supportedversion or performance claim",
+    "Existing known scientific limits preserved; no uniqueness/equality truth claim"
+  ],
+  "gate": "Definition plus15passingactualcontracts accepted byroot; actual separate D_exp commit still required before13B.",
+  "independent_static_review": {
+    "agent": "EstablishedlocalGPT-6.1Sol/xhigh",
+    "result": "No blocking finding; direct alias sufficient, None/exception/source/mapping semantics match actual consumer. Production integration deferred to13B.",
+    "report": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/stage13/definition-scout/REPORT.md",
+    "execution": "Read-onlysource/diffreview; noimports/tests/builds/scientificexecution or independentlyrerun15testclaim."
+  }
+}

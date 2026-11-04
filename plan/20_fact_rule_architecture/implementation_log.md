@@ -9936,3 +9936,65 @@ Durablearchivecorrection retains the original failed matrix tar. Sixrelative sym
 The root's privatefinalASTinventorychecker failed three bounded rounds: stale504/770census expectation (actual505/771adds shared_StereoConfigNamedTuple), conflatedleafwildcardimportswithpackageexports, then tuple/listJSONexportcomparison. Allscripts/attemptnotes and actualthirdstderr/exit1remain. No fourthrepair/run. Directcurrentpublicfields/signatures for46root/rolecontracts and366resolvedhistoricaltypes hadalreadycheckedbeforethestop;384historicalmigrationrows/43familiesand16factdomainsretainacceptedcomplete maps. Rootfacade31/30/5names andsourcebytesareunchangedsinceacceptedcontractsnapshot; zero packagewildcardexports and20leaflibrary/typingimports are distinct. P20-D036acceptsboundedcheckerdeferment, notabusinesspassorgatewaiver. Existingactualsource/installedcurrentness/permission/remap/rollback tests and currentpackage evidence supply mandatorybusinessverification. Private_StereoConfigsix-fieldtask-localprojection is explicitlyregisteredwithzerofact/consolidationcredit; dataclasses355 unchanged.
 
 Rootcompleted the requiredten-section main-scope report, updatedcurrent12item/navigation records and decided all15main§14criteria againstactualapplicableevidence. All36unifiedissuesareCLOSEDorACCEPTED_LIMITATION; no unexecutedmandatorybusinessgap isidentifiedinthedeclaredmain-scopeboundary. Allfailedscientific/finite/quality/backend outcomes, declaredskips/xfails, historicalmetadatafailures, inconclusivespeedupandadversecostsremain. Main-scope acceptance isrecordedin final-delivery/validation/main-scope-acceptance.json. The coherentnormalvalidatedGitcommit containingthisreport/deliverywill supplyB_exp; itsactualfullSHAwill berecordedatthenextStage13entry, notinventedself-referentialmetadata. Stage13A/B, Stage14to_pyg/from_pyg andStage15Crystal/SpaceGroup/SymmUnit remainunimplementedapprovedscope; overallgoal isnotcomplete. Fullnext-stagealignmentand concreteentry/publicdesign decisions stillapply.
+
+
+## 2026-11-05 — Stage13A entry from validated, pushed main-scope delivery
+
+The normal push of `5a7b19396328eee964a8f3c65bc3345c013eaec6` completed with
+exit0 and remote mainline advancement5239b61..5a7b193. This is actual `B_exp`,
+containing the accepted fifteen criteria, complete final report and actual
+current delivery evidence; production/native source remains the accepted ED7
+boundary. Tracked worktree was clean. Created the separately required
+`experiment/plan20-kekulize-aromatic-protocol` branch at that exact commit.
+The unrelated untracked owner file and Task168 inputs remain outside all work.
+
+Read governance/stage/validation skills, both governance references, current
+goal, full3271-line active main plan and all four normative companions;
+recovered truncated read ranges. Reviewed complete final main-scope report,
+acceptance, relevant log history, current private snapshot/rule/operation
+seams and Stage13A/B verification requirements. `stages/stage13/entry_review.json`
+binds document identities, predecessor evidence, boundaries and remaining gates.
+Historical open status in old headers/checkpoints does not undo current scoped
+main-scope acceptance. No mandatory business-upstream blocker was identified.
+The owner's three-unsuccessful-attempt rule remains effective; D036 receives no
+fourth repair/run and is not an upstream business dependency.
+
+Stage13A scope is one explicit private domain binding to the existing sole
+aromatic/Kekule rule, reusing `_BondingSnapshot` and `_AromaticAssignment`/None,
+with exact contract and isolated actual-rule tests. No production call chain,
+public signature, scientific algorithm, result envelope, registry or plugin
+changes before `D_exp`. Root owns design/acceptance; established local Sol/xhigh
+subagent performs only a bounded source/consumer scout in its assigned /tmp
+folder, with no external helper or nested delegation. Exact affected selection,
+source identities and actual results will accompany the definition checkpoint.
+Stage13B remains held until validated committed `D_exp`; Stage14/15 retain
+independent eligible work from `B_exp`. Overall Plan20 remains open.
+
+
+### 2026-11-05 — Stage13A minimal private definition and isolated chemical contracts
+
+Defined `operations._aromatic_protocol._evaluate_aromatic_assignment(snapshot,
+*,kekule)` as a direct binding of the existing sole rule function, with the
+existing `_BondingSnapshot` and `_AromaticAssignment|None` contract. The exact
+private response/source/row/unit/unsupported/exception boundary is in
+`stages/stage13/contracts/review.md`; zero new classes, records, Protocols,
+enums, ABI values, wrappers or runtime registries. No public contract,
+scientific algorithm, default or production call chain changes. Main-scope
+`chemistry.py` remains byte-identical toB_exp.
+
+Actual CP311command: taskset40–47 followed by the recorded existing isolated
+venv Python `-s -B -m pytest -q -ra --import-mode=importlib -p no:cacheprovider`
+with explicit temp/JUnit paths and
+`tests/test_cheminfo/kekulize/test_protocol_contract.py`.
+The15cases all pass: actual planar/nonspatialbenzene, furan/pyridine,
+four-pi-negative, unknown-HNone, exactUID/row/order and readonly proposals,
+nonringzero/dativepreservation and originalexceptionpropagation. Independent
+fixture semantics complement implementation-identity checks. No failed/error/
+skipped case; all guarded source/native/test inputs unchanged. Original exact
+argv/cwd/env/interpreter and pre/post hashes/JUnit/logs are retained under
+`/tmp/hotpot_plan20/medium/stage13a-definition-20261105/attempt01` and the
+immutable `.plan20-artifacts/20261105/stage13/definition-contract` index.
+Root accepts this isolated definition boundary, pending its separate `D_exp`
+commit. No production integration/defaultsuite/wheel/version/performance
+claim; Stage13B owns them after its next entry alignment. Updated affected
+verification targets and recorded zero-type delta without rerunning D036.

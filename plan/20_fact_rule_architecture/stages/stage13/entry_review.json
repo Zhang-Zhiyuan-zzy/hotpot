@@ -1,0 +1,50 @@
+{
+  "stage": "Stage13A",
+  "status": "ENTRY_ALIGNED_PRIVATE_DEFINITION_ONLY",
+  "recorded_local": "2026-11-05T00:40:11.662009+08:00",
+  "B_exp": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+  "branch": "experiment/plan20-kekulize-aromatic-protocol",
+  "main_scope_acceptance": "../stage12/final-delivery/validation/main-scope-acceptance.json",
+  "B_exp_push": "Observed original push process exit0; remote branch implement/plan20-fact-rule-architecture advanced5239b61..5a7b193. Tracked worktree clean before experiment branch creation.",
+  "alignment": {
+    "read_in_full": "governance/stage/validation skills, both governance references, active goal, full3271-line main plan and four normative companions; bounded reads recovered both truncated main-plan spans.",
+    "affected_records": "Complete main-scope final report/15criteria, current Stage13 index, Stage13A/B verification selections/shared invocation rules and relevant append-only log history; source scout follows actual post-cutover owners.",
+    "discrepancies": "Historical main-plan header/old stage snapshots retain then-open gates; current main-scope acceptance/final report govern completed delivery. Stage13A exact contract targets were intentionally deferred until actualB_exp."
+  },
+  "scope": {
+    "included": [
+      "One minimal explicit private aromatic/Kekule binding to the existing sole algorithm",
+      "Exact input/output/None and failure/operation response contract using existing snapshot/assignment types",
+      "Isolated actual-rule contract tests and definition commit D_exp"
+    ],
+    "excluded": [
+      "Production call-chain integration before committed D_exp",
+      "New scientific algorithm or changed existing parameter/default/return semantics",
+      "Public registry/configuration/plugin discovery or universal result type",
+      "Stage14/15 production on this separate experiment branch"
+    ]
+  },
+  "owners": {
+    "facts": "Existing Molecule/Atom/Bond tables and source-aware transaction/commit owners unchanged",
+    "inputs": "structure.snapshots._BondingSnapshot, prepared by existing operations.chemistry._bonding_snapshot",
+    "outputs": "Existing structure.snapshots._AromaticAssignment or None; rule exceptions remain exceptions",
+    "algorithm": "rules.chemistry.bonding.kekule._calculate_aromatic_assignment",
+    "consumer": "Existing operations.chemistry; unchanged during Stage13A"
+  },
+  "public_interface_changes": [],
+  "scientific_route": "Preserve B_exp greedy per-ring arithmetic, ring order, ligand-skeleton selection, original H/coordinate conventions, partial progress and unresolved behavior. No historical unique-science or fixed-success demand.",
+  "required_validation": [
+    "Freeze exact private contract tests after source survey",
+    "CP311 isolated contract suite against actual existing rule, independent chemical fixtures and unsupported/exception cases",
+    "Verify production call-chain source unchanged from B_exp before D_exp",
+    "Update verification selection and data-object delta without new wrapper classes"
+  ],
+  "evidence_root": "/tmp/hotpot_plan20/medium/stage13a-definition-20261105/",
+  "rollback": "Entire isolated private-definition slice on experiment branch; validatedB_exp unchanged",
+  "completion_gate": "Actual passing contract evidence and separate D_exp commit; only then align/release Stage13B",
+  "remaining": [
+    "D_exp not yet created",
+    "Stage13B integration/affected-default-package checks/paired cost/I_exp",
+    "Stage14 and Stage15 independently gated implementation"
+  ]
+}

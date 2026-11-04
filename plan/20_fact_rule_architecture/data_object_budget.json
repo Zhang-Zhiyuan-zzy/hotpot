@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "status": "Stage0\u201312 main-scope accepted in declared source/installed/native/scientific/cost boundaries. Current505Pythonfiles/771classes/355dataclasses/8direct+4genericProtocols/2TypedDicts; oneadditionalprivateNamedTuplecodec. Stage13\u201315/overallcompletionremainopen.",
+  "status": "Stage0–12 main-scope accepted in declared source/installed/native/scientific/cost boundaries. Current505Pythonfiles/771classes/355dataclasses/8direct+4genericProtocols/2TypedDicts; oneadditionalprivateNamedTuplecodec. Stage13–15/overallcompletionremainopen.",
   "baseline": {
     "commit": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
     "inventory": "baseline_inventory/manifest.json",
@@ -1408,6 +1408,13 @@
     "reviewed_families": 43,
     "report": "stages/stage12/final-delivery/report.md",
     "private_inventory_checker": "P20-D036 acceptedlimitation; no successfulfinalchecker claim",
-    "remaining": "Stage13\u201315 separate; actualB_exp identity resolved after normal finalreport/delivery commit."
+    "remaining": "Stage13–15 separate; actualB_exp identity resolved after normal finalreport/delivery commit."
+  },
+  "stage13_experiment": {
+    "B_exp": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+    "definition": "stages/stage13/contracts/review.md",
+    "binding_module": "hotpot/cheminfo/operations/_aromatic_protocol.py",
+    "class_dataclass_protocol_typeddict_enum_abi_delta": 0,
+    "meaning": "Direct alias toexisting sole function; no newruntimewrapper/record/registry. One private Pythonmodule added; finalmain-scope505/771census remains its historicalB_expscope."
   }
 }

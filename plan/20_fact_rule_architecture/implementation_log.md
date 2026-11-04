@@ -10155,3 +10155,56 @@ Self/parallel quotient edges remain P20-D038. P20-D036 receives no fourth retry.
 15D matching/periodic findings,15E format closure,15F final domain evidence and
 Stage14D Crystal integration remain open; generation checkpoint/report own
 exact source/wheel/result identities. Root retains integration and acceptance.
+
+
+## 2026-11-05 — Stage15D placed-relation and observation entry
+
+Generation checkpoint9043300f73a42d0c1d730c221520832c50b4bd18 is committed/pushed;
+all30qualified source/test inputs match committed bytes. Existing full-plan and
+companion alignment remains valid. Root rereads main§18, accepted15A/B/C and
+complete matching/periodic/finite-loop requirements against actual native graph
+matching, immutable record, cell, periodic and geometry owners. observations.md
+settles current-active-frame query keys and stable whole-unit lifts before code.
+Use existing native graph matching plus the common chemistry validator, never
+a second isomorphism implementation or historical-row guess. D1 andD2 are bounded
+coherent implementation slices; neither can silently substitute for full15D.
+
+Root owns query/current-frame orchestration and public thin methods. One local
+Sol/xhigh child may prepare pure finite linking math in its exclusive temporary
+artifact directory; no worktree writes or further delegation. No external helper
+service or prohibited toolkit route participates. All15E/F/14D and overall gates
+remain open; P20-D036 retains its three-attempt stop.
+
+
+### Stage15D1 placed-relation implementation and bounded qualification
+
+Root implements current-frame finite units/full placed actions, single existing
+native graph matching and shared chemistry identification; caller tolerance is
+explicit and generation retains its1e-10default. Candidate keys address current
+rows/group, not historical snapshots. Symmetry retains full nonzero-origin affine
+terms; pure translations cannot stabilize finite units. Numeric nonclosure
+reports actual matches without changing them. Required unknown mappings remain
+local unavailable; input facts are unchanged.
+
+New fixtures initially misuse identity-based MoleculeRecord equality, incomplete
+site_relations keys and a2D point; preserve all failures. Real native packing
+then rejects directed/unordered endpoints. Canonicalize packed endpoints/edges
+and aligned fields only, preserving original dative meaning. Focused30pass;
+final complete sourcefull02 and actual outside-checkout installed CP311 each
+1068pass/0fail/0error/0skip,203correct origins/0violations,918site/33support files
+unchanged. Retain priorfull01=1066pass/1samepackingfail. Required absent-element
+case also has direct unavailable/nonmutation regression. All32qualified source/
+test inputs remain unchanged. Six native payloads are baseline bytes, repack only.
+
+Current-only complete relation/symmetry medians at16unit sites17.140570/
+44.737490ms; at64sites31.450780/64.688249ms. One warmup/five samples and separate
+memory observation each; loadbefore/after0.78/0.77/0.65. Root accepts bounded
+usability without parity/speedup/exclusive-host/leak assertion. Full prepared
+periodic contact neighborhoods and broader scaling remain15D2, not passed here.
+Archive133regular payloads/7773521bytes,SHA256
+4939bde37f375ba8fcf0bd75502998c2291514446c6d659f23abbdb12ce67aa4,
+under .plan20-artifacts/20261105/stage15/placed-relations. Checkpoint/report bind
+exact source/wheel/results and limits. LocalSol/xhigh independently prepares
+finite-loop mathematics in its assigned artifact directory; root alone edits
+worktree/query owners. No external helper or prohibited toolkit work.15D2/E/F,
+14D and overall acceptance stay open; no fourth P20-D036 retry occurs.

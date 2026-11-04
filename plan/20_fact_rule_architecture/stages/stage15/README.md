@@ -10,7 +10,9 @@ One-placement action is root-accepted at the
 [874-test source/installed CP311 checkpoint](domain/validation/action_report.md).
 Cell generation is root-accepted at the
 [1,038-test source/installed CP311 checkpoint](domain/validation/generation_report.md).
-Stage15D–F remain open. The
+Placed relations have a bounded
+[1,068-test CP311 checkpoint](domain/validation/relation_report.md).
+Remaining Stage15D periodic findings and15E–F remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic

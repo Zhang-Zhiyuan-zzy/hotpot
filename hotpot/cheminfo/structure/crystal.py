@@ -98,6 +98,14 @@ class Crystal:
         from ..operations.crystal_generation import _expand_crystal
         return _expand_crystal(self, repeats)
 
+    def same_molecule_candidates(self, *, tolerance):
+        from ..operations.crystal_matching import _same_molecule_candidates
+        return _same_molecule_candidates(self, tolerance)
+
+    def molecular_symmetry(self, molecule=None, *, tolerance):
+        from ..operations.crystal_matching import _molecular_symmetry
+        return _molecular_symmetry(self, molecule, tolerance)
+
     def copy(self):
         from ..operations.crystal import _copy_crystal
         return _copy_crystal(self)

@@ -21,8 +21,20 @@ from .stereochemistry.algebra import (
 __all__ = ()
 
 
+class _IdentificationMismatch(ValueError):
+    """The supplied complete map contradicts known facts."""
+
+
+class _IdentificationUnavailable(ValueError):
+    """The required map cannot be evaluated in the declared representation."""
+
+
 def _unsupported(reason):
-    raise ValueError(f"CRYSTAL-UNSUPPORTED-PROJECTION: {reason}")
+    raise _IdentificationMismatch(f"CRYSTAL-UNSUPPORTED-PROJECTION: {reason}")
+
+
+def _unavailable(reason):
+    raise _IdentificationUnavailable(f"CRYSTAL-UNSUPPORTED-PROJECTION: {reason}")
 
 
 def _unique(values):
@@ -76,7 +88,7 @@ def _stereo_key(record):
     parsed = _parse_level2_descriptor(record.descriptor)
     if parsed.issues:
         if record.descriptor.startswith("hotpot.stereo/2/"):
-            _unsupported("identified stereo has an unsupported Level-2 descriptor")
+            _unavailable("identified stereo has an unsupported Level-2 descriptor")
         return ("opaque", record.anchor, record.carriers, record.descriptor,
                 record.group, record.source_namespace, record.source_code)
     anchor = record.anchor
@@ -94,7 +106,7 @@ def _stereo_key(record):
         issues = (*_validate_stereo_anchor(anchor, family=parsed.descriptor.family),
                   *_validate_gate2_double_bond_carriers(record.carriers))
         if issues:
-            _unsupported("identified endpoint stereo has no supported projection: "
+            _unavailable("identified endpoint stereo has no supported projection: "
                          + "; ".join(issue.message for issue in issues))
         target = replace(record, anchor=canonical_anchor, carriers=carriers)
         transformed = _transform_supported_record(parsed.descriptor, record, target)
@@ -104,7 +116,7 @@ def _stereo_key(record):
             source_anchor=anchor, reordered_anchor=canonical_anchor,
         )
     if transformed.issues:
-        _unsupported("identified stereo ordering has no supported projection: "
+        _unavailable("identified stereo ordering has no supported projection: "
                      + "; ".join(issue.message for issue in transformed.issues))
     return ("level2", canonical_anchor, carriers,
             _render_level2_descriptor(transformed.descriptor), record.group)
@@ -159,7 +171,7 @@ def _mapped_constraints(entries, mapping, classes, label):
     return _unique(projected)
 
 
-def _identify_generated_record(record, classes):
+def _identify_generated_record(record, classes, *, coordinate_tolerance=1e-10):
     """Identify only supplied complete classes after chemistry-map validation.
 
     Inputs are a prevalidated full generated P1 record with frozen Bond metadata,
@@ -182,8 +194,8 @@ def _identify_generated_record(record, classes):
     for members in classes:
         first = members[0]
         for row in members[1:]:
-            if np.linalg.norm(values[row, xyz] - values[first, xyz]) > 1e-10:
-                _unsupported(f"identified Atoms {members} exceed the 1e-10 Angstrom coordinate residual")
+            if np.linalg.norm(values[row, xyz] - values[first, xyz]) > coordinate_tolerance:
+                _unsupported(f"identified Atoms {members} exceed the {coordinate_tolerance:g} Angstrom coordinate residual")
             if int(presence[row]) & scalar_mask != int(presence[first]) & scalar_mask:
                 _unsupported(f"identified Atoms {members} disagree in supplied scalar presence")
             supplied = tuple(column for column in columns if int(presence[first]) & FIELD_PRESENCE_BITS[column])
@@ -213,7 +225,7 @@ def _identify_generated_record(record, classes):
             _unsupported(f"identification creates unsupported self quotient Bond {edge}")
         image = record.cell[4][edge]
         if image is None and (first in affected or second in affected):
-            _unsupported(f"required image is unknown for Bond {edge} incident to identified Atoms")
+            _unavailable(f"required image is unknown for Bond {edge} incident to identified Atoms")
         reversed_endpoints = new_first > new_second
         canonical_image = (None if image is None else
                            tuple(-value for value in image) if reversed_endpoints else image)
@@ -264,7 +276,7 @@ def _identify_generated_record(record, classes):
             if all(entry is None for entry in entries):
                 merged.append(None)
             elif any(entry is None for entry in entries):
-                _unsupported("identified origin aliases mix known and unknown bindings and have no complete projection")
+                _unavailable("identified origin aliases mix known and unknown bindings and have no complete projection")
             else:
                 merged.append(_unique(key for entry in entries for key in entry))
         return tuple(merged)

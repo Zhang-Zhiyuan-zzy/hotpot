@@ -5053,7 +5053,7 @@
     },
     "stage15": {
       "contract": "stages/stage15/domain/contracts/decisions.md",
-      "status": "15A, exact symmetry, connected15B and complete15C generation CP311 checkpoint accepted;15D-F open",
+      "status": "15A/B/C and bounded15D1 relations CP311 accepted;15D2/E/F open",
       "checks": [
         "exact230group/4425operator algebra and changed-index settings",
         "standard oriented cell and complete lifecycle",
@@ -5065,7 +5065,7 @@
         "complete-work costs/resources"
       ],
       "remaining": [
-        "15D observations",
+        "15D2 prepared neighborhoods and full periodic/finite-loop findings",
         "15E format closure",
         "15F current delivery/cost/support",
         "Stage14D integration"
@@ -5073,7 +5073,8 @@
       "checkpoint": "stages/stage15/domain/validation/exact_symmetry_checkpoint.json",
       "connected_checkpoint": "stages/stage15/domain/validation/connected_cell_checkpoint.json",
       "action_checkpoint": "stages/stage15/domain/validation/action_checkpoint.json",
-      "generation_checkpoint": "stages/stage15/domain/validation/generation_checkpoint.json"
+      "generation_checkpoint": "stages/stage15/domain/validation/generation_checkpoint.json",
+      "relation_checkpoint": "stages/stage15/domain/validation/relation_checkpoint.json"
     }
   },
   "migration_inventory_file": "baseline_inventory/migration_inventory.json",

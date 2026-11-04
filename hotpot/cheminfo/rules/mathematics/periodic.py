@@ -115,3 +115,23 @@ def _supercell_edges(atom_count, endpoints, images, repeats):
             edges.append((int(first) * copy_count + copy_index, int(second) * copy_count + target_index,
                           carry, edge, copy_image))
     return tuple(edges)
+
+
+def _integer_image_box(delta, inverse_column_norms, radius):
+    """Finite metric enclosure, in row-basis fractional coordinates.
+
+    Outward nextafter only retains floating-boundary candidates; callers still
+    compare their actual Cartesian distances against the requested radius.
+    """
+    widths = float(radius) * np.asarray(inverse_column_norms)
+    lower = np.ceil(np.nextafter(-np.asarray(delta) - widths, -np.inf))
+    upper = np.floor(np.nextafter(-np.asarray(delta) + widths, np.inf))
+    return product(*(range(int(first), int(last) + 1) for first, last in zip(lower, upper)))
+
+
+def _lattice_images(delta, matrix, radius):
+    """All integer images within radius, with no fixed-stencil assumption."""
+    basis = np.asarray(matrix, dtype=np.float64)
+    inverse_norms = np.linalg.norm(np.linalg.inv(basis), axis=0)
+    return tuple(image for image in _integer_image_box(delta, inverse_norms, radius)
+                 if np.linalg.norm((np.asarray(delta) + image) @ basis) <= radius)

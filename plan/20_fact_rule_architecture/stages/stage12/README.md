@@ -72,3 +72,6 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [Installed inactive 2,280-object corpus and replay](final-delivery/validation/plan12-inactive-dry2280.json)
 - [Full installed Eu reference and retained resource limit](final-delivery/validation/plan12-eu-reference.json)
 - [Independent UFF and actual canonical Eu cohort](final-delivery/validation/plan12-eu-uff.json)
+
+- [FF allocation-failure rollback source repair](final-delivery/validation/forcefield-rollback-repair.json)
+- [Assembly exception-note portability and remaining CP314 evidence](final-delivery/validation/assembly-note-portability.json)

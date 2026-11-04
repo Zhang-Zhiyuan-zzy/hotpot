@@ -34,7 +34,9 @@ class _UnknownFailure:
             except LookupError as original:
                 raise KeyError('original site failure') from original
         except KeyError as cause:
-            raise ValueError('unknown action failure') from cause
+            error = ValueError('unknown action failure')
+            error.__notes__ = ['original action note']
+            raise error from cause
 
 
 class _UnpicklableFailure:
@@ -255,6 +257,7 @@ def test_unknown_worker_error_keeps_type_direct_cause_and_full_remote_traceback(
     with pytest.raises(ValueError, match='unknown action failure') as caught:
         factory.mp_make(['C'], nproc=1, timeout=2)
     assert isinstance(caught.value.__cause__, KeyError)
+    assert caught.value.__notes__[0] == 'original action note'
     remote = '\n'.join(caught.value.__notes__)
     assert 'LookupError: deep original cause' in remote
     assert 'original site failure' in remote
@@ -262,6 +265,29 @@ def test_unknown_worker_error_keeps_type_direct_cause_and_full_remote_traceback(
     assert 'in graft' in remote
     assert 'epoch=0, batch=1' in remote and "inputs=['C']" in remote
     assert output.read_text().splitlines() == ['C']
+
+
+
+@pytest.mark.parametrize('parallel', [False, True])
+def test_failed_result_save_keeps_original_error_and_existing_notes(monkeypatch, owned_workers, parallel):
+    factory = AssembleFactory([_UnknownFailure()], iter_step=1)
+
+    def fail_save(results):
+        raise OSError('result store unavailable')
+
+    monkeypatch.setattr(factory, '_save_results', fail_save)
+    with pytest.raises(ValueError, match='unknown action failure') as caught:
+        if parallel:
+            factory.mp_make(['C'], nproc=1, timeout=2)
+        else:
+            factory.make([read_mol('C')])
+    assert isinstance(caught.value.__cause__, KeyError)
+    notes = caught.value.__notes__
+    assert notes[0] == 'original action note'
+    assert notes[-1] == 'Could not persist completed assembly results: result store unavailable'
+    if parallel:
+        assert 'original site failure' in notes[1]
+        assert 'Assembly worker epoch=0, batch=1' in notes[1]
 
 
 def test_unpicklable_error_fails_explicitly_with_original_traceback(owned_workers):

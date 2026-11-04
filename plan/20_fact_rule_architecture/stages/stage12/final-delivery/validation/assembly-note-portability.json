@@ -1,0 +1,148 @@
+{
+  "schema": "plan20-bounded-validation-v1",
+  "status": "FOUR_ABI_FOCUSED_REPAIR_ACCEPTED_CP314_SHORT_TIMEOUT_EVIDENCE_OPEN",
+  "base_product_source_commit": "ec4d61889a7262df765da29082e405b3c612cd15",
+  "committed_rollback_checkpoint": "30f3dcb",
+  "changed_files": [
+    {
+      "path": "hotpot/cheminfo/operations/assembly/assembler.py",
+      "sha256": "b251855506ae31c23af05c0d39d51a4181fdee59ef1cf3fe058dd979efc0cf69"
+    },
+    {
+      "path": "tests/test_cheminfo/test_assembly_factory.py",
+      "sha256": "c9a6373f075536ac48e8ee1eda05e4b4b6aae6fe46cd79fe34c6534f21e255e4"
+    },
+    {
+      "path": "tests/test_cheminfo/structure/test_stage9_carrier_owners.py",
+      "sha256": "e31861f6c35eefd0408861ccf5402f761ce8811f291d4724977a68cd510ca1b8"
+    }
+  ],
+  "observed_defect": "CP310 BaseException lacks add_note; the attempted worker traceback note replaced its original ValueError with AttributeError.",
+  "change": "Append to the standard exception __notes__ list portably, retaining previous notes, cause/context, failure and worker cleanup. Preserve raw public annotations; compare type-hint interpretation with independent same-form stdlib references.",
+  "validation": [
+    {
+      "abi": "cp311",
+      "final_run": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp311/execution.json",
+      "final_argv_receipt": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp311/intent.json",
+      "returncode": 0,
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "product_unchanged": true,
+      "reuse": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/cp311/execution.json",
+      "scope": "34 assembly cases reused from original attempt; one corrected stdlib annotation check executed here.",
+      "remaining_failures": []
+    },
+    {
+      "abi": "cp310",
+      "final_run": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp310/execution.json",
+      "final_argv_receipt": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp310/intent.json",
+      "returncode": 0,
+      "counts": {
+        "tests": 1,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "product_unchanged": true,
+      "reuse": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/cp310/execution.json",
+      "scope": "34 assembly cases reused from original attempt; one corrected stdlib annotation check executed here.",
+      "remaining_failures": []
+    },
+    {
+      "abi": "cp312",
+      "final_run": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp312/execution.json",
+      "final_argv_receipt": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp312/intent.json",
+      "returncode": 0,
+      "counts": {
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "product_unchanged": true,
+      "reuse": null,
+      "scope": "All35focused cases executed here.",
+      "remaining_failures": []
+    },
+    {
+      "abi": "cp313",
+      "final_run": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp313/execution.json",
+      "final_argv_receipt": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp313/intent.json",
+      "returncode": 0,
+      "counts": {
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "product_unchanged": true,
+      "reuse": null,
+      "scope": "All35focused cases executed here.",
+      "remaining_failures": []
+    },
+    {
+      "abi": "cp314",
+      "final_run": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp314/execution.json",
+      "final_argv_receipt": "/tmp/hotpot_plan20/long/stage12-cp310-support-repair-20261104/correction02/cp314/intent.json",
+      "returncode": 1,
+      "counts": {
+        "tests": 35,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 0
+      },
+      "product_unchanged": true,
+      "reuse": null,
+      "scope": "All35focused cases executed here.",
+      "remaining_failures": [
+        "test_unknown_worker_error_keeps_type_direct_cause_and_full_remote_traceback",
+        "test_failed_result_save_keeps_original_error_and_existing_notes[True]",
+        "test_unpicklable_error_fails_explicitly_with_original_traceback",
+        "test_timeout_identifies_batch_and_persists_completed_results"
+      ]
+    }
+  ],
+  "effective_current_selection": {
+    "cp311": {
+      "passed": 35,
+      "failed": 0,
+      "composed": true
+    },
+    "cp310": {
+      "passed": 35,
+      "failed": 0,
+      "composed": true
+    },
+    "cp312": {
+      "passed": 35,
+      "failed": 0
+    },
+    "cp313": {
+      "passed": 35,
+      "failed": 0
+    },
+    "cp314": {
+      "passed": 31,
+      "failed": 4
+    }
+  },
+  "raw_failed_attempts_preserved": true,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/assembly-note-portability/source-focused01.tar.gz",
+    "bytes": 50158,
+    "sha256": "9f1c696ed0b2f7dda8b4776b2f239780868ea5efa696a48178ce631b8b81c4e4",
+    "manifest_path": ".plan20-artifacts/20261104/stage12/assembly-note-portability/manifest.json",
+    "manifest_sha256": "6c6733b8f6c93130e87556d309856c7fede1660263213db1053821a9d3cb0455",
+    "payload_count": 59
+  },
+  "limits": [
+    "Source focused checks only; previously built wheels do not contain this repair.",
+    "CP314 four short-timeout cases expire before intended worker error/partial-completion observation. No threshold/product workaround or universal support claim.",
+    "Original full CP310/CP313 failures remain independent evidence; CP313 AST-format issue is P20-D030.",
+    "No performance/final delivery/Stage12/B_exp acceptance."
+  ]
+}

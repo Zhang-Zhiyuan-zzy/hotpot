@@ -8597,3 +8597,53 @@ final-delivery validation index is forcefield-rollback-repair.json. Final wheel
 packaging/affected installed verification must include the new Python bytes;
 existing scientific artifacts retain their actual original source identities.
 No performance, overall delivery, B_exp or later-stage gate is closed.
+
+
+### 2026-11-04 — Demonstrated CP310 assembly/annotation support repair release
+
+Root owns only assembly/assembler.py, its existing assembly test file, and the
+single Stage9 type-hints assertion for the directly observed3.10failures. The
+exception-note correction preserves original worker error/cause/traceback and
+completed-result/worker cleanup contracts on3.10without invoking missing
+BaseException.add_note; the same existing failure-persistence note site receives
+the identical portable append. No unknown error is swallowed or converted into
+a success. A regression uses an actual known secondary OSError while retaining
+the original action failure. The annotation check follows measured stdlib
+resolution while retaining unchanged raw annotations/signature. CrystalSol/max
+retains its exclusive two-document ownership; root does not revise those files.
+Focused isolated assembly/annotation execution starts onCP311, then other
+versions with exact unchanged native attribution and original failures retained.
+No currently running old export/wheel is edited or relabeled.
+
+
+### 2026-11-04 — Focused CP310 annotation fixture correction
+
+First focused attempt:CP311all35passed;CP310assembly34passed, with the remaining
+Stage9assertion now exposing3.10's unresolved string inside list["Bond"]. Direct
+stdlib-only3.10/3.11probes also reproduce that list/Angle resolution difference.
+No product change follows. The test now compares each preserved raw annotation
+form with an independent ordinary Python reference function resolved by that
+interpreter's stdlib. Exact raw annotation and signature checks remain. Retain
+original failures; repeat only the changed Stage9test on311/310, then run the
+still-unexecuted complete focused35selection on312/313/314. Assembly passes on
+311/310are reused without repeating their unchanged work. Evidence lives in
+stage12-cp310-support-repair-20261104 with separate correction02outputs.
+
+
+### 2026-11-04 — Assembly note repair acceptance and honest CP314 limits
+
+The portable note append preserves existing action notes, original ValueError,
+direct KeyError cause, full remote traceback, known secondary-save OSError note,
+completed results and owned-worker cleanup. Effective focused source selections
+are35passed each onCP311/310/312/313: retain34assembly passes from the first
+311/310attempt and execute only their changed annotation assertion;312/313run
+all35once. CP314actually reports31passed/4failed: its short1–2s cases expire
+before intended error/partial-result observations during cold worker startup.
+Retain all original failures, do not alter timeout/chemistry to force passes,
+and leave this support obligation open asP20-D031. The separate133CP313AST
+format-checker failures areP20-D030. No whole-version pass is claimed.
+Root archives exact commands/environments/origins/raw outcomes and direct
+stdlib probes under .plan20-artifacts/20261104/stage12/assembly-note-portability;
+maintained final-delivery index is assembly-note-portability.json. This bounded
+source repair does not place new Python bytes in old wheels or close global
+gates. New final packaging and affected installed checks remain required.

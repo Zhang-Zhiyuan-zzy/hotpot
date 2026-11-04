@@ -313,7 +313,9 @@ class AssembleFactory:
         try:
             self._save_results(results)
         except OSError as save_error:
-            error.add_note(f'Could not persist completed assembly results: {save_error}')
+            error.__dict__.setdefault('__notes__', []).append(
+                f'Could not persist completed assembly results: {save_error}'
+            )
 
     @staticmethod
     def _close_worker(process, queue):
@@ -438,7 +440,9 @@ class AssembleFactory:
                                         raise RuntimeError(
                                             f'assembly.error_transport: {subject}\n{remote_traceback}'
                                         ) from transport_error
-                                    error.add_note(f'Assembly worker {subject}\n{remote_traceback}')
+                                    error.__dict__.setdefault('__notes__', []).append(
+                                        f'Assembly worker {subject}\n{remote_traceback}'
+                                    )
                                     raise error
                                 if kind == 'transport_error':
                                     raise RuntimeError(

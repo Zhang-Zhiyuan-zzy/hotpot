@@ -208,14 +208,24 @@ def test_eager_annotations_quoted_names_and_existing_defaults_are_preserved():
     assert inspect.signature(Atom.__init__).parameters["mol"].default is None
     assert Bond.__init__.__annotations__ == {"atom1": Atom, "atom2": Atom}
     assert AtomSeq.__init__.__annotations__ == {"atoms": Atom}
-    assert typing.get_type_hints(Atom.__init__) == {"mol": Molecule}
+    # Resolve identical annotation forms through this interpreter's stdlib.
+    def constructor_reference(mol: Molecule = None):
+        pass
+
+    def bond_list_reference() -> list["Bond"]:
+        pass
+
+    def angle_list_reference() -> list["Angle"]:
+        pass
+
+    assert typing.get_type_hints(Atom.__init__) == typing.get_type_hints(constructor_reference)
     assert typing.get_type_hints(Bond.__init__) == {"atom1": Atom, "atom2": Atom}
     assert typing.get_type_hints(AtomSeq.__init__) == {"atoms": Atom}
     for getter in (Atom.bonds.fget, AtomSeq.bonds.fget):
         assert getter.__annotations__ == {"return": list["Bond"]}
-        assert typing.get_type_hints(getter) == {"return": list[Bond]}
+        assert typing.get_type_hints(getter) == typing.get_type_hints(bond_list_reference)
     assert Molecule.angles.fget.__annotations__ == {"return": list["Angle"]}
-    assert typing.get_type_hints(Molecule.angles.fget) == {"return": list[Angle]}
+    assert typing.get_type_hints(Molecule.angles.fget) == typing.get_type_hints(angle_list_reference)
     assert Bond.bond_segment.fget.__annotations__ == {"return": geometry.Segment}
     assert Ring.geometry_cycle.fget.__annotations__ == {"return": geometry.Cycle}
     assert Ring.relation_to_bond.__annotations__ == {

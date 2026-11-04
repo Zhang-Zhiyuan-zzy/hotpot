@@ -1,0 +1,32 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_MCA_CACHE_DIAGNOSTICS",
+  "date": "2026-11-04",
+  "base_commit": "6eee108ce475705c7f1b6e3a733dbf51cf8b2032",
+  "decision": "../contracts/decisions.md C1",
+  "source_passed": 39,
+  "installed_passed": 39,
+  "failures_errors_skips": 0,
+  "commands_passed": 8,
+  "source_bindings": 935,
+  "native_bindings": 6,
+  "original_model_bindings": 85,
+  "cache_external_files_each": 83,
+  "real_cpu_sessions_each": 6,
+  "saved_prediction_files_each": 3,
+  "historical_suppressed_oserror_cause": "UNKNOWN",
+  "D013_closed": true,
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics",
+    "payload_count": 1349,
+    "payload_bytes": 29019538,
+    "manifest_sha256": "2a880ca7b4a62e26c1df12aa3f70ac8a447caef3c7718402ea2690b3b348792c"
+  },
+  "root_verification": "root-verification.json",
+  "evidence_graph": "evidence_graph.json",
+  "limits": [
+    "C1 four-errno visible fallback, unknown-error identity/content rejection/cleanup, actual model corruption/rebuild and CPU observations only.",
+    "Six unchanged CP311 binaries reused, not a clean native build or ABI/SDK qualification.",
+    "No actual resource exhaustion was induced; explicit errno injections do not diagnose historical cause.",
+    "No other Python/GPU/model-calibration/performance/global/Stage12/B_exp/Stage13 acceptance."
+  ]
+}

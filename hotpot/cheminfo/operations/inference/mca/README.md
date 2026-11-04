@@ -37,9 +37,14 @@ release graph. The derived graph reuses the verified model weights and computes
 the shared molecular encoding once per distinct padding context instead of once
 per target atom. It is stored below `HOTPOT_DERIVED_MODEL_HOME`, or below the
 regular Hotpot model cache when that variable is unset. Read-only model bundles
-remain supported; if the derived cache is also read-only, a temporary graph is
-used. Original atom-row batch boundaries and padding are retained so existing
-MCA values remain unchanged.
+remain supported. If persistent derived-cache creation raises `OSError` with
+`EACCES`, `EROFS`, `ENOSPC` or `EDQUOT`, a `RuntimeWarning` retains the actual
+error's errno, message and filename and reports the identical temporary-copy
+materialization. That copy remains available within the materialization context
+and is removed on exit, including when the caller fails. Other `OSError`
+instances and graph/content/integrity errors propagate; a temporary-copy build
+failure also propagates. Original atom-row batch boundaries and padding are
+retained so existing MCA values remain unchanged.
 
 ## Python API
 

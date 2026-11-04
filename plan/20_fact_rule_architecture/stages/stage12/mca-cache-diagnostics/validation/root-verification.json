@@ -1,0 +1,40 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_MCA_CACHE_DIAGNOSTICS",
+  "date": "2026-11-04",
+  "base_commit": "6eee108ce475705c7f1b6e3a733dbf51cf8b2032",
+  "source_bindings": 935,
+  "native_bindings": 6,
+  "original_model_bindings": 85,
+  "source_passed": 39,
+  "installed_passed": 39,
+  "failures_errors_skips": 0,
+  "commands_passed": 8,
+  "ordered_phase_outcomes": 117,
+  "saved_prediction_files_each": 3,
+  "real_cpu_sessions_each": 6,
+  "real_caches_each": 2,
+  "cache_external_files_each": 83,
+  "origin_observations_each": 439,
+  "origin_violations": 0,
+  "wheel": {
+    "path": "/tmp/hotpot_plan20/long/stage12-mca-cache-diagnostics-20261104/integration01/packaging01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "sha256": "481fb6ba42f3234787fe455833a5aa2452ce994a145316f7d0da2ac34636d82a",
+    "members": 898,
+    "product_members": 892
+  },
+  "sdist": {
+    "path": "/tmp/hotpot_plan20/long/stage12-mca-cache-diagnostics-20261104/integration01/packaging01/dist/hotpot_zzy-0.5.4.5.tar.gz",
+    "sha256": "dff0164ae1cfe13b4130b530e626f9b01af43907372648ae0e865d766f2a9ade",
+    "members": 921,
+    "prebuilt_binaries_in_sdist": false
+  },
+  "D013_closed": true,
+  "historical_suppressed_oserror_cause": "UNKNOWN",
+  "limits": [
+    "C1 four-errno visible fallback, unknown-error identity/content rejection/cleanup, actual model corruption/rebuild and CPU observations only.",
+    "Six unchanged CP311 binaries reused, not a clean native build or ABI/SDK qualification.",
+    "No actual resource exhaustion was induced; explicit errno injections do not diagnose historical cause.",
+    "No other Python/GPU/model-calibration/performance/global/Stage12/B_exp/Stage13 acceptance."
+  ],
+  "archive_selection": "Minimal commands/JUnit/origins/observations/current/source/model/cache metadata, wheel/sdist and original authoring evidence. Complete4298-entry integration index retained; duplicate model/weight/site/build trees stay in original task directories, not recopied."
+}

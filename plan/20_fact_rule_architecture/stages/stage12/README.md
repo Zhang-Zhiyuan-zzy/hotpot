@@ -50,3 +50,9 @@ Consolidated cross-stage optimization and deferred-item review use the
 - [PyG output root verification](pyg-output/validation/root-verification.json)
 - [Candidate performance bindings](performance-bindings/validation/checkpoint.json)
 - [Performance binding limits](performance-bindings/validation/report.md)
+
+- [MCA cache diagnostic decision](mca-cache-diagnostics/contracts/decisions.md)
+- [MCA cache checkpoint](mca-cache-diagnostics/validation/checkpoint.json)
+- [MCA cache report](mca-cache-diagnostics/validation/report.md)
+- [MCA cache evidence graph](mca-cache-diagnostics/validation/evidence_graph.json)
+- [MCA cache root verification](mca-cache-diagnostics/validation/root-verification.json)

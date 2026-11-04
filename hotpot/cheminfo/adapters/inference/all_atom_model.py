@@ -11,6 +11,7 @@ import shutil
 import stat
 import tempfile
 import uuid
+import warnings
 from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
@@ -535,7 +536,15 @@ def materialize_all_atom_model(
             external_digest,
             external_locations,
         )
-    except OSError:
+    except OSError as exc:
+        if exc.errno not in {errno.EACCES, errno.EROFS, errno.ENOSPC, errno.EDQUOT}:
+            raise
+        warnings.warn(
+            f"Persistent derived MCA cache unavailable: {exc}; "
+            "materializing an identical temporary copy for this context",
+            RuntimeWarning,
+            stacklevel=3,
+        )
         persistent = None
     if persistent is not None:
         yield persistent

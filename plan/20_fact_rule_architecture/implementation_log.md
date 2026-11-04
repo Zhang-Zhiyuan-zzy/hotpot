@@ -7922,3 +7922,54 @@ science/performance/Plan12/report/B_exp/Stage13 gates remain open. Local Sol/hig
 continues isolated C1 cache repair. Completed local Sol/medium is reassigned only
 read-only final requirement/evidence/command extraction, with no product/Git/run
 or nested-delegation authority. No external helper or Stage3 activation occurs.
+
+
+### 2026-11-04 — Stage12 C1 actual-model cache repair acceptance
+
+PyG/business commit6eee108ce475705c7f1b6e3a733dbf51cf8b2032 is pushed normally.
+Root verifies all4C1original inputs still match after that commit, applies the
+exact3-file proposal with git apply --check then git apply, and releases actual
+MAIN/outside-wheel validation to the existing local Sol/high worker. The only
+production change bounds the existing persistent OSError handler to actual
+EACCES/EROFS/ENOSPC/EDQUOT with RuntimeWarning; other OSError objects rethrow
+unchanged. All graph/model/features/hash/lock/publication/caller-yield behavior
+remains; no speculative guard, new retry, fallback model or result label.
+
+Actual source/installed each39passed/0fail/0error/0skip with --run-model-artifacts;
+all117ordered phases agree excluding duration. Eight qualification commands
+return0. The suite includes21synthetic cache cases, actual pinned-model corruption/
+rebuild, six real CPU runtime observations each, attachment/order/atom-site/pool
+and iterator tests. Three saved files/five payloads agree at these exact method/
+environment bytes, including amine503.25kJ/mol; no scientific truth/calibration
+or universal numerical identity claim. Each boundary records439product origins/
+0violations and ten product-importing processes. Original model/83weights remain.
+
+Root runs `python -B /tmp/hotpot_plan20/long/stage12-mca-cache-diagnostics-20261104/root-review/verify_and_archive.py`:
+935current inputs/six unchanged natives/85original model files and all four real
+83-weight caches verify, with actual JUnit, commands, origins and wheel/sdist/site
+transport. The first root verifier wrongly compares measured duration_seconds;
+its original script/failure is retained and only that comparison is corrected,
+without product/test/result change or successful suite rerun. Authoring's original
+post-test instrumentation failure remains separate. Current D013 closes with the
+lost historical OSError cause explicitly UNKNOWN; synthetic ENOSPC is no diagnosis.
+
+Selected immutable archive .plan20-artifacts/20261104/stage12/mca-cache-diagnostics
+has1349payloads/29019538bytes, manifestSHA2562a880ca7b4a62e26c1df12aa3f70ac8a447caef3c7718402ea2690b3b348792c.
+Its complete integration index retains4298artifact identities; model/weight source
+copies remain in original task directories. Maintained checkpoint/report/graph/
+root verification accept only this CP311 scope. Six accepted natives were reused,
+not rebuilt; remaining native/version/GPU/science/performance/Plan12/report/B_exp/
+Stage13 gates stay open.
+
+Root reviews the13-group/23-command final requirement extraction and releases one
+full CP311 MAIN default suite under branch coverage to local Sol/medium, preserving
+standard tier switches and honest skipped tiers; source/test bytes stay frozen.
+A direct equivalent invocation redirects outputs to its task directory rather
+than overwriting tests/coverage. No unmodified audit_stage_records invocation or
+forbidden owner-file access is authorized. Another explicit root-only remote
+capability probe first fails GLIBCXX_3.4.30 with the system C++ runtime, then actual
+reused Conda library binding passes a tiny ONNX CUDA Add on ai-14 device0; profile
+records CUDAExecutionProvider and output[4,6]. Original failure is retained under
+allowed mca_test paths. This proves CUDA availability only, not MCA/GPU acceptance.
+The selected Docker image is observed absent again; same-digest refetch/active
+holder preparation is ongoing, no changed image/config/permission/algorithm.

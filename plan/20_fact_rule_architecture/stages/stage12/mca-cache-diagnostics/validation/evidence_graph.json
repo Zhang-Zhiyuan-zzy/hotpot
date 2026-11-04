@@ -1,0 +1,49 @@
+{
+  "root": "checkpoint.json",
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_MCA_CACHE_DIAGNOSTICS",
+  "nodes": {
+    "decision": "../contracts/decisions.md",
+    "authoring": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/authoring/REPORT.md",
+    "actual_commands": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/raw/integration/COMMANDS.json",
+    "junit_and_business": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/raw/integration/COMPARISON.json",
+    "source_bindings": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/raw/integration/SOURCE_FREEZE.json",
+    "model_bindings": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/raw/integration/MODEL_FREEZE.json",
+    "actual_artifacts": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/raw/integration/ARCHIVE_CONTENTS.json",
+    "complete_evidence_index": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/raw/integration/EVIDENCE_INDEX.json",
+    "root_verification": "root-verification.json",
+    "retained_root_comparator_failure": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/root-review/attempt01-failure.json",
+    "archive": ".plan20-artifacts/20261104/stage12/mca-cache-diagnostics/manifest.json"
+  },
+  "edges": [
+    [
+      "decision",
+      "authoring"
+    ],
+    [
+      "authoring",
+      "actual_commands"
+    ],
+    [
+      "actual_commands",
+      "junit_and_business"
+    ],
+    [
+      "model_bindings",
+      "junit_and_business"
+    ],
+    [
+      "source_bindings",
+      "actual_artifacts"
+    ],
+    [
+      "root_verification",
+      "archive"
+    ]
+  ],
+  "limits": [
+    "C1 four-errno visible fallback, unknown-error identity/content rejection/cleanup, actual model corruption/rebuild and CPU observations only.",
+    "Six unchanged CP311 binaries reused, not a clean native build or ABI/SDK qualification.",
+    "No actual resource exhaustion was induced; explicit errno injections do not diagnose historical cause.",
+    "No other Python/GPU/model-calibration/performance/global/Stage12/B_exp/Stage13 acceptance."
+  ]
+}

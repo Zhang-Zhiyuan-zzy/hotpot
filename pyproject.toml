@@ -139,7 +139,7 @@ include-package-data = true
     "manifests/packaged-reference-assets.json",
 ]
 "hotpot.cheminfo.operations" = ["solvent_properties.md"]
-"hotpot.cheminfo.reference" = ["data/*.json"]
+"hotpot.cheminfo.reference" = ["data/*.json", "data/space_groups.*-LICENSE.txt"]
 "hotpot.cheminfo.rules.mathematics.geometry" = ["*.md", "_geometry_native.pyi"]
 "hotpot.cheminfo.rules.mathematics.graph" = ["README.md", "_graph_native.pyi"]
 "hotpot.cheminfo.operations.assembly" = ["*.md", "*.svg", "data/*.json"]

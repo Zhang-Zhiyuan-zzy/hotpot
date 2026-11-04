@@ -5012,5 +5012,23 @@
       "checkpoint": "stages/stage08/scientific-state/validation/confidence_checkpoint.json",
       "contract_gate_closed": true
     }
-  ]
+  ],
+  "stage15a_public_contract_decision": {
+    "date": "2026-11-05",
+    "owner": "root",
+    "baseline_commit": "5a7b19396328eee964a8f3c65bc3345c013eaec6",
+    "status": "accepted_before_product_authoring",
+    "contract": "stages/stage15/domain/contracts/decisions.md",
+    "exports": [
+      "hotpot.SpaceGroup",
+      "hotpot.SymmUnit"
+    ],
+    "schema": "hotpot.crystal/1",
+    "periodic_topology_domain": "current simple Molecule graph; unrepresentable self/parallel quotient explicitly unavailable",
+    "toolkits_forbidden": [
+      "OpenBabel",
+      "RDKit",
+      "CCDC"
+    ]
+  }
 }

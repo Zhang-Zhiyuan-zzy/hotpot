@@ -1,6 +1,10 @@
 # Stage15 — Crystal spatial symmetry and molecular expansion
 
-Owner-directed additional Plan20 branch, revised 2026-11-04. The
+Owner-directed additional Plan20 branch. Root accepted the concrete
+[Stage15A contract](domain/contracts/decisions.md) on 2026-11-05; standalone exact
+SpaceGroup/SymmUnit production is root-accepted at the
+[297-test source/five-version installed checkpoint](domain/validation/exact_symmetry_report.md).
+Connected Crystal migration and Stage15C–F remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic
@@ -39,11 +43,11 @@ observations and zero linking number is not an unlink certificate. Crystal
 behavior uses Hotpot math/topology, with only a separately justified table/CIF
 lookup candidate. No direct or indirect OpenBabel/RDKit/CCDC Python API route.
 
-This is concrete design/reference work, not runtime delivery or publication of
-new signatures. The existing six-parameter cell remains the Stage0–12 contract
-until Stage15's connected migration from validated `B_exp`. Stage15A must settle
+Standalone exact symmetry is delivered; the connected Crystal tree remains
+accepted implementation scope rather than completed runtime behavior. The existing six-parameter cell remains the Stage0–12 contract
+until Stage15's connected migration from validated `B_exp`. Stage15A settles
 the exact public/export/codec/CIF/dependency/tolerance choices and the existing
-topology foundation's self/parallel periodic-edge limit. The group catalogue's
+topology foundation's self/parallel periodic-edge limit in its accepted contract. The group catalogue's
 exact arithmetic checks do not pass molecular, numerical or runtime gates.
 
 Stage14D prepares against 15A's accepted schema, then consumes 15B/C's implemented

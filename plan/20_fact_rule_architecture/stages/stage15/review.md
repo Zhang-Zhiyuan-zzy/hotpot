@@ -1,11 +1,21 @@
 # Stage15 implementation plan — Crystal spatial symmetry and molecular expansion
 
-Status: owner-directed planning revision, 2026-11-04. Runtime authoring has not
-started. Crystal's primary job is to apply crystallographic spatial symmetry
+Status: owner-directed planning revision, 2026-11-04; concrete Stage15A choices
+accepted 2026-11-05 in [the domain contract](domain/contracts/decisions.md).
+Standalone exact symmetry is delivered at the checkpoint below; connected
+Crystal domain, actions, findings and persistence remain open. Crystal's primary
+job is to apply crystallographic spatial symmetry
 and copy/expand molecular units, with useful geometry/topology observations.
 The following surface is a concrete **proposal for Stage15A**, not a released
 API or scientific approval. The parent owns acceptance, main-plan registration,
 interface/schema decisions and runtime entry under §16.4.
+
+## Current implementation checkpoint
+
+Root accepted the standalone exact domain on2026-11-05; see
+[the report](domain/validation/exact_symmetry_report.md). Connected Crystal15B/C,
+observations15D, persistence15E and delivery15F remain open. The accepted
+[15A decision](domain/contracts/decisions.md) resolves the proposal choices below.
 
 ## 1. Complete proposed public tree — before implementation
 

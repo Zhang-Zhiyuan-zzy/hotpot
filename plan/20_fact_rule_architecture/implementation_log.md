@@ -9936,3 +9936,45 @@ Durablearchivecorrection retains the original failed matrix tar. Sixrelative sym
 The root's privatefinalASTinventorychecker failed three bounded rounds: stale504/770census expectation (actual505/771adds shared_StereoConfigNamedTuple), conflatedleafwildcardimportswithpackageexports, then tuple/listJSONexportcomparison. Allscripts/attemptnotes and actualthirdstderr/exit1remain. No fourthrepair/run. Directcurrentpublicfields/signatures for46root/rolecontracts and366resolvedhistoricaltypes hadalreadycheckedbeforethestop;384historicalmigrationrows/43familiesand16factdomainsretainacceptedcomplete maps. Rootfacade31/30/5names andsourcebytesareunchangedsinceacceptedcontractsnapshot; zero packagewildcardexports and20leaflibrary/typingimports are distinct. P20-D036acceptsboundedcheckerdeferment, notabusinesspassorgatewaiver. Existingactualsource/installedcurrentness/permission/remap/rollback tests and currentpackage evidence supply mandatorybusinessverification. Private_StereoConfigsix-fieldtask-localprojection is explicitlyregisteredwithzerofact/consolidationcredit; dataclasses355 unchanged.
 
 Rootcompleted the requiredten-section main-scope report, updatedcurrent12item/navigation records and decided all15main§14criteria againstactualapplicableevidence. All36unifiedissuesareCLOSEDorACCEPTED_LIMITATION; no unexecutedmandatorybusinessgap isidentifiedinthedeclaredmain-scopeboundary. Allfailedscientific/finite/quality/backend outcomes, declaredskips/xfails, historicalmetadatafailures, inconclusivespeedupandadversecostsremain. Main-scope acceptance isrecordedin final-delivery/validation/main-scope-acceptance.json. The coherentnormalvalidatedGitcommit containingthisreport/deliverywill supplyB_exp; itsactualfullSHAwill berecordedatthenextStage13entry, notinventedself-referentialmetadata. Stage13A/B, Stage14to_pyg/from_pyg andStage15Crystal/SpaceGroup/SymmUnit remainunimplementedapprovedscope; overallgoal isnotcomplete. Fullnext-stagealignmentand concreteentry/publicdesign decisions stillapply.
+
+
+## 2026-11-05 — Stage15A exact-domain decision
+
+Independent branch feat/plan20-crystal-symmetry starts at validated B_exp5a7b193.
+Root aligned effective goal, main/companions and full Stage15 review with current
+six-scalar carrier, mathematical angle convention, association/builder/lifecycle,
+package reference-data owner and graph limits. Accepted exact §16.4 contract is
+`stages/stage15/domain/contracts/decisions.md`. One full affine SymmUnit and one
+immutable SpaceGroup own exact group/setting; no786enum or generator restriction.
+Promote attributed pinned table to the existing reference owner, with licences;
+lazy optional Gemmi is CIF syntax only. No OB/RDKit/CCDC route. Standalone exact
+group checkpoint precedes connected Crystal facade publication. Self/parallel
+periodic quotient is explicitly unavailable in current simple graph, retained
+as a bounded extension limitation rather than collapsed or secretly repaired.
+Root freezes tolerances, codec hard cut, matching versus identification and
+generated P1. Product, installed, numerical/chemical/CIF/cost gates remain open;
+reference table arithmetic alone closes none. Three unsuccessful bounded attempts
+will be recorded and unrelated independent work proceeds after dependency review.
+
+
+## 2026-11-05 — standalone Stage15 exact symmetry production
+
+Root accepts one immutable SpaceGroup plus abstractSymmUnit/privateaffine
+implementation and attributed230group runtime lookup. LocalSol/xhighreview
+found actualconstructor/deletionimmutabilityandlicencefilenameissues; bounded
+repairs passcurrent297CP311sourceand297outside-checkoutinstalledtests on each
+CP310–314, with174observedorigins/0violations andunchangedsite/supportfiles.
+AllsixacceptedED7nativepayloadsperABIremainunchanged; wheelsarerepacks, not
+freshnativebuilds. Exactcarry/group/lattice/settingandanalyticfixturespass;
+referenceagreementisnotamolecular/scientificapproval. Originalcollectionfailure
+ismissinggeometrynativeandretained, followedbyattributedcopiesandactualpasses.
+
+Rootacceptscurrent2+7costs:2.893/2.865/6.226msfullP1/P21/Fm3morbits512sites
+and68.330msF225primitive/back. Sharedload,frequencyvariability,allrawsamples
+andtracked/RSSlimitsremain; nooldfeature/sixscalarcomparisonorparityclaim.
+247regulararchivepayloads/73905882compressedbytesfullyreconstructandhashverify
+under.plan20-artifacts/20261105/stage15/exact-symmetry-standalone. Rootreport
+andcheckpointindexexactidentitiesandbusinesslimits. ConnectedCrystal15B/C,
+15Dfindings,15Eformats,15Fdelivery,Stage14Dandoverallcompletionremainopen.
+MolecularStage14source/installedCP311passes281tests separately; itscost/GPU
+evidenceandrootcheckpointarepending. Noremotehelperisactive.

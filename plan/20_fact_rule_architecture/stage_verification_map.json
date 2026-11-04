@@ -5050,6 +5050,27 @@
         "actual ordinary/fused/coordination/unsupported/failure paths through protocol; affected packaging/default suite; paired affected-workflow benchmark against B_exp"
       ],
       "execution_status": "not_executed_by_inventory_capture"
+    },
+    "stage15": {
+      "contract": "stages/stage15/domain/contracts/decisions.md",
+      "status": "15A accepted; standalone exact symmetry root-accepted, connected domain open",
+      "checks": [
+        "exact230group/4425operator algebra and changed-index settings",
+        "standard oriented cell and complete lifecycle",
+        "one-placement invariant and exact image replication",
+        "complete matching/skew/contact/piercing/linking observations",
+        "pure codec/CIF/current-version pickle",
+        "prohibited-API isolation",
+        "CP311 source/outside-checkout installed and affected support",
+        "complete-work costs/resources"
+      ],
+      "remaining": [
+        "connected Crystal15B/C",
+        "15D observations",
+        "15E format closure",
+        "15F delivery"
+      ],
+      "checkpoint": "stages/stage15/domain/validation/exact_symmetry_checkpoint.json"
     }
   },
   "migration_inventory_file": "baseline_inventory/migration_inventory.json",

@@ -216,9 +216,7 @@ def _content_identities(mol, domains):
                        _atom_metadata(mol, _COORDINATE_FIELDS))
         elif domain == "cell":
             cell = mol._crystal
-            content = None if cell is None else tuple(
-                getattr(cell, name) for name in ("a", "b", "c", "alpha", "beta", "gamma")
-            )
+            content = None if cell is None else cell._state[0]
         elif domain == "constraints":
             content = (
                 topology,

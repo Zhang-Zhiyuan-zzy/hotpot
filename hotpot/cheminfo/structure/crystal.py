@@ -1,22 +1,111 @@
-"""Six writable cell parameters, independent of external toolkit state."""
-import numpy as np
+"""One oriented cell, one group association and its contained Molecule facts."""
+
+from ._crystal import _read_crystal_record, _public_relations
 
 
 class Crystal:
-    def __init__(self, a, b, c, alpha, beta, gamma):
-        self.a = a
-        self.b = b
-        self.c = c
-        self.alpha = alpha
-        self.beta = beta
-        self.gamma = gamma
+    def __init__(self, a, b, c, alpha, beta, gamma, *, molecule=None,
+                 space_group=None, site_relations=None, bond_images=None):
+        from ..operations.crystal import _initialize_crystal, _cell_matrix
+        _initialize_crystal(self, _cell_matrix((a, b, c, alpha, beta, gamma)),
+                            molecule, space_group, site_relations, bond_images)
 
     @staticmethod
     def _matrix_to_params(matrix):
         from ..rules.mathematics.cell import _matrix_to_params
-
         return _matrix_to_params(matrix)
 
     @classmethod
-    def from_matrix(cls, matrix: np.ndarray):
-        return cls(*cls._matrix_to_params(matrix))
+    def from_matrix(cls, matrix, *, molecule=None, space_group=None,
+                    site_relations=None, bond_images=None):
+        from ..operations.crystal import _initialize_crystal
+        value = object.__new__(cls)
+        _initialize_crystal(value, matrix, molecule, space_group, site_relations, bond_images)
+        return value
+
+    @property
+    def molecule(self):
+        return self._molecule
+
+    @property
+    def matrix(self):
+        import numpy as np
+        return np.array(_read_crystal_record(self)[1], dtype=np.float64)
+
+    @property
+    def volume(self):
+        from ..operations.crystal import _volume
+        return _volume(self.matrix)
+
+    @property
+    def space_group(self):
+        return _read_crystal_record(self)[2]
+
+    @property
+    def symm_units(self):
+        group = self.space_group
+        return None if group is None else group.symm_units
+
+    @property
+    def site_relations(self):
+        return _public_relations(self)
+
+    @property
+    def bond_images(self):
+        return _read_crystal_record(self)[4]
+
+    @property
+    def representation(self):
+        return _read_crystal_record(self)[5]
+
+    @property
+    def image_map(self):
+        return _read_crystal_record(self)[7]
+
+    def set_cell(self, matrix, *, preserve='cartesian'):
+        from ..operations.crystal import _set_cell
+        _set_cell(self, matrix, preserve)
+
+    def set_space_group(self, space_group, *, site_relations=None):
+        from ..operations.crystal import _set_space_group
+        _set_space_group(self, space_group, site_relations)
+
+    def set_site_relations(self, relations):
+        from ..operations.crystal import _set_site_relations
+        _set_site_relations(self, relations)
+
+    def to_fractional(self, cartesian):
+        from ..operations.crystal import _to_fractional
+        return _to_fractional(cartesian, self.matrix)
+
+    def to_cartesian(self, fractional):
+        from ..operations.crystal import _to_cartesian
+        return _to_cartesian(fractional, self.matrix)
+
+    def copy(self):
+        from ..operations.crystal import _copy_crystal
+        return _copy_crystal(self)
+
+    def __reduce_ex__(self, protocol):
+        from ._crystal import _restore_active_crystal, _restore_standalone_crystal
+        extra = {key: value for key, value in self.__dict__.items() if key not in ('_state', '_molecule')}
+        if self._molecule is None:
+            return _restore_standalone_crystal, (type(self), _read_crystal_record(self)), extra
+        return _restore_active_crystal, (self._molecule,), extra
+
+
+def _parameter(index):
+    def read(crystal):
+        from ..operations.crystal import _matrix_to_params
+        return _matrix_to_params(_read_crystal_record(crystal)[1])[index]
+
+    def write(crystal, value):
+        from ..operations.crystal import _set_parameter
+        _set_parameter(crystal, index, value)
+
+    return property(read, write)
+
+
+for _index, _name in enumerate(('a', 'b', 'c', 'alpha', 'beta', 'gamma')):
+    setattr(Crystal, _name, _parameter(_index))
+del _index, _name

@@ -351,9 +351,8 @@ class MoleculeRecord:
             raise TypeError("Bond direction and source must be strings or None")
         source_frames, conformer_results, frame_selection = _frame_records(
             self.source_frames, self.conformer_results, self.frame_selection, count)
-        cell = None if self.cell is None else tuple(map(float, self.cell))
-        if cell is not None and len(cell) != 6:
-            raise ValueError("Cell import requires six parameters")
+        from ._crystal import _canonical_crystal_record
+        cell = None if self.cell is None else _canonical_crystal_record(self.cell, count, bond_count)
         identifier = tuple(self.identifier)
         if (len(identifier) != 2 or type(identifier[0]) is not bool
                 or (identifier[1] is not None and type(identifier[1]) is not str)
@@ -377,7 +376,7 @@ class MoleculeRecord:
 
     def __reduce__(self):
         return _restore_molecule_record, (
-            type(self), 6, tuple(getattr(self, field.name) for field in fields(self)),
+            type(self), 7, tuple(getattr(self, field.name) for field in fields(self)),
         )
 
     def __deepcopy__(self, memo):
@@ -385,8 +384,8 @@ class MoleculeRecord:
 
 
 def _restore_molecule_record(record_type, schema_version, field_values):
-    if schema_version != 6 or len(field_values) != 24:
-        raise ValueError("MoleculeRecord pickle requires schema version 6 and 24 fields")
+    if schema_version != 7 or len(field_values) != 24:
+        raise ValueError("MoleculeRecord pickle requires schema version 7 and 24 fields")
     return record_type(**dict(zip((field.name for field in fields(MoleculeRecord)), field_values)))
 
 

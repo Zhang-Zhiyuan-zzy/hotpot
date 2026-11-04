@@ -2,8 +2,8 @@
 
 Status: owner-directed planning revision, 2026-11-04; concrete Stage15A choices
 accepted 2026-11-05 in [the domain contract](domain/contracts/decisions.md).
-Standalone exact symmetry is delivered at the checkpoint below; connected
-Crystal domain, actions, findings and persistence remain open. Crystal's primary
+Standalone exact symmetry and connected cell/lifecycle are delivered at the
+checkpoints below; actions, findings and format closure remain open. Crystal's primary
 job is to apply crystallographic spatial symmetry
 and copy/expand molecular units, with useful geometry/topology observations.
 The following surface is a concrete **proposal for Stage15A**, not a released
@@ -13,8 +13,9 @@ interface/schema decisions and runtime entry under §16.4.
 ## Current implementation checkpoint
 
 Root accepted the standalone exact domain on2026-11-05; see
-[the report](domain/validation/exact_symmetry_report.md). Connected Crystal15B/C,
-observations15D, persistence15E and delivery15F remain open. The accepted
+[the report](domain/validation/exact_symmetry_report.md). Connected cell/lifecycle
+15B is accepted at [559 source/installed CP311 checks](domain/validation/connected_cell_report.md).
+Actions15C, observations15D, formats15E and delivery15F remain open. The accepted
 [15A decision](domain/contracts/decisions.md) resolves the proposal choices below.
 
 ## 1. Complete proposed public tree — before implementation

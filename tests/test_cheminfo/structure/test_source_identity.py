@@ -270,7 +270,7 @@ def test_atom_and_bond_constraints_invalidate_only_the_constraint_domain(change)
     _check_source(mol, representation)
 
 
-def test_cell_identity_uses_only_six_cell_parameters():
+def test_cell_identity_uses_oriented_basis_and_ignores_user_annotations():
     mol = _molecule()
     mol.create_crystal(10, 11, 12, 90, 91, 92)
     source = _capture_source(mol, ("cell",))

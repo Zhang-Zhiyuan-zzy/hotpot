@@ -9978,3 +9978,53 @@ andcheckpointindexexactidentitiesandbusinesslimits. ConnectedCrystal15B/C,
 15Dfindings,15Eformats,15Fdelivery,Stage14Dandoverallcompletionremainopen.
 MolecularStage14source/installedCP311passes281tests separately; itscost/GPU
 evidenceandrootcheckpointarepending. Noremotehelperisactive.
+
+
+## 2026-11-05 — connected Stage15B entry after exact-domain push
+
+Standalone checkpoint bcc199b355183f857b8784b267cf4c53b2eaa21a was normally
+pushed to origin/feat/plan20-crystal-symmetry. Root retains the unchanged full
+main-plan/goal/companion alignment, reread governance/stage/validation references,
+accepted15A and the actual association, complete builder, pickle, topology,
+identity, transaction and external projection consumers. The bounded private
+lifecycle decision is domain/contracts/lifecycle.md before dependent edits.
+One oriented cell/group owner, UID-bound relations, current-record generation7,
+complete association aliases and narrow transactional undo migrate together.
+The old six-scalar matrix orientation/alpha-gamma behavior is intentionally
+corrected; historical supplied scalar facts are not rewritten. Stage14 is an
+independent branch and consumes this codec only at14D. Full molecular actions,
+findings/CIF/delivery remain later gates; no scope is silently dropped.
+
+
+## 2026-11-05 — connected Stage15B cell and lifecycle checkpoint
+
+Root accepts one oriented immutable Crystal state, existing Molecule membership,
+UID-bound relations/images, generation7 complete-record hard cut and narrow
+transactional association undo. Copy/components/compatible merge/reorder/removal,
+cold combined aliases, standard angles and adapter six-parameter projections
+migrate together. No second chemical graph or prohibited toolkit route exists.
+
+Final actual CP311 source affected04 and outside-checkout pip-installed wheel
+both pass559/0fail/error/skip; elapsed6.7304s/17.7937s. Installed196observed
+origins have0violations;912site/21support files and all6acceptednativepayloads
+remainunchanged. This is a repack, not a fresh native build. Exact commands and
+all29finalsourceinputs are in stage15b-connected-20261105 records. Source bytes
+remain those tested. Earlier failed attempts remain, including the actual
+external-import missing-relations gap and stale schema/oracle expectations.
+
+Independent local Sol/xhigh review identifies missingXYZ fabrication, generated
+nonP1 acceptance and association replacement while waiting for the owner lock.
+Allthree are repaired;6targeted regressions and two independent witnesses pass.
+The third independent witness correctly reaches local coordinate rejection then
+fails its own eq=False record equality assertion; its remaining subcases did not
+execute. Root direct source/installed coordinate regressions pass. That private
+script is not an overallPASS and is not rerun merely for reporting aesthetics.
+
+153regularverifiedarchivepayloads/7736642compressedbytes are retained under
+.plan20-artifacts/20261105/stage15/connected-cell-lifecycle; outerSHA256
+242b8630d62aad845dd018bf489ffaf027007ecdd98447ff3b8960b9e39aa322.
+Maintained connected_cell_checkpoint/report index exactinputs/outcomes/limits.
+15Cactions,15Dfindings,15Eformats,15Fcost/support/delivery and14DCrystalPyG remain
+open. The pending exact repeated-action/supercell source-frame relation must be
+settled before its producer, without floating reconstruction or overloading a
+group setting as provenance. No Stage15/overallcompletion is claimed.

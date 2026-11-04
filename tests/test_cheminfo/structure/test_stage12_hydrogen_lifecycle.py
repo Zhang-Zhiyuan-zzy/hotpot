@@ -79,9 +79,9 @@ def test_normalized_partial_import_lifecycle_preserves_source_and_four_physical_
 def test_current_private_record_generation_rejects_ambiguous_pre_normalization_pickle():
     record = Molecule()._capture_factual_record()[0]
     restore, (kind, generation, values) = record.__reduce__()
-    assert restore is _restore_molecule_record and generation == 6
+    assert restore is _restore_molecule_record and generation == 7
     assert len(fields(record)) == len(values) == 24
-    with pytest.raises(ValueError, match='schema version 6 and 24 fields'):
+    with pytest.raises(ValueError, match='schema version 7 and 24 fields'):
         restore(kind, 5, values)
     assert pickle.dumps(restore(kind, generation, values)) == pickle.dumps(record)
 

@@ -107,7 +107,7 @@ class _FactTransaction:
     __slots__ = ("mol", "producer", "_joined", "_token", "_cells", "_statuses", "_seeds",
                  "_bonds", "_sparse", "_declarations", "_stereo", "_frames", "_topology",
                  "_registrations", "_bond_membership", "_index_entries", "_constraints", "_pair_values",
-                 "_constraint_entries", "_constraint_bindings", "_results", "_failed")
+                 "_constraint_entries", "_constraint_bindings", "_results", "_crystals", "_failed")
 
     def __init__(self, mol, *, producer):
         self.mol = mol
@@ -122,6 +122,7 @@ class _FactTransaction:
         self._stereo = _UNCHANGED
         self._frames = None
         self._topology = None
+        self._crystals = None
         self._registrations = None
         self._bond_membership = None
         self._index_entries = None
@@ -165,7 +166,7 @@ class _FactTransaction:
         self._constraints = self._registrations = None
         self._pair_values = None
         self._constraint_entries = self._constraint_bindings = None
-        self._declarations = self._frames = self._topology = self._results = None
+        self._declarations = self._frames = self._topology = self._results = self._crystals = None
         self._bond_membership = None
         self._index_entries = None
         self._stereo = _UNCHANGED
@@ -258,10 +259,22 @@ class _FactTransaction:
         index = self.mol._topology_index
         self._index_entries.append((index, key, index.get(key, _UNCHANGED)))
 
+    def touch_crystal(self, crystal=None, *, new=False):
+        if self._crystals is None:
+            self._crystals = (self.mol._crystal, {})
+        if crystal is not None and id(crystal) not in self._crystals[1]:
+            state = crystal._state
+            association = crystal._molecule
+            if new:
+                state = (state[0], state[1], ((), (), ()), (), 'independent', None, None, None)
+                association = None
+            self._crystals[1][id(crystal)] = (crystal, state, association)
+
     def touch_topology(self):
         if self._topology is not None:
             return
         mol = self.mol
+        self.touch_crystal(mol._crystal)
         values = []
         for name in _TOPOLOGY_FIELDS:
             value = mol.__dict__.get(name, _UNCHANGED)
@@ -348,6 +361,11 @@ class _FactTransaction:
                 values.pop(key, None)
             else:
                 values[key] = previous
+        if self._crystals is not None:
+            previous, entries = self._crystals
+            for crystal, state, association in entries.values():
+                crystal._state, crystal._molecule = state, association
+            mol._crystal = previous
         if self._results is not None:
             _restore_fields(mol, self._results)
 

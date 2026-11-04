@@ -7558,3 +7558,77 @@ commands. Debt disposition is now20DEFERRED/1OPEN/6CLOSED/1ACCEPTED_LIMITATION.
 Whole Stage12, Stage11 D008/D028, consolidated cost/resources, other versions/
 release, Plan12, final report/B_exp and separate Stage13 remain open. The coherent
 terminal-role business commit containing this record is its delivery identity.
+
+
+### 2026-11-04 — Stage12D runtime-resource authoring continuation
+
+Stage12C coherent business commit42a35904b06509c273b1dcb4ea6b46045378ccf6
+is pushed. Root now releases the bounded D008 resource repair recorded in
+`stages/stage12/package-resources/entry_review.json` and contracts R1-R4.
+The original41 reconciliation supplies10mapped/runtime,18source-build/SDK,
+4missing runtime and9documentation/operator/backup dispositions. Two additional
+absent historical feature workbooks are concrete dependencies of normal ML-feature
+import. All four original workbook payloads were retrieved exactly; no column,
+sheet or scientific value changes are authorized. Store these small payloads
+directly under their existing owners with four exact Git-attribute overrides.
+Current MolProps nondefault fill/Cid failures remain visible separate work.
+The main agent owns application, installed evidence, dispositions and Git; a
+local Sol/high subagent prepares Decision12 command consolidation only in an
+isolated copy, with no overlapping source writes. No external helper is active.
+Qualified package/resource evidence will follow this entry; no gate closes here.
+
+
+### 2026-11-04 — Stage12D actual resource delivery and D008 disposition
+
+Root accepts `stages/stage12/package-resources/validation/checkpoint.json` and
+R1-R4 in its CP311 scope. Four exact workbook payloads now live directly in Git
+under four exact .gitattributes overrides; no global filter/config changed.
+MANIFEST delivers the four originally missing resources, two restored live-reader
+workbooks and the retained MolProps/SMARTS/corrected Kekulize guides. The uncalled
+540-line opti.py.old backup is retired; the active optimizer is unchanged.
+No data values, model features, scientific algorithm or public signature changed.
+
+Actual source command: with LD_LIBRARY_PATH pointing to hp-usage/lib and its
+OpenBabel/lib, PYTHONDONTWRITEBYTECODE=1, MPLBACKEND=Agg, and cache/tmp beneath
+`/tmp/hotpot_plan20/long/stage12-final-package-audit-20261104/resource-delivery01/source`,
+`/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -m pytest -q tests/test_packaging/test_runtime_resources.py tests/test_packaging_metadata.py --junitxml=/tmp/hotpot_plan20/long/stage12-final-package-audit-20261104/resource-delivery01/source/junit.xml`
+returns22passed/0failed/0skipped in2.72s. This first focused source execution
+preceded the final package freeze; root performed no intervening product/test
+edits and all final bindings were checked after installed execution.
+
+`python -B resource-delivery01/build.py` invokes the qualified build interpreter
+`/tmp/hotpot-plan20-env/bin/python` with setuptools79.0.1, wheel0.47.0, pybind113.1.0
+and OpenBabel3.2.1. Native build_ext reuses the six unchanged boundCP311binaries;
+there is no new compilation, clean-native/SDK/sdist-compilation, manylinux or
+public-release claim. The actual wheel is7094171bytes/SHA256
+7b6cb82fcb0733d1a069b74442d41529570290f65a9fd000d7d0149356a87fdd;
+sdist2832239bytes/SHA256b0079d154627ffdf9610893853c69ae3674dda7f8cbde765919c7563e33b4197.
+
+`python -B resource-delivery01/run_installed.py` installs that wheel without
+dependencies/bytecode in a new outside-checkout site, then invokes the CP311
+interpreter with `-m pytest -q -p origin_plugin --import-mode=importlib
+tests/test_packaging/test_runtime_resources.py --junitxml=<installed-final01/junit.xml>`.
+Result7passed/0failed/0skipped in2.86s,372Hotpot origin observations/0violations.
+Exact argv/cwd/environment and source/native identities are archived. The
+original install_argv receipt accidentally repeated pytest argv after variable
+reuse; root corrected that command metadata from the executed script, keeping
+original JSON/install.log and performing no rerun. Business results did not change.
+
+Source and installed direct runs of observe_routes.py also execute the packaged
+MolProps guide and cold normal ML-feature import. Clean queries preserve real
+values/order/duplicates; tables are118x79elements,185x8solvents and11x3media.
+Actual cmap leaf readers preserve the256x4RGBA data without broad plotting
+initializers or rendering. Medium fill returns96x380 but its Cid query raises
+KeyError; solvent fill raises ValueError because its sheets are clean/total.
+Those unmodified failures remain D029; no sheet/column alias, fallback or network
+enrichment was introduced. Earlier pointer/default-import failures remain archived.
+
+The original41 list is unchanged and every item has actual artifact verification:
+17runtime/guides packaged;18source/build/SDK items excluded from wheel and present
+in sdist;5explicit repository/operator-only documents;1retired backup. Two restored
+ML workbooks are extra dependencies. This closes D008's omission question, not
+D028's remaining ownership work, D029, source-only documentation correctness or
+any optional workflow. Archive `.plan20-artifacts/20261104/stage12/package-resources`
+contains52verified payloads/11460265bytes; all1521source/test/resource and6native
+bindings hold. Root retains final science/cost/version/native/delivery/Plan12,
+report and B_exp obligations and the separately gated Stage13 experiment.

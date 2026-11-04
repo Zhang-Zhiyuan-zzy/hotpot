@@ -1,0 +1,22 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12D",
+  "date": "2026-11-04",
+  "scope": "Exact small resource delivery, original41 disposition and tested default consumers, not full optional feature adequacy.",
+  "source_bindings_verified": 1521,
+  "native_bindings_verified": 6,
+  "all_original41_verified": true,
+  "source_installed_resource_examples_observed": true,
+  "root_accepts": [
+    "Four exact workbook payloads stored directly in Git under exact attribute overrides",
+    "Runtime resources and maintained guides in actual wheel/sdist/installed site",
+    "17packaged,18sdist/build/SDK,5repository documents,1retired backup; original41 preserved",
+    "Default local query and feature/cmap consumer behavior without scientific/model changes"
+  ],
+  "remaining": [
+    "Decision12command and Decision13legacy/MolProps/dataset tail D028",
+    "P20-D029nondefault query contract disposition",
+    "Consolidated cost/resources and applicable final scientific/version/delivery matrix",
+    "Integrated Plan12/final report/B_exp and separately gated Stage13A/B"
+  ],
+  "archive_manifest_sha256": "41c5f313b5a71f92e930637a50cbfddfc55ce9fcf7442b9ae124f1b4b9e789af"
+}

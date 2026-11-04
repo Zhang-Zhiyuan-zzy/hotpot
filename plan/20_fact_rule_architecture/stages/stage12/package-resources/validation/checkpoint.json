@@ -1,0 +1,74 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12D",
+  "date": "2026-11-04",
+  "source_commit_before_delivery": "42a35904b06509c273b1dcb4ea6b46045378ccf6",
+  "source_test_resource_bindings": 1521,
+  "unchanged_cp311_native_bindings": 6,
+  "issue_dispositions": {
+    "P20-D008": "CLOSED",
+    "P20-D029": "DEFERRED",
+    "P20-D028": "DEFERRED"
+  },
+  "source": {
+    "passed": 22,
+    "failed": 0,
+    "skipped": 0,
+    "pytest_seconds": 2.72
+  },
+  "installed": {
+    "passed": 7,
+    "failed": 0,
+    "skipped": 0,
+    "pytest_seconds": 2.86,
+    "elapsed_seconds": 3.4477153848856688,
+    "origin_observations": 372,
+    "origin_violations": []
+  },
+  "original41": {
+    "preserved": true,
+    "unresolved": 0,
+    "counts": {
+      "packaged_runtime_or_guide": 17,
+      "sdist_build_sdk": 18,
+      "repository_operator_document": 5,
+      "retired_backup": 1
+    }
+  },
+  "additional_assets": [
+    {
+      "path": "hotpot/plugins/ml/features/solvents/solvents.xlsx",
+      "bytes": 23781,
+      "sha256": "42be1dabdf9b3aa09913a830e21c866eafc43458c8596f8c81a71b2e784c1fd5",
+      "verified": true
+    },
+    {
+      "path": "hotpot/plugins/ml/features/sol_media/sol_media.xlsx",
+      "bytes": 9147,
+      "sha256": "62d282736a492014b876a3edb54b63178b1d23c839162ec7aee8889d589944d3",
+      "verified": true
+    }
+  ],
+  "wheel": {
+    "path": ".plan20-artifacts/20261104/stage12/package-resources/raw/packaging-final01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "sha256": "7b6cb82fcb0733d1a069b74442d41529570290f65a9fd000d7d0149356a87fdd",
+    "bytes": 7094171
+  },
+  "sdist": {
+    "path": ".plan20-artifacts/20261104/stage12/package-resources/raw/packaging-final01/dist/hotpot_zzy-0.5.4.5.tar.gz",
+    "sha256": "b0079d154627ffdf9610893853c69ae3674dda7f8cbde765919c7563e33b4197",
+    "bytes": 2832239
+  },
+  "source_installed_examples": "Actual bundled MolProps guide executed on both boundaries; duplicate/order/value checks pass. Normal ML-feature imports and185x8solvent/11x3medium/118x79element readers return. Cmap actual leaf reads pass.",
+  "retained_failures": "Medium fill/Cid KeyError and solvent fill ValueError are unchanged actual routes and P20-D029; no sheet/column fallback or network enrichment.",
+  "native_scope": "Six unchanged acceptedCP311binaries reused. No new native compilation, clean SDK, another-version, manylinux or public-release qualification.",
+  "remaining": [
+    "Decision12command and Decision13legacy/MolProps/dataset tail D028",
+    "P20-D029nondefault query contract disposition",
+    "Consolidated cost/resources and applicable final scientific/version/delivery matrix",
+    "Integrated Plan12/final report/B_exp and separately gated Stage13A/B"
+  ],
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/package-resources",
+    "manifest_sha256": "41c5f313b5a71f92e930637a50cbfddfc55ce9fcf7442b9ae124f1b4b9e789af"
+  }
+}

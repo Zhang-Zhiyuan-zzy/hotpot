@@ -21,16 +21,16 @@ _type_node = {'CASs': 'str', 'Cid': 'int'}
 
 def _query_prop_by_cas(df, list_id, id_type: Literal['CASs', 'Cid']= 'CASs'):
     """
-    Generic CAS lookup function with real PubChem enrichment.
+    Look up existing local identifiers in their requested order.
 
     Args:
         df: DataFrame containing property data (e.g., MedProp or SolProp).
         list_id: list of ID numbers (duplicates are allowed).
-        id_type: which id to be used ad the index to search, ['Cids', 'CASs'] are supported.
+        id_type: identifier column, either 'Cid' or 'CASs'.
 
     Returns:
-        DataFrame ordered according to the input CAS list.
-        Missing entries are NaN; PubChem data added if requested.
+        DataFrame ordered according to the input identifiers, including duplicates.
+        Missing identifiers raise ValueError; no network enrichment is performed.
     """
     # Normalize CAS numbers
     df = df.set_index(id_type)
@@ -73,7 +73,7 @@ def query_solvent(
         sub_sheet: Literal['clean', 'fill'] = 'clean'
 ) -> pd.DataFrame:
     """
-    Query from Solent Properties dataset by CAS or Cid.
+    Query from Solvent Properties dataset by CAS or Cid.
 
     Args:
         list_id: List of identifiers.

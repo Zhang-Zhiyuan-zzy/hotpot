@@ -7,6 +7,7 @@ actual CPU/pipeline/one-GPU evidence. Stage8E now has source/installed CP311
 assembly, local H/scaffold corrections and explicit exports/resources accepted;
 P20-D024 is closed. [Stage12B H representation](stages/stage12/hydrogen-representation/validation/checkpoint.json) closes P20-D026 within affected CP311 source/installed and rebuilt-RDKit-native scope.
 [Stage12C force-field science](stages/stage12/scientific-hardening/validation/checkpoint.json) accepts the ordinary terminal-frame publication fix and scoped phosphorus evidence; P20-D023 is closed and P20-D022 is an explicit accepted limitation.
+[Stage12D runtime resources](stages/stage12/package-resources/validation/checkpoint.json) closes the original41 D008 package omissions in its CP311 boundary; nondefault MolProps contracts remain D029 and Stage11 tail D028 remains open.
 Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
 boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
@@ -2459,6 +2460,7 @@ scope; P20-D022 retains unknown downstream variation and monitor coverage as an
 explicit accepted limitation after physical-graph/array comparison. Historical
 one-step values, all561O0slots, findings and original exclusions remain. This
 supplies no whole-Stage12, final scientific/cost/version/release or B_exp closure.
+The [Stage12D resource checkpoint](stages/stage12/package-resources/validation/checkpoint.json) accepts actual small-workbook/data delivery, source22/installed7 checks and all41original omission dispositions. It closes D008 only; default-query evidence does not imply nondefault D029 or optional-workflow acceptance, and D028 remains separate.
 
 1. Replace wildcard exports with the approved `__all__` lists.
 2. Remove the top-level RDKit preload and verify lazy RDKit/Open Babel load

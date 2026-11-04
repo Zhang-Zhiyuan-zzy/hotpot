@@ -1,25 +1,24 @@
-# Querying properties of common Solvents and Media in liquid-liquid extraction
+# Local properties of common solvents and media
 
-This toy module defines two interfaces (`query_media`) and (`query_solvents`) to access the 90 media and 227 solvents
+The bundled workbooks support local property queries without a PubChem request.
+`get_medium_dataframe()` reads the 92-row medium `clean` sheet;
+`get_solvent_dataframe()` reads the 227-row solvent `clean` sheet.
+`query_medium()` and `query_solvent()` select existing `CASs` or integer `Cid`
+identifiers, preserving request order and duplicates. Missing identifiers raise
+`ValueError`; the functions do not invent values or enrich missing records.
 
-### Utils with example
-
-```pycon
-import pandas as pd
+```python
 from hotpot.cheminfo.MolProps import query_medium, query_solvent
 
-list_cas = ['50-00-0', '64-17-5']
-list_cid = [11, 11, 174]
-
-df: pd.DataFrame = query_medium(list_cid, id_type='Cid')  # Query media by Cids
-print(df)
-
-df: pd.DataFrame = query_solent(list_cid, id_type='Cid')  # Query solvents by Cids
-print(df)
-
-df: pd.DataFrame = query_solent(list_cas, id_type='CASs')  # Query solvents by CASs
-print(df)
-
-df: pd.DataFrame = query_solent(list_cas, id_type='CASs')  # Query solvents by CASs
-print(df)
+media = query_medium([176, 260, 176], id_type="Cid")
+solvents = query_solvent([11, 174, 11], id_type="Cid")
+solvents_by_cas = query_solvent(["107-06-2", "107-21-1"], id_type="CASs")
 ```
+
+The `sub_sheet` argument is passed directly to the workbook reader. The medium
+workbook also has a 96-row `fill` sheet with CAS identifiers but no `Cid` column;
+`query_medium(..., sub_sheet="fill", id_type="Cid")` currently raises `KeyError`.
+The solvent workbook contains `clean` and `total`, not `fill`; requesting `fill`
+raises `ValueError`. These known nondefault limitations remain explicit. No
+`total`/`fill` or alternative-column mapping is implied. Table presence does not
+establish that every property is complete or suitable for a particular model.

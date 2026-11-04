@@ -1,0 +1,34 @@
+{
+  "date": "2026-11-04",
+  "status": "AUTHORING_RELEASED",
+  "source_commit": "42a35904b06509c273b1dcb4ea6b46045378ccf6",
+  "objective": "Repair actual runtime-resource delivery and reconcile the original41 D008 package observations, without changing chemical/model values or treating resource presence as all-route success.",
+  "scope": [
+    "Materialize four exact historical workbook payloads as ordinary small Git-managed package resources, removing LFS attributes for those exact paths only",
+    "Include four originally missing resources plus two live-reader workbook dependencies in wheel/sdist",
+    "Correct the retired Kekulize guide include and distribute the retained MolProps/SMARTS guides",
+    "Explicitly classify the remaining original41 documentation/operator/backup items; retire the uncalled .old backup",
+    "Actual source and installed resource consumers and byte-preserving wheel/sdist checks"
+  ],
+  "decision": "Root releases bounded D008 package-resource repair; Decision12 command cutover is prepared independently in an isolated local-subagent copy. MolProps nondefault worksheet/Cid incompatibilities remain separate explicit business debt, not silently mapped or fixed.",
+  "validation": [
+    "Declared setuptools77<=version<82 qualified build with six unchanged acceptedCP311native binaries; no clean-native claim",
+    "Real complete-source public ML-feature import plus descriptor reads; MolProps local clean queries preserving duplicates/order; saved cmap leaf consumers",
+    "Preserve actual nondefault MolProps failures and all original41 dispositions",
+    "Wheel/sdist/installed payload bytes agree with the acquired LFS-declared objects and unchanged arrays"
+  ],
+  "excluded": [
+    "New model features or schema",
+    "MolProps fill/total or PubChem/Cid aliases",
+    "Numerical/native/scientific algorithm changes",
+    "Other-version/clean-native/SDK/public-release/global acceptance"
+  ],
+  "alignment": [
+    "Current goal and governance/stage/validation skills; continuation of recorded final-package audit",
+    "Main-plan9.2,9.3,Stage10-12,Decisions12/13; accepted Stage11A/12A-C checkpoints",
+    "D008 original41 recovery/reconciliation, candidate01 and exact payload acquisition receipts",
+    "Actual MANIFEST.in,pyproject.toml,.gitattributes,resource readers and verified source asset availability"
+  ],
+  "gate_closed": false,
+  "overall_acceptance": false
+}

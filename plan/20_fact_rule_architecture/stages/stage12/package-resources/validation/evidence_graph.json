@@ -1,0 +1,51 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE12D",
+  "root": "checkpoint.json",
+  "edges": [
+    {
+      "from": "checkpoint.json",
+      "to": "contracts/decisions.md",
+      "kind": "governing_scope"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/freeze.json",
+      "kind": "source_native_identity"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/resource-verification.json",
+      "kind": "original41_and_payloads"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/source/junit.xml",
+      "kind": "source_execution"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/installed-final01/execution.json",
+      "kind": "installed_execution"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/installed-final01/origins.json",
+      "kind": "installed_origins"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/source-routes.stdout",
+      "kind": "source_business_values_and_limits"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/installed-routes.stdout",
+      "kind": "installed_business_values_and_limits"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage12/package-resources/raw/prior",
+      "kind": "original_failures_and_acquisition"
+    }
+  ]
+}

@@ -28,7 +28,8 @@ and full-plan acceptance remain open. The owner-approved [goal](goal.md) governs
 
 Owner-directed additional task branches are registered as
 [Stage14 — general PyG training and chemical inspection](stages/stage14/README.md) and
-[Stage15 — Crystal symmetry and molecular expansion](stages/stage15/README.md). Their detailed
+[Stage15 — Crystal symmetry and molecular expansion](stages/stage15/README.md),
+including the SpaceGroup/SymmUnit design and [230-type catalogue](stages/stage15/space_group_catalogue.md). Their detailed
 stage plans and main-plan Section18 preserve existing mainline acceptance
 boundaries; runtime implementation has not started.
 

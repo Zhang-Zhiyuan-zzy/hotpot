@@ -1,0 +1,269 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_MAPPING_ROUTING_RESOURCE_EVIDENCE_WITH_MANDATORY_METADATA_DEFECT_OPEN",
+  "scope": "Original556b21e installed CP311 MCA functional raw observations, mapping/routing/repeats/resources; public metadata defectD032 remains mandatory. Instrumented timing is not performance.",
+  "source_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "wheel_sha256": "31ca3d416683603a4731788efe79d2206b92e9b9b5dec93d0c0848baff12d583",
+  "archive": ".plan20-artifacts/20261104/stage12/mca-functional-terminal",
+  "root_review": ".plan20-artifacts/20261104/stage12/mca-functional-terminal/ROOT_REVIEW.json",
+  "independent_review": ".plan20-artifacts/20261104/stage12/mca-functional-terminal/independent-review/REVIEW.md",
+  "counts": {
+    "cases": 11,
+    "calls": 18,
+    "outputs": 8447,
+    "atom_values": 33400,
+    "site_values": 12115,
+    "acid_inconsistent_records": 917
+  },
+  "cases": {
+    "mca_cpu_8": {
+      "calls": [
+        {
+          "requested": 8,
+          "returned": 8,
+          "atom_values": 34,
+          "site_values": 12
+        },
+        {
+          "requested": 8,
+          "returned": 8,
+          "atom_values": 34,
+          "site_values": 12
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 1
+    },
+    "mca_cpu_64": {
+      "calls": [
+        {
+          "requested": 64,
+          "returned": 64,
+          "atom_values": 272,
+          "site_values": 96
+        },
+        {
+          "requested": 64,
+          "returned": 64,
+          "atom_values": 272,
+          "site_values": 96
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 1
+    },
+    "mca_fallback": {
+      "calls": [
+        {
+          "requested": 8,
+          "returned": 8,
+          "atom_values": 34,
+          "site_values": 12
+        },
+        {
+          "requested": 8,
+          "returned": 8,
+          "atom_values": 34,
+          "site_values": 12
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 2
+    },
+    "mca_1gpu": {
+      "calls": [
+        {
+          "requested": 512,
+          "returned": 512,
+          "atom_values": 2176,
+          "site_values": 768
+        },
+        {
+          "requested": 512,
+          "returned": 512,
+          "atom_values": 2176,
+          "site_values": 768
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 1
+    },
+    "mca_4gpu": {
+      "calls": [
+        {
+          "requested": 512,
+          "returned": 512,
+          "atom_values": 2176,
+          "site_values": 768
+        },
+        {
+          "requested": 512,
+          "returned": 512,
+          "atom_values": 2176,
+          "site_values": 768
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 4
+    },
+    "gpu_count_1": {
+      "calls": [
+        {
+          "requested": 512,
+          "returned": 512,
+          "atom_values": 2176,
+          "site_values": 768
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 1
+    },
+    "gpu_count_4": {
+      "calls": [
+        {
+          "requested": 512,
+          "returned": 512,
+          "atom_values": 2176,
+          "site_values": 768
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 4
+    },
+    "boundary_255": {
+      "calls": [
+        {
+          "requested": 255,
+          "returned": 255,
+          "atom_values": 510,
+          "site_values": 255
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 1
+    },
+    "boundary_256": {
+      "calls": [
+        {
+          "requested": 256,
+          "returned": 256,
+          "atom_values": 512,
+          "site_values": 256
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 1
+    },
+    "warm_large_small_large": {
+      "calls": [
+        {
+          "requested": 300,
+          "returned": 300,
+          "atom_values": 600,
+          "site_values": 300
+        },
+        {
+          "requested": 8,
+          "returned": 8,
+          "atom_values": 34,
+          "site_values": 12
+        },
+        {
+          "requested": 300,
+          "returned": 300,
+          "atom_values": 600,
+          "site_values": 300
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 2
+    },
+    "rolling_4096": {
+      "calls": [
+        {
+          "requested": 4096,
+          "returned": 4096,
+          "atom_values": 17408,
+          "site_values": 6144
+        }
+      ],
+      "origin_violations": 0,
+      "no_active_children_after_close": true,
+      "affinity_restored": true,
+      "raw_profile_sessions": 4
+    }
+  },
+  "rolling": {
+    "returned": 4096,
+    "atom_values": 17408,
+    "site_values": 6144,
+    "raw_state_events": 28392,
+    "batches": 9,
+    "window_atom_budget": 8192,
+    "resident_capacity": 32768,
+    "max_inflight": 8,
+    "observed_maxima": {
+      "admission_atom_count": 8195,
+      "resident_atom_count": 10238,
+      "pending_requests": 1,
+      "next_input_index": 4096,
+      "next_output_index": 4096
+    },
+    "interpretation": "Pre-admission window rule permits bounded whole-molecule crossings; capacity/concurrency not saturated.2.125admissionbudgets and actual replenishment/drain, not universal memory/RSS proof."
+  },
+  "metadata_defect": {
+    "id": "P20-D032",
+    "status": "IN_PROGRESS",
+    "observed": "Neutral CC(=O)O returns [O-]C(=O)C with formal_charge0 in917records; source DTO has no declared alternate-state meaning. Atom/site joins remain intact. Exact intermediate cause under focused diagnosis.",
+    "impact": "Public chemical representation and charge metadata disagree. No full MCA output conformance or final acceptance; retain raw calculated values, no retrospective result rewriting."
+  },
+  "raw_payloads": {
+    "path": ".plan20-artifacts/20261104/stage12/mca-functional-terminal/results-profiles-events.tar.gz",
+    "bytes": 12306335,
+    "sha256": "f90a2d88359c1160f7f78caea04afa6b9047fb3bcb2c4d89dc19de9cbb023648",
+    "necessary_files": 460,
+    "selected_uncompressed_bytes": 143752710,
+    "model_cache_site_tmp_bodies_excluded": true
+  },
+  "preserved_observations": {
+    "same_configuration_repeat_pairs": 6,
+    "maximum_observed_difference": 0.0,
+    "preregistered_rtol": 1e-05,
+    "preregistered_atol_kj_mol": 0.001,
+    "actual_profile_sessions": 22,
+    "loaded_module_identity_rows": 65811,
+    "task_children_closed": 264,
+    "ORT_device_warnings": 16,
+    "conditional_ScatterND_warnings": 288,
+    "initial_CPU8_observer_shutdown_exceptions": 9,
+    "initial_RECORD_checker_failures_retained": true
+  },
+  "limits": [
+    "Hashes identify exact evidence/product bytes, not chemical truth.",
+    "85-model bodies and installed site absent from this transferred review set; unchanged status rests on per-case before/after raw guards bound to hashes plus raw loaded-module byte identities.",
+    "No cross-provider scalar equivalence, scientific calibration, performance, repaired436e027wheel, all-version support or global Plan20 acceptance claim.",
+    "Read-only local gpu_backend.py and serialization.py used to interpret trace semantics were independently byte-matched to original installed-wheel member manifest before inspection.",
+    "CC(=O)O raw outputs consistently carry returned smiles [O-]C(=O)C with formal_charge0. This representation/metadata discrepancy is retained as a scientific attribution caveat, not silently normalized by the review.",
+    "Original ORT warnings and CPU8 observer shutdown errors remain; initial pip RECORD/postcheck failures remain attributed."
+  ],
+  "earlier_partial_archive": ".plan20-artifacts/20261104/stage12/mca-routing-boundary-warm"
+}

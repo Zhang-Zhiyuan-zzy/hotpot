@@ -49,7 +49,7 @@ merely to fill a directory.
 | Stage12 | [stage12](stage12/README.md) | Planned: Explicit exports, documentation, and final hardening |
 | Stage13 | [stage13](stage13/README.md) | Planned: kekulize/aromatic experimental rule-interface protocol |
 | Stage14 | [stage14](stage14/README.md) | Planned: general PyG training information and Molecule/Crystal query/review |
-| Stage15 | [stage15](stage15/README.md) | Planned: Crystal public tree, affine SymmUnit family, molecular expansion and periodic geometry/topology tools |
+| Stage15 | [stage15](stage15/README.md) | Planned: Crystal/SpaceGroup/SymmUnit trees, 230-type operation catalogue, group algebra, molecular expansion and periodic geometry/topology tools |
 
 Read the current main plan and normative companions as required by the plan,
 then the selected stage README, its entry assessment, relevant review/decisions

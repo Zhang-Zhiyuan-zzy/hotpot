@@ -82,3 +82,6 @@ Consolidated cross-stage optimization and deferred-item review use the
 
 - [Portable semantic AST checker and bounded D030 closure](final-delivery/validation/ast-checker-portability.json)
 - [Repaired same-sdist five-ABI builds and installation smokes](final-delivery/validation/repaired-five-wheels.json)
+- [Repaired installed affected matrix and actual CP311 workflow qualification](final-delivery/validation/repaired-installed-qualification.json)
+
+- [Actual final MCA routing/rolling observations and metadata issue D032](final-delivery/validation/mca-final-functional-routing.json)

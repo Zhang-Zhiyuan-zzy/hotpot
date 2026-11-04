@@ -8859,3 +8859,143 @@ actual failure records are retained; D028 and final scientific/performance/
 release/global obligations stay open. No completed stage or new acceptance is
 created by those wording corrections. Dedicated local Sol/max SpaceGroup planning
 continues in exclusively owned Stage15 documents without changing frozen product.
+
+
+### 2026-11-04 — Repaired installed matrix and actual business qualification
+
+The local Sol/medium executor completes all nine explicitly released commands
+once: installed273cases on each CP310/311/312/313/314, missing source35cases each
+CP310/312/313 and the independent CP311 actual-business7case selection. Totals
+are1477executed passes,0failure/error/skip and0automaticretries; these are ABI/
+mode executions, not1477independent scientific contracts. Root independently
+parses everyJUnit, exact prepared argv/selection/tier receipt, before/after
+guards and observed process origins, with no product mutation or mismatch.
+
+Actual repaired436e027installedCP311 runs the configuredZn CBond->UFF->GFNFF
+optimize->GFN2singlepoint pipeline, legal mixedxTBCLI and actualCPU fp16MCA
+attachment/mixedCLI. Root checks60retained business artifacts, finite coordinate
+rows in5pipeline outputSDFs and the6atom/1site MCA join (observed503.25kJ/molN).
+This regression value is a model observation, not experimental truth. Both
+mixedCLIs keep3record denominators and their expected localHARD-013.UHF_PARITY/
+chargedMCA failures. One lifecycle case explicitly uses a deterministic fixture
+predictor. State reports retain unresolved scientific resolution and explicit
+legal backend projection. CBond's intentionally empty initial MolecularPayload
+produces an empty inputSDF; its configured stage then generates the molecule.
+
+Root's first finite-coordinate reader stripped an emptySDFtitle and failed;
+its corrected V2000counts-record reader succeeds on the same preserved raw
+files. This is checker-only, with no product/test/result change. All88original
+model inputs, actualxTB executable and20loader identities remain unchanged.
+The48immutable preparationfiles also remain unchanged. Runtime observations
+cover only the actually loaded4installed/3source/5business native modules; six
+wheelcomponents have separate payload/build/smoke evidence, not universalAPI
+coverage. No GPU, corpus, performance, resolved-state or whole-version claim.
+
+Root accepts this bounded qualification, indexed by final-delivery/validation/
+repaired-installed-qualification.json. Durable archive contains555selected
+files/21827428bytes; duplicate product/model/cache trees are excluded while
+commands, raw observations, pytest artifacts, guards, origins and immutable
+source/support manifests remain. Existing reused source/corpus evidence keeps
+its source limits; Stage12/main-scopeB_exp and later stages remain open.
+
+Completed actual original556b21e MCA boundary256 and warm300/8/300CPU/CUDA routing
+are also indexed by mca-final-functional-routing.json. Root retains per-node
+provider profiles, all atom/site joins, original models/wheel and the declared
+same-configuration tolerance. The original rolling4096attempt remains live;
+there is no restart, current-wheel, performance or completedrolling claim.
+
+The portable AST/test and build checkpoint70c9bb7 is committed/pushed normally;
+root's separate delivery verification matched the pushed branch. Dedicated local
+Sol/max continues SpaceGroup/230catalogue planning. Local Sol/high prepares only
+the final CP311 performance route; no timing has been released by that task.
+
+
+### 2026-11-04 — CP311 final performance route and completed MCA attempt
+
+Root reviews the local Sol/high preparation01 packet against effective goal,
+main12.1/12.2, frozen71entries/sampling and the distinct2689version ledger.
+ROOT_EXECUTION_RELEASE01.json releases only untimed local CP311preflight and
+62existing-worker B0/candidate pairs on the same CPUs8–15, shared interpreter/
+environment and frozen literal work, with before/after source/native/model
+attribution. The verified436e027source endpoint is accepted as source mode,
+not installed-wheel timing. A new eight-CPU B0replay is compared only with its
+matched candidate; historical64CPUmeasurements remain unchanged. Preserve all
+failed/no-output/adverse outcomes. Three changed-H tasks keep their differing
+meaning and cannot become equal-result gains. Actual counters govern other
+pairings. Required caches/setup and diagnostics remain outside algorithm timers.
+
+The full3948test cells, separate2689version timings, three new-only costs and
+remote GPUtimings remain held for their concrete owning recipes. No scientific
+corpus rerun, workload reduction, comparator pass, performance acceptance or
+B_exp follows. The local worker owns execution/evidence only; root owns review.
+
+The existing remote rolling4096MCAattempt terminates once with RC0 after3915.89s;
+all ten remaining authorized functional cases have terminal RC0receipts. Raw
+outputs and resource/identity evidence now await root inspection. This is the
+original556b21einstalled functional boundary, not current436e027GPUqualification
+or comparable performance. No repeat attempt was started.
+
+
+### 2026-11-04 — SpaceGroup-owned Crystal design and exact 230-type catalogue
+
+The requested independent local Sol/max revision delivers seven Stage15
+document/data/licence files. Root reviews the full proposed tree, unchanged-cell/
+group fresh-placement operate, one affine implementation behind @/~/**, exact
+full lattice carries and setting transformation, SpaceGroup-only group/setting/
+lattice ownership, and read-only delegated Crystal.symm_units. Complete graph/
+site bijection and transformed overlap remain jointly required for a possible
+molecular relation, with no automatic identification or scientific verdict.
+
+The catalogue contains all230selected reference types and4425actual cell
+representatives. The worker checks284089pair products and284089lifted products,
+4425inverses/symbols,15analytic cases,813document checks and258links; the source
+attribution matches22selected files to436e027. Root verifies all51original
+manifest entries and independently recomputes786exact(R,t)pairs,64R and56reducedt
+with exact raw-extractor set equality. These are coordinate-convention-specific
+reference counts, not a closed cross-group union or finite full-space-group
+cardinality. Ordinary operations are all affine Rf+t; full integer translates
+remain infinite and are retained by the design.
+
+Original snapshots and primary-data/generator/check evidence are archived at
+.plan20-artifacts/20261104/stage15/spacegroup-plan-review, with ROOT_REVIEW.json.
+Root changes only the temporary evidence link to its durable location afterward;
+original worker hashes and results remain immutable. Main/Stage14/index links
+are aligned. This accepts the bounded design/reference revision, not exact new
+public signatures, runtime release or scientific behavior. Stage15A still owns
+API/export, self/parallel periodic-edge domain, codec/CIF, dependency and numeric
+conventions. Validated B_exp, runtime and all overall gates remain open.
+
+
+The first CP311performance preflight stops before any of124benchmark commands:
+PYTHONSAFEPATH excludes the script directory, so both phases cannot import the
+unchanged sibling _performance_workloads. Root inspects the actual worker and
+authorizes one explicit startup PYTHONPATH pointing to the frozen helper
+directory, equally for both phases; the worker still inserts the selected
+product endpoint first and sets child PYTHONPATH to that endpoint. This known
+launch-path repair, exact helper/origin checks and all original limits are
+recorded in ROOT_LAUNCH_ADAPTATION02.json. Original collector/setup failures and
+all immutable preparation bytes remain retained; there is no benchmark retry,
+source/tooling edit or performance pass inferred from the repair.
+
+
+### 2026-11-04 — Completed MCA resource/mapping evidence exposes metadata defect
+
+Local Sol/medium reviews all11original556b21einstalled cases/18calls. Root
+independently parses all8447ordered outputs,33400atomvalues and12115sitevalues,
+retaining exact joins/indices and before/after model/wheel/origin/cleanup guards.
+The22raw-provider sessions, six same-configuration repeat pairs and264closed
+children support their bounded routing/resource claims. Rolling4096completes
+17408atomvalues/6144sites across9batches and28392rawstates, with actual admission
+replenishment/drain. Pre-admission window crossings are bounded, while resident/
+concurrency capacity was not saturated. Instrumented elapsed time is not a
+performance result. Necessary460rawfiles are preserved in a12.3MBcompressed
+durable archive with raw manifests and independent/root reviews.
+
+Critically, all917CC(=O)Orecords expose smiles[O-]C(=O)C with formal_charge0.
+This is a concrete public chemical-metadata inconsistency, not an intentional
+model-feature split; raw mappings/numeric results are retained. P20-D032opens
+atS1. Root assigns a local Sol/high cheminformatics trace of the actual SMILES/
+MOL2conversion chain and smallest repair proposal, without product edits or
+model inference. Timed performance invocations are held pending source-impact
+review; existing untimed preflight may finish. No current-wheel/GPU, complete
+MCAoutput, scientific-calibration or final acceptance follows.

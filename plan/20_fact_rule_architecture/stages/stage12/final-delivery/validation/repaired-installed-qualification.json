@@ -1,0 +1,462 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_REPAIRED_INSTALLED_AND_MISSING_SOURCE_QUALIFICATION",
+  "source_commit": "436e027690a0b0f4125c11e3bf3259423c716573",
+  "source_test_commit": "70c9bb7a7ffe47da2eb0b14428f453ad3b8c9585",
+  "business_boundary": "Actual436e027wheel installed outside checkout; narrow affected technical and representativeCP311workflows, not a full-default rerun.",
+  "totals": {
+    "commands": 9,
+    "installed_technical_execution_cases": 1365,
+    "source_technical_execution_cases": 105,
+    "business_execution_cases": 7,
+    "passed_execution_cases": 1477,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "automatic_retries": 0,
+    "counting_unit": "Execution cases across ABIs/modes, not unique scientific contracts."
+  },
+  "runs": [
+    {
+      "id": "installed-cp311",
+      "counts": {
+        "tests": 273,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/installed/cp311/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/installed/cp311/SUMMARY.json"
+    },
+    {
+      "id": "business-cp311",
+      "counts": {
+        "tests": 7,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/business/cp311/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/business/cp311/SUMMARY.json"
+    },
+    {
+      "id": "source-cp310",
+      "counts": {
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/source/cp310/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/source/cp310/SUMMARY.json"
+    },
+    {
+      "id": "installed-cp310",
+      "counts": {
+        "tests": 273,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/installed/cp310/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/installed/cp310/SUMMARY.json"
+    },
+    {
+      "id": "source-cp312",
+      "counts": {
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/source/cp312/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/source/cp312/SUMMARY.json"
+    },
+    {
+      "id": "installed-cp312",
+      "counts": {
+        "tests": 273,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/installed/cp312/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/installed/cp312/SUMMARY.json"
+    },
+    {
+      "id": "source-cp313",
+      "counts": {
+        "tests": 35,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/source/cp313/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/source/cp313/SUMMARY.json"
+    },
+    {
+      "id": "installed-cp313",
+      "counts": {
+        "tests": 273,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/installed/cp313/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/installed/cp313/SUMMARY.json"
+    },
+    {
+      "id": "installed-cp314",
+      "counts": {
+        "tests": 273,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "summary": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/installed/cp314/SUMMARY.json",
+      "exact_arguments_selection_and_clean_guards_origins": true,
+      "archive_summary": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/execution01/installed/cp314/SUMMARY.json"
+    }
+  ],
+  "business_observations": {
+    "controlled_coordination_pipeline": {
+      "status": "succeeded",
+      "stages": [
+        {
+          "name": "cbond",
+          "status": "succeeded"
+        },
+        {
+          "name": "ff",
+          "status": "succeeded"
+        },
+        {
+          "name": "xtb",
+          "status": "succeeded"
+        },
+        {
+          "name": "xtb",
+          "status": "succeeded"
+        }
+      ],
+      "cbond": {
+        "donor_indices": [
+          0,
+          3
+        ],
+        "metal": "Zn",
+        "path_probability": 0.7325034825111857,
+        "steps": [
+          {
+            "atom_index": 0,
+            "element": "N",
+            "probability": 0.8570544664505884,
+            "score": 1.7910377979278564
+          },
+          {
+            "atom_index": 3,
+            "element": "O",
+            "probability": 0.8546755325186985,
+            "score": 1.771752953529358
+          }
+        ]
+      },
+      "uff": {
+        "forcefield": "UFF",
+        "converged": true,
+        "final_energy_kj_mol": 69.14934437776031,
+        "quality_level": "standard",
+        "quality_passed": true,
+        "input_count": 1,
+        "attempted_count": 1,
+        "output_count": 1
+      },
+      "xtb": [
+        {
+          "requested_method": "gfnff",
+          "effective_method": "gfnff",
+          "task": "optimize",
+          "charge": 2,
+          "unpaired_electrons": null,
+          "process_succeeded": true,
+          "converged": true,
+          "energy_hartree": 1.298971744181724,
+          "gradient_norm": 0.000461091258017,
+          "coordinates_committed": true,
+          "backend_projection": {
+            "decision_source": "scientific_state",
+            "projection_convention": "charge_only",
+            "status": "projected"
+          },
+          "scientific_state": {
+            "decision_action": "select_state",
+            "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+            "resolution_status": "unresolved",
+            "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+          },
+          "post_check_passed": true,
+          "denominators": {
+            "input_count": 1,
+            "attempted_count": 1,
+            "output_count": 1,
+            "not_attempted_count": 0,
+            "sample_break_count": 0,
+            "unavailable_count": 0
+          }
+        },
+        {
+          "requested_method": "gfn2",
+          "effective_method": "gfn2",
+          "task": "singlepoint",
+          "charge": 2,
+          "unpaired_electrons": 0,
+          "process_succeeded": true,
+          "converged": true,
+          "energy_hartree": -14.27320288,
+          "gradient_norm": null,
+          "coordinates_committed": false,
+          "backend_projection": {
+            "decision_source": "execution_default",
+            "projection_convention": "pure_spin_highest_ms",
+            "status": "projected"
+          },
+          "scientific_state": {
+            "decision_action": "select_state",
+            "facts_identity": "df79636331aaeb5c7ba540b01b2b6a9632a00c8cb711a2e7947881619e2399c0",
+            "resolution_status": "unresolved",
+            "selected_state_identity": "6d26e3d73e9a8d823ea8d15035a82c878bc01a3618e412610b6558523609dff0"
+          },
+          "post_check_passed": true,
+          "denominators": {
+            "input_count": 1,
+            "attempted_count": 1,
+            "output_count": 1,
+            "not_attempted_count": 0,
+            "sample_break_count": 0,
+            "unavailable_count": 0
+          }
+        }
+      ],
+      "final_sdf": {
+        "artifact": {
+          "path": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/business/cp311/pytest-temp/test_official_controlled_coord0/official-coordination-True/final.sdf",
+          "bytes": 1232,
+          "sha256": "b2739746ea194a749f6a2759a946f0e23b9894c3b08039895fe8ddb04965ca30"
+        },
+        "records": [
+          {
+            "atom_count": 12,
+            "coordinate_rows": 12,
+            "all_coordinates_finite": true
+          }
+        ],
+        "record_count": 1
+      },
+      "scientific_limit": "The xTB reports retain scientific-state resolution_status unresolved with explicit backend projection; backend executability and finite outputs do not establish a resolved or correct molecular electronic state."
+    },
+    "xtb_mixed_batch": {
+      "returncode": 1,
+      "input_count": 3,
+      "results": [
+        {
+          "index": 0,
+          "status": "ok",
+          "xtb": {
+            "effective_method": "gfn2",
+            "task": "singlepoint",
+            "charge": 0,
+            "unpaired_electrons": 0,
+            "return_code": 0,
+            "converged": true,
+            "energy_hartree": -4.80210653,
+            "coordinates_committed": false
+          }
+        },
+        {
+          "index": 1,
+          "status": "error",
+          "error": {
+            "code": "XTB-STATE-UNAVAILABLE",
+            "message": "xTB state projection ended as projection_conflict: HARD-013.UHF_PARITY: UHF and the effective-electron count have incompatible parity.",
+            "type": "XTBStateResolutionError"
+          }
+        },
+        {
+          "index": 2,
+          "status": "ok",
+          "xtb": {
+            "effective_method": "gfn2",
+            "task": "singlepoint",
+            "charge": 0,
+            "unpaired_electrons": 0,
+            "return_code": 0,
+            "converged": true,
+            "energy_hartree": -4.17501064,
+            "coordinates_committed": false
+          }
+        }
+      ],
+      "captured": [
+        "",
+        "hotpot xtb: record 1: XTBStateResolutionError: xTB state projection ended as projection_conflict: HARD-013.UHF_PARITY: UHF and the effective-electron count have incompatible parity.\n"
+      ],
+      "output_sdf": {
+        "artifact": {
+          "path": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/business/cp311/pytest-temp/test_official_cli_keeps_mixed_0/output.sdf",
+          "bytes": 2180,
+          "sha256": "3dd5fb992fcf5f69f705c2c5bfbe02027a20b695cc0ed5bf3f88974c8dd752b5"
+        },
+        "records": [
+          {
+            "atom_count": 3,
+            "coordinate_rows": 3,
+            "all_coordinates_finite": true
+          },
+          {
+            "atom_count": 5,
+            "coordinate_rows": 5,
+            "all_coordinates_finite": true
+          }
+        ],
+        "record_count": 2
+      },
+      "error_log_preserved_in_raw_observer": true
+    },
+    "actual_mca_attachment": {
+      "prediction": {
+        "smiles": "C1CCCNC1",
+        "formal_charge": 0,
+        "sites": [
+          {
+            "atom_index": 5,
+            "element": "N",
+            "site_type": "Amine",
+            "mca_kj_mol": 503.25
+          }
+        ],
+        "model_variant": "fp16",
+        "atom_predictions": [
+          {
+            "atom_index": 0,
+            "element": "C",
+            "mca_kj_mol": 314.0
+          },
+          {
+            "atom_index": 1,
+            "element": "C",
+            "mca_kj_mol": 373.0
+          },
+          {
+            "atom_index": 2,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 3,
+            "element": "C",
+            "mca_kj_mol": 370.0
+          },
+          {
+            "atom_index": 4,
+            "element": "C",
+            "mca_kj_mol": 318.0
+          },
+          {
+            "atom_index": 5,
+            "element": "N",
+            "mca_kj_mol": 503.25
+          }
+        ]
+      },
+      "all_six_atom_values_finite": true,
+      "nitrogen_value_kj_mol": 503.25,
+      "nitrogen_regression_test_tolerance": 1e-06,
+      "passed_test_contracts": [
+        "one read-only whole-graph payload",
+        "read-only atom properties",
+        "six complete atom predictions",
+        "one nucleophilic N site"
+      ]
+    },
+    "actual_mca_cli": {
+      "returncode": 1,
+      "input_records": 3,
+      "accepted_original_record_numbers": [
+        1,
+        3
+      ],
+      "rejected_original_record_numbers": [
+        2
+      ],
+      "finite_atom_values": [
+        308.75,
+        489.5,
+        283.5,
+        318.25
+      ],
+      "finite_atom_value_count": 4,
+      "captured": [
+        "",
+        "MCA.INPUT_REJECTED: molecule 2: Charged molecule at position 2 is outside the validated domain; set allow_charged=True to opt in\n"
+      ],
+      "output_text": "Molecule 1: CN\nNo.  Atom  MCA(kJ/mol)  is_Nuc_site\n1    C     308.75       False\n2    N     489.50       True\n\nMolecule 3: CO\nNo.  Atom  MCA(kJ/mol)  is_Nuc_site\n1    C     283.50       False\n2    O     318.25       True\n",
+      "input_unchanged_test_passed": true
+    },
+    "mca_lifecycle": {
+      "variant": "drop",
+      "result": "Passed stale whole-graph prediction invalidation after atom removal.",
+      "predictor": "Deterministic fixture; no actual-model inference coverage for this case."
+    },
+    "root_readme_example": {
+      "actual_output": "7\n[6]\n[True]",
+      "matched_frozen_documentation": true
+    },
+    "pipeline_readme_example": {
+      "status": "succeeded",
+      "final_sdf": {
+        "artifact": {
+          "path": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/execution01/business/cp311/pytest-temp/test_pipeline_readme_python_ex0/results/run-001/final.sdf",
+          "bytes": 838,
+          "sha256": "d9354c213e4c371e90b820683f27f508c3f2bfe4516830971dd7c0a29d88d49e"
+        },
+        "records": [
+          {
+            "atom_count": 8,
+            "coordinate_rows": 8,
+            "all_coordinates_finite": true
+          }
+        ],
+        "record_count": 1
+      },
+      "installed_pipeline_guide_example": true
+    }
+  },
+  "observed_runtime_native_scope": "Technical main processes load4native modules per installedABI/3per sourceABI; business main loads5. Each wheel independently binds6components and actual release smokes; no complete nativeAPIcoverage inferred.",
+  "archive": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification",
+  "root_review": ".plan20-artifacts/20261104/stage12/repaired-installed-qualification/ROOT_QUALIFICATION_REVIEW.json",
+  "immutable_preparation_recheck": {
+    "files": 48,
+    "mismatches": [],
+    "manifest": {
+      "path": "/tmp/hotpot_plan20/long/stage12-repaired-installed-qualification-20261104/preparation01/MACHINERY.json",
+      "bytes": 8029,
+      "sha256": "2a38178ef5bdbb2dd4576120c7a706c534441b66512229db70e8590c47c4348f"
+    }
+  },
+  "limits": [
+    "All commands ran once with exact frozen selections/tiers. No additional product execution, retries, corpus, GPU, benchmark, dependency/model acquisition, product/test/config edits, Git operations or gate closure.",
+    "Installed affected technical selection:273 cases per ABI CP310-314 (72 FF/rollback +34 assembly +1 carrier annotation +166 ownership); source missing assembly/annotation selection:35 cases on CP310/312/313. Unaffected accepted source/corpus evidence remains separate.",
+    "Technical main pytest processes observed4 distinct native modules per installed ABI and3 per source ABI; business main pytest observed5. Six wheel native payloads are bound by identity; runtime observation does not establish full native API coverage.",
+    "Origin receipts describe imported modules/audited origins in observed pytest and inherited normal-exit Python processes; one business auxiliary receipt has zero observations. Abnormal or inheritance-bypassing subprocess coverage is not inferred.",
+    "CPU providers and finite small-case outputs support the seven released business contracts only. No scientific corpus rescore, GPU claim, broad domain validation, reference-method correctness or resolved electronic-state claim.",
+    "Instrumented shared-load elapsed times are correctness observations; no performance comparison or speedup claim. All raw reports/logs/artifacts retained.",
+    "Root owns maintained plan records, acceptance, B_exp, Stage13 and owner Stage14/15. This handoff closes no plan gate."
+  ]
+}

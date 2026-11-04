@@ -59,8 +59,12 @@ The original `ec4d618` five-ABI builds remain historical observations. The
 complete all five ABIs: each newly compiles six native components and passes its
 actual maintained installation smokes. Root independently verifies all510Python/
 stub members, both product repairs and six native payloads in every wheel.
-Affected outside-checkout qualification remains open. Actual model/GPU functional
-observations use a preregistered method-specific numeric policy; instrumented
+The [affected outside-checkout qualification](validation/repaired-installed-qualification.json)
+passes1477executions, including actualCP311business7. The original installed
+[MCA final functional observations](validation/mca-final-functional-routing.json)
+complete11cases/18calls with preserved mappings/routing/resources, but reveal
+mandatoryD032: neutral acid returns an anionic SMILES with charge0. Its focused
+repair and applicable final model/GPU evidence remain open. Instrumented
 correctness timings are not performance evidence.
 
 Root owns the final source freeze, one-sdist/five-ABI build, provider-specific
@@ -75,3 +79,5 @@ retain their separate entry gates.
 - [Official installed Eu xTB routes and retained finite failures](validation/plan12-eu-xtb.json)
 - [Portable semantic AST checker and bounded D030 closure](validation/ast-checker-portability.json)
 - [Repaired same-sdist five-ABI builds and installation smokes](validation/repaired-five-wheels.json)
+- [Actual MCA CPU/CUDA/rolling observations and open metadata defect](validation/mca-final-functional-routing.json)
+- [Repaired installed affected matrix and actual CP311 workflow qualification](validation/repaired-installed-qualification.json)

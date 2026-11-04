@@ -27,6 +27,81 @@ def _prepared(text='CCO'):
     return mol
 
 
+def _ob_task_values(molecule):
+    return (
+        tuple(
+            (atom.GetAtomicNum(), atom.GetFormalCharge(), atom.GetImplicitHCount(),
+             atom.GetIsotope(), atom.GetX(), atom.GetY(), atom.GetZ())
+            for atom in ob.OBMolAtomIter(molecule)
+        ),
+        tuple(
+            (bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondOrder(), bond.IsAromatic())
+            for bond in ob.OBMolBondIter(molecule)
+        ),
+    )
+
+
+@pytest.mark.parametrize('text,charge,total_hydrogens,isotopes', [
+    ('CC(=O)O', 0, 4, ()),
+    ('CC(=O)[O-]', -1, 3, ()),
+    ('O=CO', 0, 2, ()),
+    ('OC(=O)c1ccccc1', 0, 6, ()),
+    ('CC(=O)OC', 0, 6, ()),
+    ('c1ccccc1', 0, 6, ()),
+    ('c1cc[nH]c1', 0, 5, ()),
+    ('[NH4+]', 1, 4, ()),
+    ('C[N+](=O)[O-]', 0, 3, ()),
+    ('[13CH3]C(=O)O', 0, 4, ((6, 13),)),
+    ('[Na+].CC(=O)[O-]', 0, 3, ()),
+])
+@pytest.mark.parametrize('property_name', ['smiles', 'kekulize_smiles'])
+def test_smiles_preserves_graph_charge_hydrogens_isotopes_and_source_facts(
+    text, charge, total_hydrogens, isotopes, property_name,
+):
+    molecule = _prepared(text)
+    expected = Chem.MolFromSmiles(text)
+    prior_ob, prior_mapping = conversion.mol2obmol(molecule)
+    prior_rdkit = molecule.to_rdmol()
+    ob_values = _ob_task_values(prior_ob)
+    rdkit_binary = prior_rdkit.ToBinary(Chem.PropertyPickleOptions.AllProps)
+    before = _facts(molecule)
+
+    exported = Chem.MolFromSmiles(getattr(molecule, property_name))
+
+    assert exported is not None
+    assert Chem.GetFormalCharge(exported) == charge
+    assert sum(atom.GetTotalNumHs() for atom in exported.GetAtoms()) == total_hydrogens
+    assert tuple(sorted(
+        (atom.GetAtomicNum(), atom.GetIsotope())
+        for atom in exported.GetAtoms() if atom.GetIsotope()
+    )) == isotopes
+    # RDKit supplies an independent graph comparison; canonical source row order
+    # need not match Hotpot's original rows or the Open Babel writer's order.
+    assert Chem.MolToSmiles(exported) == Chem.MolToSmiles(expected)
+    assert _facts(molecule) == before
+    assert _ob_task_values(prior_ob) == ob_values
+    assert prior_rdkit.ToBinary(Chem.PropertyPickleOptions.AllProps) == rdkit_binary
+    fresh_ob, fresh_mapping = conversion.mol2obmol(molecule)
+    assert fresh_ob is not prior_ob and fresh_mapping is not prior_mapping
+    assert prior_mapping == fresh_mapping == {
+        row: row + 1 for row in range(len(molecule.atoms))
+    }
+
+
+@pytest.mark.parametrize('text', ['F[C@](Cl)(Br)I', 'F/C=C/F'])
+def test_smiles_export_does_not_change_the_existing_stereo_ledger(text):
+    molecule = conversion.to_hotpot_mol(Chem.MolFromSmiles(text))
+    molecule.to_obmol()
+    molecule.to_rdmol()
+    before = _facts(molecule)
+    assert molecule._capture_factual_record()[0].stereo_payload.records
+
+    molecule.smiles
+    molecule.kekulize_smiles
+
+    assert _facts(molecule) == before
+
+
 @pytest.mark.parametrize('text', ['CCO', '[NH4+]', 'c1ccccc1', 'F[C@](Cl)(Br)I', 'F/C=C/F', '[13CH3][O-]'])
 def test_ob_projection_and_mapping_are_fresh_without_carrier_storage(text):
     mol = _prepared(text)

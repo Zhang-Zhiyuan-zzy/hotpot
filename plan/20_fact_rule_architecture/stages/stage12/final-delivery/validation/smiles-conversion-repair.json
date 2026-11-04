@@ -1,0 +1,134 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_SOURCE_CORRECTION_INSTALLATION_AND_REAL_MODEL_PENDING",
+  "scope": "P20-D032 shared SMILES H/charge correction; CP311 checkout-source evidence only",
+  "source_commit_before_checkpoint": "107a7a771e1ae2d3627276db8ee381a472158b5a",
+  "frozen_product_source": "436e027690a0b0f4125c11e3bf3259423c716573",
+  "production_files": [
+    "hotpot/cheminfo/adapters/openbabel/conversion.py"
+  ],
+  "change": "Remove the shared SMILES writer MOL2 intermediate; serialize the prepared OBMol directly with existing canonical/Kekule options.",
+  "archive": ".plan20-artifacts/20261104/stage12/smiles-conversion-repair",
+  "root_review": ".plan20-artifacts/20261104/stage12/smiles-conversion-repair/ROOT_REVIEW.json",
+  "archive_sha256": "488f2058e8c4bc01be349ea890bb458daae379303b222cffb10f9f1bc9678b00",
+  "archive_members_verified": 93,
+  "test_results": {
+    "baseline01": {
+      "total": 27,
+      "passed": 12,
+      "failed": 15,
+      "error": 0,
+      "skipped": 0
+    },
+    "focused01": {
+      "total": 131,
+      "passed": 129,
+      "failed": 2,
+      "error": 0,
+      "skipped": 0
+    },
+    "spawn-recheck02": {
+      "total": 2,
+      "passed": 2,
+      "failed": 0,
+      "error": 0,
+      "skipped": 0
+    }
+  },
+  "distinct_selected_cases_with_passing_evidence": 131,
+  "new_parameterized_cases": 37,
+  "passing_cases_by_file": {
+    "tests.mca.test_pipeline_workers": 6,
+    "tests.mca.test_serialization": 39,
+    "tests.test_cheminfo.structure.test_conversion_freshness": 48,
+    "tests.test_cheminfo.test_mca_result_lifecycle": 27,
+    "tests.test_cheminfo.test_molecule_conversion": 11
+  },
+  "runtime": {
+    "python": {
+      "executable": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "version": "3.11.16"
+    },
+    "toolkit_versions": {
+      "openbabel": "3.2.1",
+      "rdkit": "2026.09.1"
+    },
+    "distributions": {
+      "rdkit": "2026.9.1",
+      "pytest": "9.1.1"
+    },
+    "hotpot_native_origins": {
+      "hotpot.cheminfo.adapters.native.substructure._search_native": {
+        "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "size": 558112,
+        "sha256": "0b5a4436580d7bd4d2d87e8637a09566aaa1053b677a9c99b5580ca9eab1026f"
+      },
+      "hotpot.cheminfo.rules.mathematics.geometry._geometry_native": {
+        "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "size": 1199080,
+        "sha256": "97acdb9652fa491cd3e2634a176519dd7dd87a5951fd99dda8ae6e72491a0c68"
+      },
+      "hotpot.cheminfo.rules.mathematics.graph._graph_native": {
+        "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "size": 368824,
+        "sha256": "477db3a9d2f315b655b0245802da0209089fb6dc85db8256f740acb27658c471"
+      },
+      "hotpot.cheminfo.structure._fact_native": {
+        "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "size": 417976,
+        "sha256": "42d0fd9edf3f3601cdc74008e7c6484e3ebc3351139119e42b32575ea0e8fb91"
+      }
+    }
+  },
+  "owned_files": {
+    "hotpot/cheminfo/adapters/openbabel/conversion.py": {
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/adapters/openbabel/conversion.py",
+      "size": 8687,
+      "sha256": "7cde7f5dda87bf6fc24d96992a1c618f674d3ee229d6c18c820720ef044f2826"
+    },
+    "tests/test_cheminfo/structure/test_conversion_freshness.py": {
+      "path": "/home/zhangzhiyuan/hotpot/tests/test_cheminfo/structure/test_conversion_freshness.py",
+      "size": 14699,
+      "sha256": "200fbe4799fccc8419450548d4c235074b3129679eec87516d3edd31af3cdfb7"
+    },
+    "tests/mca/test_serialization.py": {
+      "path": "/home/zhangzhiyuan/hotpot/tests/mca/test_serialization.py",
+      "size": 15004,
+      "sha256": "db3b67e6f1338b97e0921e511e033fc0a4402036553c887f9c46a2e82c620cd2"
+    },
+    "hotpot/cheminfo/operations/inference/mca/README.md": {
+      "path": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/operations/inference/mca/README.md",
+      "size": 10113,
+      "sha256": "1cacc26ee4f71f0cdca36ec0b2a73d5320ea4af2f4a692847d0d9994f0f5fa21"
+    }
+  },
+  "business_checks": [
+    "Neutral acids remain neutral; actual acetate remains charged",
+    "Graph/H/isotope preservation under canonical and Kekule presentation",
+    "Original Hotpot facts and held adapter objects unchanged",
+    "Five MCA input forms retain original atom/site indices and synthetic joins",
+    "Existing RDKit feature binary and all tensors unchanged for eight deterministic controls"
+  ],
+  "failure_accounting": "Original baseline 15 failures and initial candidate two spawn-wrapper failures remain. Corrected private wrapper reran exactly the two affected cases; duplicate child reentries receive no coverage credit.",
+  "separate_stereo_defect": {
+    "id": "P20-D033",
+    "status": "S0_IN_PROGRESS",
+    "scope": "Native Open Babel import and Hotpot-to-Open-Babel projection both lose declared stereo. Independent six-case diagnosis and 12-case feasibility prototypes are archived under ob-stereo-private/; prototypes are not product fixes or acceptance."
+  },
+  "commands_record": "implementation01/COMMANDS.json in the immutable archive; repeated in ROOT_REVIEW.json",
+  "remaining": [
+    "Affected outside-checkout installed CP311 tests",
+    "Actual neutral-acid MCA prediction with original model and consistent metadata",
+    "D033 explicit native stereo translation and affected source/installed/model evidence",
+    "Final clean same-sdist release and other required version/GPU/scientific/performance gates"
+  ],
+  "limits": [
+    "Current CP311 checkout source with four loaded checkout native extensions; no rebuilt or installed-wheel claim.",
+    "No real model inference; build_prediction joins use labeled synthetic values and binary/tensor regressions use fixed synthetic coordinates.",
+    "Pre-existing Open Babel stereo import/export defect remains root-owned D033; no incorrect public stereo output approved as golden.",
+    "Explicit MOL2 I/O remains outside repair.",
+    "Initial private pytest wrapper lacked a main guard: focused01 retained two parent spawn failures and duplicate child reentries; only affected two cases rerun after wrapper correction.",
+    "Only README wording changed after tests; all product and test bytes remain as validated.",
+    "Root retains commit, rebuilt-wheel, installed/model qualification and acceptance ownership; timing remains HOLD."
+  ],
+  "gate_closed": false
+}

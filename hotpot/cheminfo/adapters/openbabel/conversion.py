@@ -196,9 +196,8 @@ def _inchi(obmol):
 
 
 def _smiles(obmol, kekulize):
-    from ._runtime import pybel as pb
-
-    molecule = pb.readstring('mol2', _to_pybel(obmol).write('mol2'))
+    """Serialize prepared facts directly, avoiding MOL2 H/charge reperception."""
+    molecule = _to_pybel(obmol)
     if kekulize:
         return molecule.write('can', opt={'k': None}).split()[0]
     return molecule.write('can').split()[0]

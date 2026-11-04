@@ -128,11 +128,21 @@ conversion entry point for RDKit `Chem.Mol`, Open Babel `OBMol`, Pybel
 `Molecule`, SMILES/path inputs and objects exposing `to_rdmol()`. Source atom
 order is retained, so `atom_index` maps directly to `mol.atoms[atom_index]`.
 
-RDKit is still used for Uni-Mol feature generation and conformer construction;
-it is not used as the substructure-search backend. For an RDKit input, the
-original RDKit stereochemical representation is retained at that model-backend
-boundary because Hotpot does not yet represent complete atom/bond
-stereochemistry.
+Result SMILES is a canonical presentation of the Hotpot graph. Prediction
+indices refer to the original source atom order, so reparsing that SMILES does
+not recover the row order used by `atom_index`. Standard and Kekulé SMILES
+serialize the prepared Open Babel molecule directly, carrying its formal
+charges, non-graph hydrogen counts and isotopes without a MOL2 intermediate.
+This does not change the separate limitations of explicit MOL2 I/O.
+
+Hotpot's stereo ledger retains explicit atom and bond stereochemical records,
+including records imported from RDKit. Open Babel import and projection do not
+fully transport those records. Public SMILES can lose alkene E/Z information
+or invert tetrahedral configuration;
+it should not be used as a complete stereochemical round-trip representation.
+RDKit is used for Uni-Mol feature generation and conformer construction. For
+an RDKit input, the original RDKit stereochemical representation is retained at
+that model feature boundary. Site detection uses Hotpot's substructure search.
 
 Existing usable 3D coordinates are retained. Otherwise deterministic ETKDG
 plus MMFF/UFF geometry generation is used. Explicit graph hydrogen atoms are

@@ -8999,3 +8999,83 @@ MOL2conversion chain and smallest repair proposal, without product edits or
 model inference. Timed performance invocations are held pending source-impact
 review; existing untimed preflight may finish. No current-wheel/GPU, complete
 MCAoutput, scientific-calibration or final acceptance follows.
+
+
+### 2026-11-04 — Direct SMILES repair after proved neutral-acid loss
+
+Continued Stage12 alignment uses effective goal, main Stage12 and Sections12.1–12.3,
+current deferred issues, conversion/MCA owners and the governance/stage/validation
+skills. HEAD107a7a7 is clean apart from the excluded owner file, which remains
+unread and untouched; frozen historical product436e027 and original556b21e wheel
+observations retain their own attribution. The completed local Sol/high diagnosis
+changes the next action: fresh Hotpot/OBMol acid facts and separate RDKit features
+are neutral; only the shared SMILES leaf's MOL2 write/read loses the acid H and
+reinterprets the carboxyl group as acetate. Neutral versus anionic charge/H facts
+are the oracle, with canonical order/resonance-equivalent spelling permitted.
+
+Root authorizes replacing that leaf's MOL2 middle step with its prepared OBMol
+Pybel wrapper, retaining standard/Kekule writer options, DTO/model/site algorithms
+and all authoritative facts. The bounded assignment owns only that leaf, two
+focused conversion/MCA test files and the MCA companion README. No guard, fallback,
+new public interface or unasked neutralization is introduced. Source CP311 tests,
+baseline/candidate feature equivalence, affected outside-checkout installed
+qualification and a real acid MCA prediction remain required before D032 closes.
+All917original mismatched public outputs stay historical failures; numeric/site
+observations are not relabeled as repaired metadata evidence.
+
+Diagnosis also establishes an independent OB stereo defect: F/C=C/F loses
+double-bond stereo and F[C@](Cl)(Br)I can invert on current OB public serialization;
+Hotpot/RDKit-feature transport preserves both. P20-D033 records this mandatory
+representation boundary separately. The charge repair neither closes it nor
+turns its wrong outputs into golden fixtures. Root will settle complete affected
+stereo transport and verify independent configured-isomer controls.
+
+New worker creation was rejected by the actual local thread cap before starting
+a turn. Reuse the existing local Sol/high timing-preparation agent sequentially:
+finish its concrete recipe/report, then implement the immutable3355byte task
+assignment94d290ef897bd6fb9d2f7b8632a7565e8b926273213a40ad470d8ad2a5f9041a
+under /tmp/hotpot_plan20/long/stage12-mca-smiles-repair-20261104. No pending
+Stage3 child is activated. Root retains record, design, installed/model release,
+commit/push and acceptance ownership. Timing execution remains HOLD: retain all
+65completed invocations (32pairs plus B0coordinates_256),59unexecuted invocations,
+original errors and the separately archived partial evidence. No B_exp or
+overall gate closes from this continuation.
+
+
+### 2026-11-04 — Validated source SMILES charge/H correction checkpoint
+
+Root accepts the bounded direct prepared-OBMol serialization repair: only
+_smiles changes in production. Its unnecessary MOL2 roundtrip is removed;
+canonical/Kekule writer options, facts, model features and prediction joins stay
+within their existing contracts. Production AST outside that leaf matches the
+frozen436e027endpoint. Two focused test files add37parameterized controls for
+neutral/charged acid, H/isotope/graph transport, stereo-ledger immutability,
+five MCA input forms and eight unchanged deterministic feature boundaries.
+
+Actual baseline27cases yield12passes/15failures. The affected five-file candidate
+selection yields129passes/two spawn failures from the private evidence wrapper's
+missing main guard; root inspects and retains that cause. After correcting only
+the wrapper, exactly those two tests pass. Root independently parses all three
+JUnit records:131distinct selected cases have passing evidence, with original
+failures and duplicate child reentries retained and no extra coverage credit.
+CP3113.11.16/OpenBabel3.2.1/RDKit2026.09.1 and four loaded checkout natives are
+attributed. Exact argv/environment/return codes, source identities and per-case
+outcomes remain in implementation01/COMMANDS.json and raw receipts. This is
+source evidence, with no new installed/native-build/actual-model/timing claim.
+
+Root independently verifies all93archive members/1530388rawbytes and all four
+current owned-file hashes, both source-run bindings, loaded native bytes and
+retained test identities. Durable evidence is under
+.plan20-artifacts/20261104/stage12/smiles-conversion-repair, with ROOT_REVIEW.json;
+the maintained final-delivery validation/smiles-conversion-repair.json records
+the source correction, controls, command index and remaining gates. P20-D032is
+promoted toS0after demonstrated shared-output charge/H loss and marked RESOLVED
+for the source candidate, not CLOSED: affected outside-checkout installed tests
+and a real neutral-acid MCA prediction remain required. All917historical
+mismatches remain failures. D033now explicitly covers both native OB import
+and export; its archived six-case diagnosis and12case private prototypes do
+not establish a product fix or accepted stereo contract. Performance remains
+HOLD with prior65invocations retained; final release, model/GPU/science/cost,
+Stage13entry and overall gates remain open. This coherent business checkpoint
+is prepared for normal commit/push; it changes no main objective or acceptance
+criteria.

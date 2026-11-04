@@ -63,9 +63,14 @@ The [affected outside-checkout qualification](validation/repaired-installed-qual
 passes1477executions, including actualCP311business7. The original installed
 [MCA final functional observations](validation/mca-final-functional-routing.json)
 complete11cases/18calls with preserved mappings/routing/resources, but reveal
-mandatoryD032: neutral acid returns an anionic SMILES with charge0. Its focused
-repair and applicable final model/GPU evidence remain open. Instrumented
-correctness timings are not performance evidence.
+mandatoryD032: neutral acid returns an anionic SMILES with charge0. The
+[direct SMILES source correction](validation/smiles-conversion-repair.json) removes
+the proved MOL2 hydrogen/charge loss;131distinct CP311selected cases have passing
+evidence, including37new cases. The original129passes/two private-wrapper failures
+and exactly-two passing rechecks remain separately recorded. Installed and actual
+model metadata qualification remain open. IndependentD033covers native OB stereo
+import/projection and is not repaired by this leaf. Instrumented correctness
+timings are not performance evidence.
 
 Root owns the final source freeze, one-sdist/five-ABI build, provider-specific
 preregistered MCA observations, evidence reuse, remaining issue dispositions,

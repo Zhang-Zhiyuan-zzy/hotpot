@@ -1,12 +1,16 @@
 from dataclasses import FrozenInstanceError, replace
 import pickle
 
+import numpy as np
 import pytest
 from openbabel import openbabel as ob
 from openbabel import pybel
 from rdkit import Chem
 
 from hotpot import read_mol
+from hotpot.cheminfo.adapters.inference.features import mol_to_unimolv2
+from hotpot.cheminfo.operations.conversion import to_hotpot_mol
+from hotpot.cheminfo.operations.inference.mca.pipeline import build_prediction
 from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.operations.inference.mca.results import MCA_MOLECULE_DTO_VERSION
@@ -69,6 +73,91 @@ def test_supported_inputs_share_the_same_dto_semantics(value):
         "C",
         "N",
     )
+
+
+@pytest.mark.parametrize('kind', ['smiles', 'hotpot', 'rdkit', 'obmol', 'pybel'])
+def test_neutral_acid_smiles_and_predictions_keep_the_original_atom_rows(kind):
+    text = 'CC(=O)O'
+    value = {
+        'smiles': lambda: text,
+        'hotpot': lambda: read_mol(text, 'smi'),
+        'rdkit': lambda: Chem.MolFromSmiles(text),
+        'obmol': lambda: pybel.readstring('smi', text).OBMol,
+        'pybel': lambda: pybel.readstring('smi', text),
+    }[kind]()
+
+    dto = normalize_molecule(value)
+    validate_dto(dto, position=0)
+    graph = hotpot_mol_from_dto(dto)
+    feature = rdmol_from_dto(dto)
+    public = Chem.MolFromSmiles(dto.smiles)
+    sites = _site_records(graph)
+    # Synthetic row values exercise the real result join without model inference.
+    prediction = build_prediction(dto, sites, (100., 101., 102., 103.), 'synthetic')
+
+    assert public is not None
+    assert dto.formal_charge == Chem.GetFormalCharge(public) == 0
+    assert sum(atom.GetTotalNumHs() for atom in public.GetAtoms()) == 4
+    assert Chem.MolToSmiles(public) == Chem.MolToSmiles(Chem.MolFromSmiles(text))
+    assert dto.atom_symbols == ('C', 'C', 'O', 'O')
+    assert tuple(atom.formal_charge for atom in dto.atoms) == (0, 0, 0, 0)
+    assert tuple(atom.implicit_hydrogens for atom in dto.atoms) == (3, 0, 0, 1)
+    assert tuple(
+        (bond.begin_atom_index, bond.end_atom_index, bond.bond_order, bond.bond_kind)
+        for bond in dto.bonds
+    ) == ((0, 1, 1., 'single'), (1, 2, 2., 'double'), (1, 3, 1., 'single'))
+    assert tuple(atom.GetSymbol() for atom in feature.GetAtoms()) == dto.atom_symbols
+    assert tuple(atom.GetFormalCharge() for atom in feature.GetAtoms()) == (0, 0, 0, 0)
+    assert tuple(atom.GetTotalNumHs() for atom in feature.GetAtoms()) == (3, 0, 0, 1)
+    assert tuple(
+        (bond.GetBeginAtomIdx(), bond.GetEndAtomIdx(), bond.GetBondTypeAsDouble())
+        for bond in feature.GetBonds()
+    ) == ((0, 1, 1.), (1, 2, 2.), (1, 3, 1.))
+    assert sites == ((2, 'Carboxylic acid'), (1, 'double_bond'), (3, 'atom_with_lone_pair'))
+    assert prediction.smiles == dto.smiles
+    assert prediction.formal_charge == dto.formal_charge
+    assert tuple(
+        (atom.atom_index, atom.element, atom.mca_kj_mol)
+        for atom in prediction.atom_predictions
+    ) == ((0, 'C', 100.), (1, 'C', 101.), (2, 'O', 102.), (3, 'O', 103.))
+    assert tuple(
+        (site.atom_index, site.element, site.site_type, site.mca_kj_mol)
+        for site in prediction.sites
+    ) == (
+        (2, 'O', 'Carboxylic acid', 102.),
+        (1, 'C', 'double_bond', 101.),
+        (3, 'O', 'atom_with_lone_pair', 103.),
+    )
+
+
+@pytest.mark.parametrize('text', [
+    'CC(=O)O', '[13CH3]C(=O)O', 'F[C@](Cl)(Br)I', 'F/C=C/F',
+])
+@pytest.mark.parametrize('kind', ['hotpot', 'rdkit'])
+def test_public_smiles_keeps_the_existing_rdkit_feature_binary_and_tensors(text, kind):
+    original = Chem.MolFromSmiles(text)
+    conformer = Chem.Conformer(original.GetNumAtoms())
+    conformer.Set3D(True)
+    for index in range(original.GetNumAtoms()):
+        conformer.SetAtomPosition(index, (float(index), 1., 2.))
+    original.AddConformer(conformer)
+    value = original if kind == 'rdkit' else to_hotpot_mol(original)
+    # Capture the established feature boundary before public SMILES generation.
+    expected = Chem.Mol(original if kind == 'rdkit' else value.to_rdmol())
+    if kind == 'hotpot':
+        Chem.SanitizeMol(expected)
+    expected_binary = expected.ToBinary(Chem.PropertyPickleOptions.AllProps)
+    expected_features = mol_to_unimolv2(Chem.Mol(expected))
+
+    dto = normalize_molecule(value)
+    restored = rdmol_from_dto(dto)
+    actual_features = mol_to_unimolv2(restored)
+
+    assert dto.rdkit_binary == expected_binary
+    assert Chem.MolToSmiles(restored) == Chem.MolToSmiles(original)
+    assert actual_features.keys() == expected_features.keys()
+    for name in expected_features:
+        np.testing.assert_array_equal(actual_features[name], expected_features[name])
 
 
 def test_iterable_rdmol_adapter_is_normalized_once():

@@ -1,7 +1,7 @@
 import pytest
 from types import SimpleNamespace
 
-from hotpot.works import convert
+from hotpot.commands import convert
 
 
 class _RecordingMolecule:

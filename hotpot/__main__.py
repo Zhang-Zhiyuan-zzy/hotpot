@@ -6,9 +6,7 @@ from __future__ import annotations
 import argparse
 import importlib
 import os
-import os.path as osp
 import sys
-from argparse import ArgumentError
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
@@ -26,14 +24,17 @@ class _CommandSpec:
 
 
 _COMMANDS = {
-    "convert": _CommandSpec("Convert molecule file from one format to another"),
+    "convert": _CommandSpec(
+        "Convert molecule file from one format to another",
+        "hotpot.commands.convert",
+    ),
     "optimize": _CommandSpec(
         "Perform parameters optimization",
-        "hotpot.main.optimize",
+        "hotpot.commands.optimize",
     ),
     "ml_train": _CommandSpec(
         "A standard workflow to train Machine learning models",
-        "hotpot.main.ml_train",
+        "hotpot.commands.ml_train",
     ),
     "mca": _CommandSpec(
         "Predict atom-resolved methyl cation affinity (MCA)",
@@ -86,18 +87,6 @@ def _selected_command(arguments: Sequence[str]) -> Optional[str]:
     )
 
 
-def _add_convert_arguments(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("infile", type=str, help="input file")
-    parser.add_argument(
-        "-f",
-        "--output_file",
-        type=str,
-        help="output file or directory",
-    )
-    parser.add_argument("-i", "--inputs-format", type=str, help="input format")
-    parser.add_argument("-o", "--output-format", type=str, help="output format")
-
-
 def build_parser(
     selected_command: Optional[str] = None,
 ) -> argparse.ArgumentParser:
@@ -118,35 +107,10 @@ def build_parser(
     works = parser.add_subparsers(title="works", dest="works")
     for command, spec in _COMMANDS.items():
         command_parser = works.add_parser(command, help=spec.help)
-        if command == "convert":
-            _add_convert_arguments(command_parser)
-        elif command == selected_command and spec.module is not None:
+        if command == selected_command and spec.module is not None:
             command_module = importlib.import_module(spec.module)
             command_module.add_arguments(command_parser)
     return parser
-
-
-def _run_convert(args: argparse.Namespace) -> int:
-    from .main import conversion
-
-    infile = args.infile
-    outfile = args.output_file
-    if args.inputs_format:
-        input_format = args.inputs_format
-    elif osp.isfile(infile):
-        input_format = osp.splitext(osp.basename(infile))[-1][1:]
-    else:
-        input_format = "smi"
-
-    if args.output_format:
-        output_format = args.output_format
-    elif input_format != "smi":
-        output_format = "smi"
-    else:
-        raise ArgumentError(None, "The output format is not specified")
-    conversion.convert(infile, outfile, output_format, input_format)
-    print("Done !!!")
-    return 0
 
 
 def run(args: argparse.Namespace) -> int:
@@ -154,8 +118,6 @@ def run(args: argparse.Namespace) -> int:
     if args.show_version:
         show_version()
         return 0
-    if args.works == "convert":
-        return _run_convert(args)
     if args.works is None:
         return -2
 

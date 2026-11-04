@@ -1,0 +1,30 @@
+{
+  "date": "2026-11-04",
+  "status": "ROOT_RELEASED_BOUNDED_STAGE11B_APPLICATION",
+  "source_commit": "cc9ae780b874382855b06f81ddb23ba94ab3bd44",
+  "authoring_source_commit": "42a35904b06509c273b1dcb4ea6b46045378ccf6",
+  "patch_sha256": "06ae866e8e3e081a2955167477ed6e8c9b2775b899a9b836c7f3984e0b9ffe67",
+  "alignment": [
+    "Current goal and governance/stage/validation skills; reuse completed normative alignment and inspect affected actual owners/consumers",
+    "Main plan9.3/9.5/Stage11/Decision12/Sections11-14; Stage11 verification selection",
+    "Stage11A/12A/12D accepted records, D028/D029 and exact authoring evidence"
+  ],
+  "root_review": [
+    "All18before-path identities match current cc9ae78; git apply --check passes",
+    "Canonical SMILES uses current MolReader/smiles and preserves all input records; unsupported output rejects before writing",
+    "Single commands owner retains batch spawn/pipe/timeout/reaping and optional research algorithms",
+    "Resource commit is independent; no source/native/model overlap"
+  ],
+  "scope": "Decision12 command ownership and actual supported conversion; Stage11 Decision13/data contracts remain separate",
+  "validation": "Focused CP311 source and actual outside-checkout installed wheel, fresh help/toolkit/native order, retained batch containment, real conversion/workbook selection, package removals and retained resources",
+  "ownership": "Root applies/reviews/accepts/Git; local Sol/high executes frozen validation only in its owned temporary directory",
+  "limits": [
+    "No new model/optimizer algorithms, CLI names/options/defaults, native ABI or dataset schema",
+    "No speculative fallback, general-format claim or optional training/optimization qualification from import tests",
+    "Forbidden owner rescore and Task168 secrets are excluded from all capture/search"
+  ],
+  "remaining": [
+    "Decision13 legacy/MolProps/dataset D028 and D029",
+    "Final scientific/cost/version/native/delivery/Plan12/report/B_exp and separate Stage13 gates"
+  ]
+}

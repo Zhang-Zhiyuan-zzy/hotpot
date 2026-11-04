@@ -15,6 +15,9 @@ _PROJECT_ROOT = Path(
     os.environ.get("HOTPOT_TEST_WORKDIR", Path(__file__).parents[2])
 )
 _COMMAND_MODULES = (
+    "hotpot.commands.convert",
+    "hotpot.commands.optimize",
+    "hotpot.commands.ml_train",
     "hotpot.commands.cbond",
     "hotpot.commands.mca",
     "hotpot.commands.models",
@@ -141,3 +144,28 @@ def test_inference_help_loads_only_the_selected_canonical_command(name) -> None:
     expected = f"hotpot.commands.{name}"
     assert loaded[expected] is True
     assert all(not value for module, value in loaded.items() if module != expected)
+
+
+def test_root_help_does_not_load_any_command_module() -> None:
+    status, loaded = _loaded_after(("--help",))
+
+    assert status == 0
+    assert loaded == {name: False for name in _COMMAND_MODULES}
+
+
+def test_convert_help_loads_only_the_selected_command_module() -> None:
+    status, loaded = _loaded_after(("convert", "--help"))
+
+    assert status == 0
+    assert loaded["hotpot.commands.convert"] is True
+    assert all(not value for module, value in loaded.items()
+               if module != "hotpot.commands.convert")
+
+
+def test_optimize_help_loads_only_the_selected_command_module() -> None:
+    status, loaded = _loaded_after(("optimize", "--help"))
+
+    assert status == 0
+    assert loaded["hotpot.commands.optimize"] is True
+    assert all(not value for module, value in loaded.items()
+               if module != "hotpot.commands.optimize")

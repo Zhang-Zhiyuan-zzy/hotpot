@@ -13,10 +13,7 @@ from typing import *
 
 import numpy as np
 import pandas as pd
-from sklearn.manifold import TSNE, MDS
 
-from hotpot.plugins.opti.beyes.opti import draw_comics_map, next_params
-from hotpot.plugins.opti.ev.core import EvoluteOptimizer
 
 # ANSI colors
 RED = "\033[91m"
@@ -44,14 +41,14 @@ def _parse_params(params, columns: list, by_index) -> list[int]:
     return np.unique(indices).tolist()
 
 
-def read_excel(excel_file, args):
+def read_excel(excel_file, args, *, input_field, exclude_field):
     """
     Read Excel file and parse to two DataFrame sheet, i.e., inputs and target
     """
     data = pd.read_excel(excel_file)
 
-    inputs_names = getattr(args, 'params', None)
-    exclude_inputs = getattr(args, 'exclude_params', None)
+    inputs_names = getattr(args, input_field, None)
+    exclude_inputs = getattr(args, exclude_field, None)
 
     # Determine the indices of included params
     if isinstance(inputs_names, str):
@@ -171,6 +168,8 @@ def _get_log_indices(params: pd.DataFrame, log_params: str, by_index: bool) -> U
 
 def _get_embedding_method(emb_method: str):
     """"""
+    from sklearn.manifold import TSNE, MDS
+
     if emb_method == 'TSNE':
         return TSNE()
     elif emb_method == 'MDS':
@@ -301,6 +300,8 @@ def add_arguments(optimize_parser: argparse.ArgumentParser):
 
 def optimize(excel_file: Union[Path, str], out_file: Union[Path, str], args):
     """"""
+    from hotpot.plugins.opti.beyes.opti import draw_comics_map, next_params
+
     excel_file = Path(excel_file)
     out_file = Path(out_file)
 
@@ -312,7 +313,9 @@ def optimize(excel_file: Union[Path, str], out_file: Union[Path, str], args):
         if not out_file.is_dir():
             raise IOError(f'The output directory {out_file} does not exist or is not a directory')
 
-        params, target = read_excel(excel_file, args)
+        params, target = read_excel(
+            excel_file, args, input_field="params", exclude_field="exclude_params"
+        )
 
         _log_param_indices = _get_log_indices(params, args.log_params, args.by_index)
         specified_names, specified_range = _get_params_range(params, args.params_space, args.by_index)
@@ -417,6 +420,8 @@ def example_cof_params(out_file, args):
     Reproduce the parameters optimization in COF experiment,
     See ref: ...
     """
+    from hotpot.plugins.opti.beyes.opti import draw_comics_map
+
     print("Reproduce the parameters optimization in COF experiment,See ref: ...")
 
     excel_path = Path(__file__).parents[1].joinpath('dataset', 'ChemData', 'examples', 'COF.xlsx')

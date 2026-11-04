@@ -1,0 +1,81 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE11B",
+  "root": "checkpoint.json",
+  "edges": [
+    {
+      "from": "checkpoint.json",
+      "to": "../contracts/decisions.md",
+      "kind": "governing_command_scope"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/freeze.json",
+      "kind": "source_native_identity"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/authoring/stage11-commands.patch",
+      "kind": "reviewed_business_change"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/source01/pytest-execution.json",
+      "kind": "actual_source_command"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/source01/junit.xml",
+      "kind": "source_outcomes"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/installed02/pytest-execution.json",
+      "kind": "actual_outside_checkout_installed_command"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/installed02/junit.xml",
+      "kind": "installed_outcomes"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/installed01/junit.xml",
+      "kind": "original_installed_failure"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/INSTALLED_METADATA_SCOPE_CORRECTION.json",
+      "kind": "source_only_test_and_actual_runtime_resource_proof"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/COMPARISON.json",
+      "kind": "ordered_outcomes_and_actual_business_observations"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/INSTALLED_ARCHIVE_VERIFICATION.json",
+      "kind": "actual_source_wheel_sdist_site_members"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/raw/integration/dependency-probes/receipts.json",
+      "kind": "optional_dependency_limits"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": "root-verification.json",
+      "kind": "independent_root_acceptance"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/MANIFEST.json",
+      "kind": "immutable_raw_archive"
+    },
+    {
+      "from": "checkpoint.json",
+      "to": ".plan20-artifacts/20261104/stage11/commands/finalization/MANIFEST.json",
+      "kind": "record_checks_and_original_checker_schema_failure"
+    }
+  ]
+}

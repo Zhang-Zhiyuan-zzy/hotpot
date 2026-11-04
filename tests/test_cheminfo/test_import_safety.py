@@ -191,7 +191,7 @@ def test_hotpot_imports_with_rdkit_and_openbabel_in_a_fresh_process(tmp_path):
     assert observation["coimported_smiles"] == "CN"
 
 
-def test_works_conversion_cold_import_orders_toolkits_and_preserves_cn(tmp_path):
+def test_commands_conversion_cold_import_orders_toolkits_and_preserves_cn(tmp_path):
     observation = _run_fresh(
         f"work_dir = {str(tmp_path)!r}\n" + textwrap.dedent('''
         from importlib.abc import MetaPathFinder
@@ -210,11 +210,11 @@ def test_works_conversion_cold_import_orders_toolkits_and_preserves_cn(tmp_path)
                 return None
 
         sys.meta_path.insert(0, ImportObserver())
-        from hotpot.works import convert
-        assert import_order == ["rdkit.Chem", "openbabel"]
-        from openbabel import pybel
+        from hotpot.commands import convert
+        assert import_order == []
+        from hotpot.cheminfo.adapters.openbabel._runtime import pybel
         from rdkit import Chem
-        assert convert.pb is pybel
+        assert import_order == ["rdkit.Chem", "openbabel"]
 
         sdf_dir = Path(work_dir) / "sdf"
         smiles_dir = Path(work_dir) / "smiles"
@@ -235,7 +235,7 @@ def test_works_conversion_cold_import_orders_toolkits_and_preserves_cn(tmp_path)
         assert graph == {"atomic_numbers": [6, 7], "bonds": [(0, 1, 1.0)], "charge": 0}
         assert len(pybel.readstring("smi", smiles).atoms) == 2
         print(json.dumps({"import_order": import_order, "smiles": smiles, "graph": graph,
-                          "pybel_module": convert.pb.__name__, "rdkit_module": Chem.__name__}))
+                          "pybel_module": pybel.__name__, "rdkit_module": Chem.__name__}))
         '''),
         tmp_path,
     )

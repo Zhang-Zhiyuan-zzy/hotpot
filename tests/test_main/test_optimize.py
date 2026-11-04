@@ -34,7 +34,7 @@ def test_optimize_command_forwards_dynamic_paths(
     real_import = entry.importlib.import_module
 
     def import_module(name: str):
-        if name == "hotpot.main.optimize":
+        if name == "hotpot.commands.optimize":
             return SimpleNamespace(optimize=optimize)
         return real_import(name)
 

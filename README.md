@@ -61,10 +61,27 @@ use, and reproducible pipelines. Every primary chemistry command accepts
 | `hotpot ds` | Assess, store, audit, and query scientific datasets | Certified bundles and a normalized SQLite store | [CLI](hotpot/ds/cli_doc.md) · [Python API](hotpot/ds/README.md) · [dataset organization](hotpot/dataset/README.md) |
 | `hotpot models` | Install, inspect, and verify pinned inference models | Model status and integrity reports | `hotpot models --help` |
 
-Top-level help also lists `convert`, `optimize`, and `ml_train`. `convert` is a
-low-level format utility. The latter two are optional research workflows and
-are available through the `optimize` extra. The table above defines the stable
-chemistry pipeline surface.
+Top-level help also lists `convert`, `optimize`, and `ml_train`. `convert`
+writes canonical SMILES, one record per line, from a molecular input file:
+
+```shell
+hotpot convert molecules.sdf -f molecules.smi
+hotpot convert input_directory -i sdf -o smi -f output_directory
+```
+
+The input format is inferred from a file extension or supplied with
+`-i` / `--inputs-format`. Only `smi` output is supported. It is the default
+for non-SMILES input; SMILES input requires explicit `-o smi`. Supply the
+output file or an existing directory with `-f` / `--output_file`. Directory
+inputs select matching extensions in sorted filename order. A file destination
+combines all records, replacing its previous contents; an existing directory
+receives `0.smi`, `1.smi`, and so on, one file for each input file. Unsupported
+output formats raise an error before writing.
+
+`optimize` and `ml_train` are optional research workflows available through the
+`optimize` extra. The table above defines the stable chemistry pipeline surface.
+Their handlers and the conversion helpers live in `hotpot.commands`; the retired
+`hotpot.main` and `hotpot.works` import paths have no compatibility aliases.
 
 ### Dataset management
 

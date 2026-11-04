@@ -4,7 +4,11 @@ Status: implementation authorized on2026-10-28. Stage0–8E owning gates are
 complete within their recorded scopes. The latest [Stage8E checkpoint](stages/stage08/assembly/validation/checkpoint.json)
 accepts canonical assembly, declared H/scaffold transformations, factory behavior,
 resources and affected CP311 source/installed evidence. P20-D024 is closed;
-P20-D026 generic H export/materialization remains open. The [Stage9A checkpoint](stages/stage09/carriers/validation/checkpoint.json)
+[Stage12B](stages/stage12/hydrogen-representation/validation/checkpoint.json) closes
+P20-D026 in its affected CP311 source/installed and rebuilt-RDKit-native scope.
+[Stage12C](stages/stage12/scientific-hardening/validation/checkpoint.json) closes
+D023 and accepts D022's explicit limitation; [Stage12D](stages/stage12/package-resources/validation/checkpoint.json)
+closes D008's original package omissions. The [Stage9A checkpoint](stages/stage09/carriers/validation/checkpoint.json)
 accepts residual chemistry/query/workflow extraction at CP311source/installed
 boundaries. The [Stage9B checkpoint](stages/stage09/cutover/validation/checkpoint.json)
 accepts the physical class/consumer hard cut and current pickle/native identities
@@ -14,8 +18,10 @@ Stage9 within the recorded CP311 scope.
 [Stage10A](stages/stage10/native-migration/validation/checkpoint.json) accepts the
 bounded clean CP311 native migration; [Stage11A](stages/stage11/reference-assets/validation/checkpoint.json)
 accepts immutable reference assets, and [Stage12A](stages/stage12/lazy-imports/validation/checkpoint.json)
-accepts explicit/lazy imports. Other native/release/version obligations, remaining
-Stage11/12, final scientific/performance and full-plan acceptance remain open. The owner-approved [goal](goal.md) governs execution;
+accepts explicit/lazy imports. [Stage11B](stages/stage11/commands/validation/checkpoint.json)
+accepts the command cutover and actual conversion at CP311 source/installed boundaries.
+Decision13/D028/D029, optional research execution, other native/release/version
+obligations, final scientific/performance and full-plan acceptance remain open. The owner-approved [goal](goal.md) governs execution;
 [goal_v1](goal_v1.md) is historical.
 
 All public chemical types follow a common protocol for fact ownership, interface mapping, permissions, dependencies, buffer ownership and lifecycle. Atom's unified fact table is one concrete implementation. MetalCluster runtime remains Plan21 scope. Existing historical checkpoints below retain their own source and evidence bounds.

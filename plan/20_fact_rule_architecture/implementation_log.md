@@ -7632,3 +7632,98 @@ any optional workflow. Archive `.plan20-artifacts/20261104/stage12/package-resou
 contains52verified payloads/11460265bytes; all1521source/test/resource and6native
 bindings hold. Root retains final science/cost/version/native/delivery/Plan12,
 report and B_exp obligations and the separately gated Stage13 experiment.
+
+
+### 2026-11-04 — Stage11B command ownership application entry
+
+Previous goal turn answered the owner's status/geometry inquiry read-only; it
+made no delivery change. Root revalidates the next safe action and commits the
+already accepted Stage12D resources as cc9ae780b874382855b06f81ddb23ba94ab3bd44,
+then pushes it to GitHub. All19explicit staged paths and diff --check pass; the
+owner rescore remains excluded.
+
+Root aligns current goal/governance/stage/validation, affected main-plan9.3/9.5/
+Stage11/Decision12/Sections11-14, existing Stage11A/12A/12D evidence and D028/D029.
+Current18before-path identities match the local Sol/high isolated command patch,
+SHA25606ae866e8e3e081a2955167477ed6e8c9b2775b899a9b836c7f3984e0b9ffe67;
+git apply --check passes at cc9ae78. Root reviews actual MolReader/smiles
+conversion, file/directory/multirecord behavior, explicit supported output,
+spreadsheet namespace fix, retained batch cleanup and unchanged research-model
+algorithms. Stage11B entry/contracts C1-C3 release bounded application.
+
+The same local Sol/high worker owns only temporary validation preparation and
+will execute after root sends a final source freeze. Root owns product/records,
+scientific/acceptance decisions and Git. No external helper is active. All
+optional-algorithm, Decision13/D029, final cost/science/version/native/Plan12/
+report/B_exp and separate Stage13 obligations retain their gates.
+
+
+### 2026-11-04 — Stage11B actual command delivery and bounded acceptance
+
+The preceding owner-inquiry turn was read-only status/geometry clarification;
+it did not change authoritative delivery state. Root resumes the already
+released Stage11B slice, preserving its source freeze and accepted decisions.
+Commands convert/optimize/ml_train are sole owners; seven old main/works source
+owners are deleted without shims. The actual conversion fixes obsolete class
+read/canonical_smiles accesses using MolReader/smiles, preserves every record and
+sorted file order, and rejects unsupported output before writes. Explicit Excel
+field names repair the real training/optimization namespace mismatch. Optional
+scientific/model algorithms and xtb/run/ds owners are retained.
+
+Actual integration drivers, invoked with Python from
+`/tmp/hotpot_plan20/long/stage11-commands-20261104/integration01`, were run_probes.py,
+run_source.py, run_build.py, run_source_business.py, run_installed.py,
+run_installed_attempt02.py and compare_boundaries.py. Exact subprocess argv/cwd/
+environment/source guards/elapsed/status appear in their execution receipts.
+The CPython3.11.16 PyG venv executes twelve selected test files. Source191passed/
+2skipped in18.78s (driver19.501925s); installed final190passed/2skipped/one explicit
+source-only deselection in20.10s (driver20.815574s). All192applicable ordered
+outcomes agree; each attempt has615origin observations/0violations and no owned
+multiprocessing children remain. Real canonical/file/directory/error semantics,
+cold command loading/toolkit-native coexistence and actual resource values agree.
+Selected xtb/run/ds fixtures do not establish new official-backend science.
+
+Original installed attempt1 remains RC1 with190passed/1failed/2skipped: the
+artifact-pointer metadata node expects ROOT/hotpot beside copied tests. It passed
+at source; direct actual source/wheel/site checks prove all four referenced
+manifest/README resources. Final installed selection excludes only this source-only
+node, without test/product change, fake package tree or reinstall. Other copied
+metadata checks are distinct from runtime wheel evidence. No validation rerun
+was performed for record finalization.
+
+Qualified setuptools79.0.1 and six unchanged accepted CP311 binaries produce the
+actual7092743-byte wheel/SHA256ee34942cbf958bffd267c416417718dd8437d3615d9e3b7002d9b809687617cf
+and2827219-byte sdist/SHA256ca5f76e180b6d13f8968d03501f2eccba424c52ed7eecf05219e8615abad079f.
+All505Python owners plus9runtime resources/guides match source/wheel/sdist/site;
+seven ancillary licenses and six natives are checked. Old source implementations
+are absent; archives/site omit main/works. Checkout leftovers are generated caches.
+No native compilation, clean SDK/sdist build, other-version or public-release
+qualification follows.
+
+Actual sklearn/xgboost/gpytorch imports fail in both checked runtimes;
+ml_train --help retains missing-sklearn failure and two optional tests remain
+skipped. No optional optimization/training computation, model/GPU algorithm or
+fresh official xTB run occurred. Existing MolProps medium-fill/Cid KeyError and
+solvent-fill ValueError remain D029, with no arbitrary fallback/enrichment.
+
+Root independently ran `python -B /tmp/hotpot_plan20/long/stage11-commands-20261104/root-review01/verify.py`:
+1520source/test/resource bindings,21additional packaging inputs,6natives,7deleted
+owners,514runtime rows, actual artifacts, ordered outcomes/origins and public
+observations verify. StatusROOT_ACCEPTED_BOUNDED_CP311_STAGE11B. Archive command
+`python -B /tmp/hotpot_plan20/long/stage11-commands-20261104/finalization01/archive.py`
+verifies143payloads/14115258bytes at
+`.plan20-artifacts/20261104/stage11/commands`, manifestSHA256
+6b007d785b905d81a116197f51b2af82678b0f7ef9235dd069c5b77bb01ad042.
+Original evidence/paths/failures are retained; staging/site/env/cache/source copies
+are not duplicated. Maintained checkpoint/report/graph/root-verification bind the
+bounded acceptance. Decision12 is implemented; D028 remains open for Decision13
+and optional execution. Final science/cost/version/native/delivery/Plan12/report/
+B_exp and separate Stage13 gates remain. Root owns decisions/Git; the active local
+Sol/high child is read-only on a distinct consolidated-cost assessment.
+
+Final record checks preserve an initial helper schema error (digest compared to
+the entire binding row), then corrected PASS for all1520source/6native/21packaging
+bindings and maintained links/JSON/archive identities. No source drift or new
+business failure was established. Additional finalization manifest retains both
+attempts; no semantic test reran. The coherent command business commit containing
+these records is its delivery identity.

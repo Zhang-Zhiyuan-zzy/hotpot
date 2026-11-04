@@ -26,7 +26,7 @@ from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
 
 from xgboost import XGBRegressor, sklearn
 
-from hotpot.main.optimize import read_excel
+from .optimize import read_excel
 from hotpot.plugins.ml.wf import MachineLearning_, LinearAddLightGBM
 
 _models = {
@@ -115,7 +115,9 @@ def train(args: argparse.Namespace):
     elif args.examples == 'SF_LnAn':
         _example_of_selective_factors(work_dir, args)
     else:
-        features, target = read_excel(args.data_file, args)
+        features, target = read_excel(
+            args.data_file, args, input_field="features", exclude_field="exclude_features"
+        )
 
         model_class = _models[args.method][args.algorithm]
         if args.hyper is not None:

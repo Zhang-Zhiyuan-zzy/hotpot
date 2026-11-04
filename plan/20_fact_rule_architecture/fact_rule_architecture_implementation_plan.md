@@ -12,7 +12,7 @@ Stage9A semantic preparation, Stage9B sole-owner carrier cutover and Stage9C
 collection completion are accepted at their recorded CP311 source/installed
 boundaries. [Stage10A physical/native migration](stages/stage10/native-migration/validation/checkpoint.json)
 is accepted within its clean CP311 source/sdist/wheel/probe-SDK boundary.
-Stage11A immutable reference assets and [Stage12A explicit/lazy imports](stages/stage12/lazy-imports/validation/checkpoint.json)
+Stage11A immutable reference assets, [Stage11B commands](stages/stage11/commands/validation/checkpoint.json), and [Stage12A explicit/lazy imports](stages/stage12/lazy-imports/validation/checkpoint.json)
 are accepted at their affected CP311 source/installed boundaries. Other Stage10 release/version obligations,
 remaining Stage11–12, optional scientific activation and global acceptance remain open**.
 Historical C62 Stage6 delivery and C61 validated Stage6 runtime retain their own
@@ -2429,8 +2429,12 @@ implementations.
 The [Stage11A reference checkpoint](stages/stage11/reference-assets/validation/checkpoint.json)
 accepts the two immutable JSON relocations and their sole loader/test/package
 consumers within affected CP311 source/installed evidence. No data or public
-snapshot semantics changed. Other command, legacy-template, MolProps and
-dataset distribution decisions retain their separate scope and status.
+snapshot semantics changed. The [Stage11B command checkpoint](stages/stage11/commands/validation/checkpoint.json)
+accepts Decision12's one commands owner, retired main/works implementations and
+actual multirecord/file/directory conversion within CP311 source/installed
+boundaries. All192applicable outcomes agree; actual optional training/optimization
+execution remains unverified because dependencies are absent. Decision13 legacy-template,
+MolProps and dataset distribution choices retain their separate scope and status.
 
 1. Consolidate `main`/`works` command handlers into `commands` while retaining
    command names and arguments.
@@ -2990,7 +2994,7 @@ approvals. Stage1 can collect baselines while public decisions are pending.
 | 9 | sole six-parameter Crystal, angstrom/degrees, characterize matrix convention, explicit export and placeholder removal | public additions/removals pending review |
 | 10 | old core-path pickle compatibility requires an explicit migration decision; no silent compatibility module | pending historical-asset audit and owner decision |
 | 11 | **replace old keep-array recommendation** with benchmarked private `_AtomFactTable` typed columns/blocks, one schema and Atom projections; no unrelated Bond rewrite | new storage requirement owner-directed; public access signatures pending |
-| 12 | consolidate main/works command tree preserving commands/arguments; may defer independently | tail-stage scope pending |
+| 12 | consolidate main/works command tree preserving commands/arguments | implemented; [Stage11B](stages/stage11/commands/validation/checkpoint.json) bounded CP311 source/installed acceptance, actual optional research execution remains unverified |
 | 13 | consolidate chemistry asset ownership with manifests; may defer independently | tail-stage scope pending |
 | 14 | documented advanced pure-rule imports may be public; mutating controllers stay private | any advanced public exports pending review |
 | 15 | amend Plan19 budget for sole Atom table, identity infrastructure, finite dirty metadata, typed facts/results; no second topology index/Graph/general cache | new private requirements owner-directed; full budget recorded for review |

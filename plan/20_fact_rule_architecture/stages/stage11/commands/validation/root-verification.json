@@ -1,0 +1,57 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CP311_STAGE11B",
+  "source_commit": "cc9ae780b874382855b06f81ddb23ba94ab3bd44",
+  "commands": [
+    "python -B /tmp/hotpot_plan20/long/stage11-commands-20261104/root-review01/verify.py"
+  ],
+  "source_bindings_verified": 1520,
+  "additional_bindings_verified": 21,
+  "native_bindings_verified": 6,
+  "deleted_source_owners": 7,
+  "runtime_rows_source_wheel_sdist_installed_verified": 514,
+  "source_counts": {
+    "passed": 191,
+    "failed": 0,
+    "error": 0,
+    "skipped": 2
+  },
+  "installed_counts": {
+    "passed": 190,
+    "failed": 0,
+    "error": 0,
+    "skipped": 2
+  },
+  "source_only_cases": [
+    {
+      "id": "tests.test_packaging_metadata::test_artifact_pointers_are_owned_by_the_inference_operation_package",
+      "outcome": "passed",
+      "skip_reason": null
+    }
+  ],
+  "paired_applicable_results_equal": true,
+  "module_origins": {
+    "source01": 615,
+    "installed01": 615,
+    "installed02": 615
+  },
+  "wheel": {
+    "path": "/tmp/hotpot_plan20/long/stage11-commands-20261104/integration01/packaging01/dist/hotpot_zzy-0.5.4.5-cp311-cp311-linux_x86_64.whl",
+    "sha256": "ee34942cbf958bffd267c416417718dd8437d3615d9e3b7002d9b809687617cf",
+    "bytes": 7092743
+  },
+  "sdist": {
+    "path": "/tmp/hotpot_plan20/long/stage11-commands-20261104/integration01/packaging01/dist/hotpot_zzy-0.5.4.5.tar.gz",
+    "sha256": "ca5f76e180b6d13f8968d03501f2eccba424c52ed7eecf05219e8615abad079f",
+    "bytes": 2827219
+  },
+  "first_installed_failure": "Preserved source-directory-only artifact-pointer test; source pass and direct actual wheel/site manifest verification cover its two real boundaries.",
+  "limits": [
+    "Optional sklearn/xgboost/gpytorch absent in both checked runtimes; actual ml_train --help fails with missing sklearn, retained separately at each boundary.",
+    "Optional optimization and training adapter tests remain skipped; no optional scientific/model algorithm, external official xTB computation, GPU or broad model tier executed.",
+    "Retained xtb/run/ds tests cover their existing selected contracts, including fake xTB fixtures, not a new official backend qualification.",
+    "Packaging uses six unchanged frozen binaries, not a native rebuild, SDK/sdist rebuild, other-version or public-release qualification.",
+    "Installed metadata tests read byte-identical copied source metadata beside copied tests; runtime Hotpot modules import from the wheel site and their archive/files/origins are checked separately.",
+    "Origin plugin covers its pytest process; fresh import-order/coexistence tests and explicit CLI subprocess observations supply the selected child-process boundaries.",
+    "Root retains acceptance, maintained records, remaining scientific decisions and Git authority."
+  ]
+}

@@ -6,6 +6,9 @@ python v3.9.0
 @Data   : 2024/8/3
 @Time   : 15:48
 """
+import argparse
+from argparse import ArgumentError
+import logging
 import os
 import time
 import traceback as traceback_module
@@ -17,8 +20,76 @@ from pathlib import Path
 import multiprocessing as mp
 from tqdm import tqdm
 
-from ..cheminfo.adapters.openbabel._runtime import pybel as pb
 import hotpot as hp
+
+
+
+def add_arguments(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument("infile", type=str, help="input file")
+    parser.add_argument(
+        "-f",
+        "--output_file",
+        type=str,
+        help="output file or directory",
+    )
+    parser.add_argument("-i", "--inputs-format", type=str, help="input format")
+    parser.add_argument("-o", "--output-format", type=str, help="output format")
+
+
+def _to_smiles(reader, output_file, mode="w"):
+    with open(output_file, mode) as writer:
+        for mol in tqdm(reader):
+            writer.write(f"{mol.smiles}\n")
+
+
+def convert(input_file, output_file, out_fmt: str, in_fmt=None):
+    """Write canonical SMILES from one input file or a sorted input directory."""
+    if out_fmt != "smi":
+        raise NotImplementedError(
+            f"Unsupported output format {out_fmt!r}; convert supports only 'smi'"
+        )
+    input_file = Path(input_file)
+    output_file = Path(output_file)
+    if input_file.is_file():
+        input_files = [input_file]
+    elif input_file.is_dir():
+        if not isinstance(in_fmt, str):
+            raise IOError("the input format must be given, when the input file is a directory")
+        input_files = sorted(input_file.glob(f"*.{in_fmt}"))
+    else:
+        raise IOError("the given input file does not exist!!!")
+
+    for i, in_fp in enumerate(input_files):
+        logging.debug(f"adding new input file: {in_fp}")
+        print(f"read {i}th file ...")
+        if output_file.is_dir():
+            out_fp = output_file / f"{i}.{out_fmt}"
+            mode = "w"
+        else:
+            out_fp = output_file
+            mode = "w" if not i else "a"
+        _to_smiles(hp.MolReader(in_fp, in_fmt), out_fp, mode)
+
+
+def run(args: argparse.Namespace) -> int:
+    if args.inputs_format:
+        input_format = args.inputs_format
+    elif os.path.isfile(args.infile):
+        input_format = Path(args.infile).suffix[1:]
+    else:
+        input_format = "smi"
+
+    if args.output_format:
+        output_format = args.output_format
+    elif input_format != "smi":
+        output_format = "smi"
+    else:
+        raise ArgumentError(None, "The output format is not specified")
+    if args.output_file is None:
+        raise ArgumentError(None, "The output file or directory is not specified")
+    convert(args.infile, args.output_file, output_format, input_format)
+    print("Done !!!")
+    return 0
 
 
 _PROCESS_POLL_INTERVAL = 0.01
@@ -96,6 +167,8 @@ def convert_sdf_to_smiles(
         smiles_dir: Union[str, Path],
         split_number: int = 1000000
 ) -> None:
+    from ..cheminfo.adapters.openbabel._runtime import pybel as pb
+
     sdf_dir = Path(sdf_dir)
     smiles_dir = Path(smiles_dir)
     if not smiles_dir.is_dir():

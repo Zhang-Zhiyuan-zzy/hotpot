@@ -12,7 +12,9 @@ Cell generation is root-accepted at the
 [1,038-test source/installed CP311 checkpoint](domain/validation/generation_report.md).
 Placed relations have a bounded
 [1,068-test CP311 checkpoint](domain/validation/relation_report.md).
-Remaining Stage15D periodic findings and15E–F remain open. The
+Explicit finite-loop linking has a bounded
+[1,128-test CP311 checkpoint](domain/validation/linking_report.md).
+Remaining Stage15D periodic contact/surface findings and15E–F remain open. The
 [detailed plan](review.md) starts with the complete proposed **Crystal,
 SpaceGroup and SymmUnit** tree, then one exact affine algebra, molecular
 copying/cell expansion, complete possible-molecule relations and periodic

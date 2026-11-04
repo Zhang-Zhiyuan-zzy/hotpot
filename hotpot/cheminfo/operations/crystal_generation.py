@@ -35,14 +35,14 @@ def _arrays(record):
             np.frombuffer(record.atom_sources, dtype='u1').reshape(-1, len(ATOM_FIELDS)))
 
 
-def _capture_input(crystal, molecule):
+def _capture_input(crystal, molecule, *, require_group=True):
     if molecule is None:
         raise ValueError('CRYSTAL-UNSUPPORTED-PROJECTION: generation requires contained Molecule facts')
     if crystal._molecule is not molecule or molecule._crystal is not crystal:
         raise RuntimeError('CRYSTAL-CONTEXT-INTEGRITY: active Crystal association changed')
     _coordinates(molecule)
     record, metadata = molecule._capture_factual_record(include_frames=False)
-    if record.cell[2] is None:
+    if require_group and record.cell[2] is None:
         raise ValueError('CRYSTAL-CONTEXT-INTEGRITY: cell projection requires a known active group')
     return replace(record, bond_metadata=tuple(_freeze_value(item) for item in metadata))
 

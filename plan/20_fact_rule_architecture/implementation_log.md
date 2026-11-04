@@ -10208,3 +10208,39 @@ exact source/wheel/results and limits. LocalSol/xhigh independently prepares
 finite-loop mathematics in its assigned artifact directory; root alone edits
 worktree/query owners. No external helper or prohibited toolkit work.15D2/E/F,
 14D and overall acceptance stay open; no fourth P20-D036 retry occurs.
+
+
+### 2026-11-05 — Stage15D2 finite-loop and periodic-geometry entry
+
+Continue from pushed b984bf9b1fae8c2cca0e0dbfb25582995f79d7a7 with a clean
+Stage15 worktree. Root reuses the unchanged full-plan/companion alignment,
+rereads governance references, effective goal, accepted15A/15D contracts,
+review§4.3/4.4 and actual graph/geometry/record owners. Root reviews the local
+Sol/xhigh isolated polygonal Gauss derivation and tests before integration.
+D2a publishes explicit image-labelled finite-loop linking, including actual
+directed Bond closure, exact separation and numerical integer resolution; it
+requires a known cell but no invented group. D2b then integrates prepared
+metric neighborhoods and periodic surface/contact findings. The same local
+child has exclusive artifact-only periodic-neighbor implementation/test
+ownership; root alone edits the worktree and owns acceptance/Git. Three
+unsuccessful bounded attempts stop that issue and preserve dependency impact;
+independent15E/14D work may advance. D2a alone closes no full15D/15E/F/14D gate.
+
+
+### Stage15D2a finite-loop linking qualification
+
+Actual directed Bond/image closure and the reviewed exact-separation/interval
+polygonal Gauss helper are integrated.60new checks pass; complete affected
+CP311source and outside-checkout installed each1128pass/0fail/0error/0skip.
+Installed205correct origins/0violations,920site/36support files unchanged;
+six native payloads unchanged, repack only. No bounded integration failure.
+Known-group requirement is disabled only for explicit loop geometry, preserving
+unknown group facts. Nonzero/None warning codes are separate from retained
+values; code breaks leave source unchanged. Whitehead zero is not unlinking.
+Current-only4/8/16vertex-per-loop medians13.089115/49.048528/189.000507ms,
+onewarmup/fivesamples/separate memory;sharedload9.25/3.12/1.57. Root accepts
+bounded usability without comparison/leak/large-ring throughput claim. Archive
+8172137bytes/141members,SHA256b99d2ce19018bb7de7f3fa93f58532c49331022bcc78997eb935cec62ebe57a6
+at .plan20-artifacts/20261105/stage15/finite-linking. Exact source/wheel/checks
+and limits are in linking_checkpoint.json/linking_report.md.15D2b/E/F/14D and
+overall completion remain open; no unrelated owner work is staged.

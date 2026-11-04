@@ -106,6 +106,10 @@ class Crystal:
         from ..operations.crystal_matching import _molecular_symmetry
         return _molecular_symmetry(self, molecule, tolerance)
 
+    def linking_number(self, first_cycle, second_cycle, *, tolerance):
+        from ..operations.crystal_geometry import _linking_number
+        return _linking_number(self, first_cycle, second_cycle, tolerance)
+
     def copy(self):
         from ..operations.crystal import _copy_crystal
         return _copy_crystal(self)

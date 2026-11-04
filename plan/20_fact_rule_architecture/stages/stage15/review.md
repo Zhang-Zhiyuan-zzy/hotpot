@@ -18,7 +18,8 @@ Root accepted the standalone exact domain on2026-11-05; see
 One-placement action is accepted at [874 source/installed CP311 checks](domain/validation/action_report.md).
 Generation15C is accepted at [1,038 source/installed CP311 checks](domain/validation/generation_report.md).
 Placed relations15D1 are accepted at[1,068 source/installed CP311 checks](domain/validation/relation_report.md).
-Remaining periodic observations15D2, formats15E and delivery15F remain open. The accepted
+Finite-loop linking15D2a is accepted at[1,128 source/installed CP311 checks](domain/validation/linking_report.md).
+Remaining periodic contact/surface observations15D2b, formats15E and delivery15F remain open. The accepted
 [15A decision](domain/contracts/decisions.md) resolves the proposal choices below.
 
 ## 1. Complete proposed public tree — before implementation

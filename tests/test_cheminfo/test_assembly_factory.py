@@ -53,6 +53,16 @@ class _SelectivePause:
         return {'CC': None}
 
 
+class _ReadySelectivePause(_SelectivePause):
+    def __init__(self, ready):
+        self.ready = ready
+
+    def graft(self, frame):
+        if frame.atoms[0].atomic_number == 7:
+            self.ready.set()
+        return super().graft(frame)
+
+
 class _AbruptExit:
     def graft(self, frame):
         os._exit(7)
@@ -255,7 +265,7 @@ def test_unknown_worker_error_keeps_type_direct_cause_and_full_remote_traceback(
     output = tmp_path / 'partial.smi'
     factory = AssembleFactory([_UnknownFailure()], iter_step=1, catch_path=output)
     with pytest.raises(ValueError, match='unknown action failure') as caught:
-        factory.mp_make(['C'], nproc=1, timeout=2)
+        factory.mp_make(['C'], nproc=1, timeout=0)
     assert isinstance(caught.value.__cause__, KeyError)
     assert caught.value.__notes__[0] == 'original action note'
     remote = '\n'.join(caught.value.__notes__)
@@ -278,7 +288,7 @@ def test_failed_result_save_keeps_original_error_and_existing_notes(monkeypatch,
     monkeypatch.setattr(factory, '_save_results', fail_save)
     with pytest.raises(ValueError, match='unknown action failure') as caught:
         if parallel:
-            factory.mp_make(['C'], nproc=1, timeout=2)
+            factory.mp_make(['C'], nproc=1, timeout=0)
         else:
             factory.make([read_mol('C')])
     assert isinstance(caught.value.__cause__, KeyError)
@@ -293,20 +303,44 @@ def test_failed_result_save_keeps_original_error_and_existing_notes(monkeypatch,
 def test_unpicklable_error_fails_explicitly_with_original_traceback(owned_workers):
     factory = AssembleFactory([_UnpicklableFailure()], iter_step=1)
     with pytest.raises(RuntimeError, match='assembly.error_transport') as caught:
-        factory.mp_make(['C'], nproc=1, timeout=2)
+        factory.mp_make(['C'], nproc=1, timeout=0)
     assert 'unpicklable action failure' in str(caught.value)
     assert 'ValueError' in str(caught.value)
     assert 'graft' in str(caught.value)
 
 
-def test_timeout_identifies_batch_and_persists_completed_results(tmp_path, owned_workers):
+def test_timeout_identifies_batch_and_persists_completed_results(tmp_path, monkeypatch, owned_workers):
     output = tmp_path / 'partial.smi'
-    factory = AssembleFactory([_SelectivePause()], iter_step=1, catch_path=output)
+    ready = mp.Event()
+    factory = AssembleFactory([_ReadySelectivePause(ready)], iter_step=1, catch_path=output)
+
+    class PayloadClock:
+        completed = False
+        sleep = staticmethod(time.sleep)
+
+        def monotonic(self):
+            return float(self.completed and ready.is_set())
+
+    clock = PayloadClock()
+    get_desc = factory.get_desc
+
+    def observe_completed_results(epoch, results):
+        if results == {'C', 'N', 'CC'}:
+            clock.completed = True
+        return get_desc(epoch, results)
+
+    # Cold imports consume no test-clock time. Advance exactly to the bound
+    # after the healthy result is processed and the other worker is delayed.
+    monkeypatch.setattr(factory_module, 'time', clock)
+    monkeypatch.setattr(factory, 'get_desc', observe_completed_results)
     with pytest.raises(TimeoutError, match='assembly.batch_timeout') as caught:
         factory.mp_make(['C', 'N'], nproc=2, batch_size=1, timeout=1)
     diagnostic = str(caught.value)
     assert 'epoch=0, batch=' in diagnostic and "inputs=['N']" in diagnostic
     assert 'timeout=1s' in diagnostic
+    assert 'elapsed=1.000000s' in diagnostic
+    assert clock.completed and ready.is_set()
+    assert 'known_results=3' in diagnostic
     assert 'completed_batches=1' in diagnostic
     assert 'completed_input_assembler_pairs=1' in diagnostic
     assert set(output.read_text().splitlines()) == {'C', 'N', 'CC'}

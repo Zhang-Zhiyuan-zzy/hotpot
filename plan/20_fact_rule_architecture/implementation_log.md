@@ -8647,3 +8647,96 @@ stdlib probes under .plan20-artifacts/20261104/stage12/assembly-note-portability
 maintained final-delivery index is assembly-note-portability.json. This bounded
 source repair does not place new Python bytes in old wheels or close global
 gates. New final packaging and affected installed checks remain required.
+
+
+### 2026-11-04 — Completed official Eu xTB and original-version evidence review
+
+The single authorized installed Eu execution completes RC0/2492.451614s with
+187case reports,369eligible target slots/738route slots,1105actual optimization
+launches/stages(1086succeeded,19backend failures),2211version probes and0worker
+errors/timeouts. All5noneligible complexes remain. Ligand direct/GFNFF→GFN2
+outcomes are180/181monitor-passed,3/2backend failures,4/4final-geometry failures;
+complex outcomes161/167passed,8/6backend failures,13/9final-geometry failures.
+All5intermediate warnings and upstream failed-quality inputs remain. Case61's
+ligand routes fail final geometry while both complex routes pass their monitors;
+no historical count or chemical-truth verdict is imposed.
+
+Root independently hashes14791original result files(1917460446bytes), verifies
+all49nonpassing retained SDFs have complete finite coordinate rows, and copies
+all raw work/report/resource evidence into the durable final-plan12-eu-xtb
+archive(14882payloads), verifying the copied result identities. All19backend
+failures retain last_finite.sdf;30final-geometry failures retain final.sdf, with
+separate uncommitted failed-native observations preserved. Actual installed
+origins have0violations/hash mismatches and20runtime backend-library bindings
+match. Original556b21e wheel/site/input/cohort/backend remain authoritative;
+current working_copy.py/assembler.py mismatches are deliberate newer repairs,
+not falsely described as unchanged current-source evidence. Shared-load timing
+is functionality only. The maintained index is final-delivery/validation/
+plan12-eu-xtb.json. No current-source/global/Stage12/B_exp acceptance follows.
+
+Originalec4d618installed/default first invocations also complete:CP3106808pass/
+4fail/140skip/3strictxfail/49subtests;CP3136679pass/133fail/140skip/3strictxfail/
+49subtests. Their510-file product guards remain unchanged; failure groups match
+their source counterparts exactly. All4source/installed results and direct
+stdlib probes are durably archived and indexed by ec4d618-version-observations.
+json. Do not relabel old artifacts as repaired-source passes or rerun their
+unchanged work; final repaired packaging/affected evidence remains separate.
+
+
+### 2026-11-04 — Repaired-source same-sdist five-ABI build release
+
+LocalSol/high preparation freezes committed436e027690a0b0f4125c11e3bf3259423c716573
+(tree3772c618289a0690a3598890fee81155ba3efe18), excluding plan/untracked material
+before archive. All1542selected files match Git; sdist inventory matches prior
+with exactly the two intended Python member changes and157native/build inputs
+unchanged. Root independently checks both actual repair bodies in the tarball,
+clean current product relative to436e027, exact sdist bytes/digest and available
+CPU0-127. The new single sdist is2858329bytes, SHA256
+ef26bd83b21eebe968f87194d48a698df3f40e43de2d146932a11ba5f6b76dc6.
+
+Release one actual clean/repaired build per310/311/312/313/314on respective
+CPU72-79/80-87/96-103/112-119/120-127,8compile threads and distinct mutable caches.
+Preserve exact original pinned manylinux image/profile/dependencies, read-only
+RDKit source archives, both release smokes and six native extensions. No retry,
+component relabeling or mutation of old artifacts. Source exclusions, five
+unchanged non-code omissions, two non-sdist regression tests and original
+pattern warnings remain explicit. This build release is not a functional,
+scientific, performance, support or final-stage acceptance. Concrete release
+and actual executions live under stage12-repaired-delivery-20261104.
+
+
+### 2026-11-04 — CP314 startup-independent assembly checker slice
+
+The four retainedCP314failures concern short fixture timing before cold-worker
+entry, so release only the existing assembly test file to a separate local
+Sol/medium worker(cp314_assembly_checks). The product timeout semantics, default
+multiprocessing context and actual workers stay intact. Isolate error transport
+from startup timing with a finite outer-run bound; make the timeout case expire
+only after the healthy payload is actually observed using a small scoped test
+clock/readiness control, retaining its1s asserted threshold, partial results,
+failed record and cleanup. Do not merely enlarge deadlines, forcefork, skip or
+alter production. Root reviews evidence beforeP20-D031closure. Fresh isolated
+CP311thenCP314assembly runs use unchanged ABI components and CPU64-71. The
+frozen436e027sdist/builds and CrystalSol/max's exclusive documents are untouched.
+
+
+### 2026-11-04 — Root acceptance of startup-independent assembly fixtures
+
+The localSol/medium worker changes only test_assembly_factory.py. Error-transport
+cases no longer race a2s inner limit against cold imports. The timeout case
+keeps real default-context workers, delayed nitrogen task, timeout1s and original
+partial-result/cleanup expectations. A factory-only test clock reaches exactly
+1s after actual healthy results and delayed-worker readiness; unrelated process
+survival remains checked. Actual commands retain a240s outer termination bound.
+Fresh isolatedCP311/fork andCP314/forkserver full-file runs each pass34tests with
+0fail/error/skip. Root independently verifies theirJUnit,1521unchanged source
+files and6ABI-native components each, committed436e027assembler and dirty test
+identity cea0e80b3695828ac9cd73b1bc98d4d2809f32b924df0b56b6f28fde277fd068.
+
+Raw commands/environments/runtime/origins/outcomes/patch and root review are
+durably copied and verified under .plan20-artifacts/20261104/stage12/
+assembly-startup-checker; maintained index assembly-startup-checker.json closes
+P20-D031 within thisCP311/CP314source scope. Original failures stay archived.
+No product timeout/process policy, frozen build bytes, installed evidence,
+scientific behavior or performance claim changes. Annotation and other-version
+checks/global acceptance remain separately scoped.

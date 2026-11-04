@@ -75,3 +75,7 @@ Consolidated cross-stage optimization and deferred-item review use the
 
 - [FF allocation-failure rollback source repair](final-delivery/validation/forcefield-rollback-repair.json)
 - [Assembly exception-note portability and remaining CP314 evidence](final-delivery/validation/assembly-note-portability.json)
+- [Startup-independent assembly checks and bounded D031 closure](final-delivery/validation/assembly-startup-checker.json)
+
+- [Official installed Eu xTB four routes and retained finite failures](final-delivery/validation/plan12-eu-xtb.json)
+- [Original ec4d618 CP310/313 source and installed outcomes](final-delivery/validation/ec4d618-version-observations.json)

@@ -1,0 +1,37 @@
+{
+  "scope": "P20-D031 startup-independent assembly validator repair; no product timeout change",
+  "source_commit": "436e027690a0b0f4125c11e3bf3259423c716573",
+  "dirty_test": "tests/test_cheminfo/test_assembly_factory.py",
+  "dirty_test_sha256": "cea0e80b3695828ac9cd73b1bc98d4d2809f32b924df0b56b6f28fde277fd068",
+  "status": "CLOSED_WITHIN_TESTED_CP311_CP314_SOURCE_SCOPE",
+  "business_contract": "Actual worker errors and causes/notes remain visible; timeout retains completed results, exact per-batch attribution and owned cleanup while unrelated children survive.",
+  "change": "Error-transport tests have no inner timeout. The timeout fixture advances a factory-local clock to its unchanged 1s boundary after real healthy results and delayed-worker readiness; an outer 240s process bound remains.",
+  "runs": {
+    "cp311": {
+      "passed": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "default_start_method": "fork",
+      "argv_record": ".plan20-artifacts/20261104/stage12/assembly-startup-checker/cp311/intent.json",
+      "junit": ".plan20-artifacts/20261104/stage12/assembly-startup-checker/cp311/junit.xml"
+    },
+    "cp314": {
+      "passed": 34,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "default_start_method": "forkserver",
+      "argv_record": ".plan20-artifacts/20261104/stage12/assembly-startup-checker/cp314/intent.json",
+      "junit": ".plan20-artifacts/20261104/stage12/assembly-startup-checker/cp314/junit.xml"
+    }
+  },
+  "root_review": ".plan20-artifacts/20261104/stage12/assembly-startup-checker/root-review.json",
+  "archive": ".plan20-artifacts/20261104/stage12/assembly-startup-checker",
+  "original_failures": "stages/stage12/final-delivery/validation/assembly-note-portability.json",
+  "limits": [
+    "Isolated source, six unchanged ABI-matched prebuilt components; not rebuilt/installed-wheel acceptance.",
+    "No product timeout or multiprocessing context change; not wall-time performance evidence.",
+    "Unchanged annotation test not rerun; other ABIs and global support/acceptance remain separate."
+  ]
+}

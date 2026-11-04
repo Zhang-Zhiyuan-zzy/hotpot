@@ -1,0 +1,158 @@
+{
+  "schema": "plan20-bounded-scientific-observation-v1",
+  "status": "BOUNDED_INSTALLED_SCIENTIFIC_OBSERVATION_ACCEPTED_CURRENT_SOURCE_GATE_OPEN",
+  "source_commit": "556b21ef40668d728ccfa1b7e4b478a66c23f150",
+  "current_product_checkpoint": "436e027",
+  "source_scope": "Original556b21e installed CP311 product; current FF rollback and assembly-note repairs are independently scoped, not part of this wheel.",
+  "wheel_sha256": "31ca3d416683603a4731788efe79d2206b92e9b9b5dec93d0c0848baff12d583",
+  "backend_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887",
+  "returncode": 0,
+  "elapsed_seconds": 2492.451614,
+  "observations": {
+    "cases": 187,
+    "eligible_targets": 369,
+    "eligible_routes": 738,
+    "stages": 1105,
+    "stage_successes": 1086,
+    "stage_backend_failures": 19,
+    "version_probes": 2211,
+    "noneligible_complex": 5
+  },
+  "route_outcomes": {
+    "complex": {
+      "direct-gfn2": {
+        "failed_backend": 8,
+        "failed_final_quality": 13,
+        "passed": 161
+      },
+      "gfnff-gfn2": {
+        "failed_backend": 6,
+        "failed_final_quality": 9,
+        "passed": 167
+      }
+    },
+    "ligand": {
+      "direct-gfn2": {
+        "failed_backend": 3,
+        "failed_final_quality": 4,
+        "passed": 180
+      },
+      "gfnff-gfn2": {
+        "failed_backend": 2,
+        "failed_final_quality": 4,
+        "passed": 181
+      }
+    }
+  },
+  "finite_retained_failure_structures": {
+    "failed_backend": 19,
+    "failed_final_quality": 30
+  },
+  "case61": [
+    {
+      "target": "ligand",
+      "route": "direct-gfn2",
+      "status": "failed_final_quality"
+    },
+    {
+      "target": "ligand",
+      "route": "gfnff-gfn2",
+      "status": "failed_final_quality"
+    },
+    {
+      "target": "complex",
+      "route": "direct-gfn2",
+      "status": "passed"
+    },
+    {
+      "target": "complex",
+      "route": "gfnff-gfn2",
+      "status": "passed"
+    }
+  ],
+  "integrity": {
+    "origin_violations": [],
+    "origin_hash_mismatches": [],
+    "backend_library_binding_mismatches": [],
+    "backend_runtime_library_unbound": [],
+    "post_binding_mismatches": [
+      "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/operations/assembly/assembler.py",
+      "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/operations/forcefields/working_copy.py"
+    ]
+  },
+  "scientific_attempts": 1,
+  "retries": 0,
+  "formal_performance_accepted": false,
+  "archive": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261104/stage12/final-plan12-eu-xtb",
+    "payload_count": 14882,
+    "payload_bytes": 1995205214,
+    "manifest_sha256": "a603e42eda4469ce0f7f02f33dfa1f8ea7947f5a863cd039660c732e94aa2d83"
+  },
+  "root_review": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/root-eu-xtb-review01/review.json",
+  "limits": [
+    "Observed original556b21e installed CP311 product and exact official backend, not a relabeled repaired checkout.",
+    "All failures and finite observations retained; no historical count forcing, rerun or optional activation.",
+    "Shared-load instrumented functionality only; no formal performance or global/Stage12/B_exp acceptance."
+  ],
+  "argv": [
+    "taskset",
+    "--cpu-list",
+    "0-63",
+    "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+    "-s",
+    "-B",
+    "-m",
+    "tests.benchmarks.coordination_complexes.xtb_benchmark",
+    "--official",
+    "--input",
+    "/home/zhangzhiyuan/hotpot/molecules/extractant/extractants.smi",
+    "--cohort",
+    "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-uff-installed01/results/canonical_cases.json",
+    "--source",
+    "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-uff-installed01/results",
+    "--output",
+    "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-xtb-installed01/results",
+    "--routes",
+    "both",
+    "--targets",
+    "both",
+    "--workers",
+    "16",
+    "--threads",
+    "4",
+    "--timeout",
+    "1000",
+    "--quality",
+    "standard",
+    "--ligand-charge",
+    "0",
+    "--ligand-uhf",
+    "0",
+    "--complex-charge",
+    "3",
+    "--complex-uhf",
+    "6",
+    "--xtb-executable",
+    "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb"
+  ],
+  "cwd": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support",
+  "environment_overrides": {
+    "CUDA_VISIBLE_DEVICES": "",
+    "HF_HUB_OFFLINE": "1",
+    "HOTPOT_CBOND_DEVICE": "cpu",
+    "HOTPOT_CBOND_MODEL_DIR": "/tmp/hotpot_plan20/medium/cbond-model-cache-20261103/artifacts/cbond/1/adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe/cbond/v1",
+    "HOTPOT_EXPECTED_PRODUCT": "/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site",
+    "HOTPOT_MODEL_SOURCE": "local",
+    "HOTPOT_PROCESS_ORIGIN_DIR": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-xtb-installed01/origins",
+    "HOTPOT_XTB_WORKER_OBSERVATIONS": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-xtb-installed01/worker-observations",
+    "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "OPENBLAS_NUM_THREADS": "1",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "PYTHONNOUSERSITE": "1",
+    "PYTHONPATH": "/tmp/hotpot_plan20/long/stage12-final-plan12-20261104/eu-xtb-installed01/observer:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/site:/tmp/hotpot_plan20/long/stage12-final-default-20261104/installed-preparation02/test-support"
+  }
+}

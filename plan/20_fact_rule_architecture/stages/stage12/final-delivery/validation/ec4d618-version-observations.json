@@ -1,0 +1,89 @@
+{
+  "schema": "plan20-bounded-validation-v1",
+  "status": "ORIGINAL_EC4D618_SOURCE_AND_INSTALLED_OUTCOMES_RETAINED_NOT_ALL_PASSED",
+  "source_commit": "ec4d61889a7262df765da29082e405b3c612cd15",
+  "runs": [
+    {
+      "abi": "cp310",
+      "mode": "source",
+      "command_receipt": "/tmp/hotpot_plan20/long/stage12-final-version-support-20261104/execution01/cp310/source-default01/intent.json",
+      "returncode": 1,
+      "elapsed_seconds": 678.3922033309937,
+      "product_unchanged": true,
+      "product_files_guarded": 510,
+      "junit": {
+        "tests": 7035,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 169
+      },
+      "pytest_summary": "4 failed, 6813 passed, 166 skipped, 2 deselected, 3 xfailed, 6 warnings, 49 subtests passed in 675.09s (0:11:15)",
+      "failure_disposition": "2FFrollback+1assembly-note API defect fixed in30f3dcb/436e027;1stdlib annotation fixture corrected in436e027; old wheel/source remains unchanged."
+    },
+    {
+      "abi": "cp310",
+      "mode": "installed",
+      "command_receipt": "/tmp/hotpot_plan20/long/stage12-final-version-support-20261104/execution01/cp310/installed-default01/intent.json",
+      "returncode": 1,
+      "elapsed_seconds": 682.8148362636566,
+      "product_unchanged": true,
+      "product_files_guarded": 510,
+      "junit": {
+        "tests": 7004,
+        "failures": 4,
+        "errors": 0,
+        "skipped": 143
+      },
+      "pytest_summary": "4 failed, 6808 passed, 140 skipped, 33 deselected, 3 xfailed, 6 warnings, 49 subtests passed in 679.88s (0:11:19)",
+      "failure_disposition": "2FFrollback+1assembly-note API defect fixed in30f3dcb/436e027;1stdlib annotation fixture corrected in436e027; old wheel/source remains unchanged."
+    },
+    {
+      "abi": "cp313",
+      "mode": "source",
+      "command_receipt": "/tmp/hotpot_plan20/long/stage12-final-version-support-20261104/execution01/cp313/source-default01/intent.json",
+      "returncode": 1,
+      "elapsed_seconds": 673.5302627086639,
+      "product_unchanged": true,
+      "product_files_guarded": 510,
+      "junit": {
+        "tests": 7035,
+        "failures": 133,
+        "errors": 0,
+        "skipped": 169
+      },
+      "pytest_summary": "133 failed, 6684 passed, 166 skipped, 2 deselected, 3 xfailed, 87 warnings, 49 subtests passed in 670.04s (0:11:10)",
+      "failure_disposition": "133AST fingerprint checker-format failures; no scientific algorithm fix or blanket pass; P20-D030."
+    },
+    {
+      "abi": "cp313",
+      "mode": "installed",
+      "command_receipt": "/tmp/hotpot_plan20/long/stage12-final-version-support-20261104/execution01/cp313/installed-default01/intent.json",
+      "returncode": 1,
+      "elapsed_seconds": 679.7226629257202,
+      "product_unchanged": true,
+      "product_files_guarded": 510,
+      "junit": {
+        "tests": 7004,
+        "failures": 133,
+        "errors": 0,
+        "skipped": 143
+      },
+      "pytest_summary": "133 failed, 6679 passed, 140 skipped, 33 deselected, 3 xfailed, 86 warnings, 49 subtests passed in 676.71s (0:11:16)",
+      "failure_disposition": "133AST fingerprint checker-format failures; no scientific algorithm fix or blanket pass; P20-D030."
+    }
+  ],
+  "archive": {
+    "path": ".plan20-artifacts/20261104/stage12/ec4d618-version-observations/source-and-installed.tar.gz",
+    "bytes": 19186272,
+    "sha256": "ba54f9a62754cf01c2a0e72aa472731dcaa6a64df0ec08eb6178af33a0fc8932",
+    "manifest_path": ".plan20-artifacts/20261104/stage12/ec4d618-version-observations/manifest.json",
+    "manifest_sha256": "1ba142bebdb100fbbab2b512b0d0a7229f4b0f4493b4e84a8097b9d68a6b5b75",
+    "payload_count": 1810
+  },
+  "limits": [
+    "All4runs returned1; no all-version/source/wheel acceptance.",
+    "Installed default is a separate first invocation after source-default failure, not a rerun or substitution.",
+    "Old artifacts lack30f3dcb/436e027 repairs; fresh repaired-source packaging and affected installed checks remain required.",
+    "Default technical tier does not include full scientific/model/GPU/performance support."
+  ]
+}

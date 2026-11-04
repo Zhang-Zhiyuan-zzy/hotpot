@@ -54,9 +54,12 @@ first attempts do not prove injected recovery, and fixture GPU labels are not
 CUDA execution. Export corrections released afterward require affected final
 package requalification while frozen native/model jobs retain their inputs.
 
-One final committed-source sdist has produced the clean/repaired CP311 wheel;
-its maintained release smokes and content audit pass. Other ABI builds and
-outside-checkout qualification remain in progress. Actual model/GPU functional
+The original `ec4d618` five-ABI builds remain historical observations. The
+[repaired `436e027` same-sdist builds](validation/repaired-five-wheels.json) now
+complete all five ABIs: each newly compiles six native components and passes its
+actual maintained installation smokes. Root independently verifies all510Python/
+stub members, both product repairs and six native payloads in every wheel.
+Affected outside-checkout qualification remains open. Actual model/GPU functional
 observations use a preregistered method-specific numeric policy; instrumented
 correctness timings are not performance evidence.
 
@@ -68,3 +71,7 @@ retain their separate entry gates.
 - [Inactive Plan12 corpus/replay](validation/plan12-inactive-dry2280.json)
 - [Eu reference](validation/plan12-eu-reference.json)
 - [Independent UFF/canonical cohort](validation/plan12-eu-uff.json)
+
+- [Official installed Eu xTB routes and retained finite failures](validation/plan12-eu-xtb.json)
+- [Portable semantic AST checker and bounded D030 closure](validation/ast-checker-portability.json)
+- [Repaired same-sdist five-ABI builds and installation smokes](validation/repaired-five-wheels.json)

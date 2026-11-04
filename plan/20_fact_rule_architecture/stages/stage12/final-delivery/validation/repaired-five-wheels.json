@@ -1,0 +1,88 @@
+{
+  "status": "ROOT_VERIFIED_FIVE_REBUILT_WHEELS_AND_RELEASE_SMOKES_INSTALLED_QUALIFICATION_OPEN",
+  "source_commit": "436e027690a0b0f4125c11e3bf3259423c716573",
+  "sdist": {
+    "path": "/tmp/hotpot_plan20/long/stage12-repaired-delivery-20261104/preparation01/sdist/hotpot_zzy-0.5.4.5.tar.gz",
+    "bytes": 2858329,
+    "sha256": "ef26bd83b21eebe968f87194d48a698df3f40e43de2d146932a11ba5f6b76dc6"
+  },
+  "source_python_stub_members_verified_per_wheel": 510,
+  "exact_repaired_product_paths": [
+    "hotpot/cheminfo/operations/assembly/assembler.py",
+    "hotpot/cheminfo/operations/forcefields/working_copy.py"
+  ],
+  "builds": [
+    {
+      "abi": "cp310",
+      "returncode": 0,
+      "elapsed_seconds": 1398.4910950921476,
+      "native_members_verified": 6,
+      "fresh_cpp_compilation_nodes_observed": 130,
+      "wheel": {
+        "bytes": 7369475,
+        "sha256": "06a32e462511b0f8bf8abba60725efe90056455385d2c5583c0330548ec324ba"
+      },
+      "artifact": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp310/wheelhouse/hotpot_zzy-0.5.4.5-cp310-cp310-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "execution": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp310/execution.json"
+    },
+    {
+      "abi": "cp311",
+      "returncode": 0,
+      "elapsed_seconds": 1566.1523252278566,
+      "native_members_verified": 6,
+      "fresh_cpp_compilation_nodes_observed": 130,
+      "wheel": {
+        "bytes": 7374947,
+        "sha256": "19ef45d9cd07ca7ba5daf4f2d60bb891b491cb45cc284bffeb617d7830827b55"
+      },
+      "artifact": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp311/wheelhouse/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "execution": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp311/execution.json"
+    },
+    {
+      "abi": "cp312",
+      "returncode": 0,
+      "elapsed_seconds": 1378.5884100720286,
+      "native_members_verified": 6,
+      "fresh_cpp_compilation_nodes_observed": 130,
+      "wheel": {
+        "bytes": 7400574,
+        "sha256": "64453d00986d27b89f7f4e1b3aa10127c2514e293fe9e15ca1b4eaf47d43f555"
+      },
+      "artifact": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp312/wheelhouse/hotpot_zzy-0.5.4.5-cp312-cp312-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "execution": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp312/execution.json"
+    },
+    {
+      "abi": "cp313",
+      "returncode": 0,
+      "elapsed_seconds": 1503.1584497932345,
+      "native_members_verified": 6,
+      "fresh_cpp_compilation_nodes_observed": 130,
+      "wheel": {
+        "bytes": 7400410,
+        "sha256": "77ac280207a61c2ace69bbeeffa5bd8a0604583fadf4a1e0000ff55d850f411c"
+      },
+      "artifact": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp313/wheelhouse/hotpot_zzy-0.5.4.5-cp313-cp313-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "execution": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp313/execution.json"
+    },
+    {
+      "abi": "cp314",
+      "returncode": 0,
+      "elapsed_seconds": 1430.4209904149175,
+      "native_members_verified": 6,
+      "fresh_cpp_compilation_nodes_observed": 130,
+      "wheel": {
+        "bytes": 7403250,
+        "sha256": "293ff90afeade78f23323689fcdcd7ce52940bf213ccaad9bf4675bd66ab520e"
+      },
+      "artifact": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp314/wheelhouse/hotpot_zzy-0.5.4.5-cp314-cp314-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "execution": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/cp314/execution.json"
+    }
+  ],
+  "archive": ".plan20-artifacts/20261104/stage12/repaired-five-wheels",
+  "root_review": ".plan20-artifacts/20261104/stage12/repaired-five-wheels/ROOT_WHEEL_REVIEW.json",
+  "limits": [
+    "Five actual fresh same-sdist ABI builds, six components each and actual maintained installation smokes; not full installed affected/default/business or global acceptance.",
+    "Byte identities establish delivery and attribution, not scientific equality.",
+    "Original source, installed and build failures retain their historical outcomes."
+  ]
+}

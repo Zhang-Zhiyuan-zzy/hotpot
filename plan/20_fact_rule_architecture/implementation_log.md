@@ -8793,3 +8793,69 @@ useful-training/query-review purposes and model-owned efficient feature inputs;
 CBond/MCA inference validation is affected-path-only. No frozenStage0-12 or
 Stage13gate changes. The precedingc8d7f37assembly-fixture/evidence checkpoint is
 committed and pushed; no consecutive documentation-only checkpoint is created.
+
+
+### 2026-11-04 — Owner SpaceGroup and SymmUnit follow-up planning assignment
+
+The owner asks that the dedicated independent local Sol/max Crystal reviewer
+continue the Stage15 planning work while mainline validation proceeds. The
+current proposed Crystal.operate(g) means a fresh transformed chemical placement
+under its existing cell/group, not adding a new generator or operation to the
+group. This meaning must be stated explicitly. The owner additionally requires
+SymmUnit magic methods for group algebra, a supported R/t/symbol operation table
+with closed algebra, and a SpaceGroup object as the sole symmetry/group fact
+carrier. Crystal.symm_units becomes a read-only derived group view, not a second
+stored operation list. A complete 230-type number/symbol/operator catalogue is
+required, with setting/origin and infinite-lattice-versus-finite-representative
+meanings explicit. This continues the approved Crystal objective and retains
+the ban on direct/indirect OpenBabel/RDKit/CCDC Python API calls.
+
+Root assigns a separate local GPT-6.1 Sol/max child exclusive ownership of the
+Stage15 README/review and necessary new Stage15 operation/catalogue documents
+and data. Root retains the main plan, shared indexes/log, Git, acceptance and
+all mainline production/tests. Child may research primary crystallographic
+sources and derive/verify immutable catalogue data, but may not implement the
+Crystal runtime, import Hotpot or the prohibited toolkit APIs, run unrelated
+tests, change dependencies/configuration or delegate further. Exact prospective
+contracts and catalogue checks must return to root before acceptance. Existing
+mainline jobs and frozen436e027delivery bytes remain unchanged; Stage15 runtime
+entry and all overall gates remain open.
+
+
+### 2026-11-04 — Portable scientific-state checker and rebuilt-wheel payload review
+
+P20-D030 is closed only in the tested isolated five-version source/checker
+scope. The minimal test serialization wrapper requests show_empty on Python3.13+
+and leaves the previous serialization on older interpreters. Root independently
+reviews all other AST nodes,30assertions, unchanged fingerprint maps, five actual
+stdlib witnesses and exact tested file identity. Each of CP310/311/312/313/314
+passes the complete166case file:830passes,0fail/error/skip. Each run attributes
+1521unchanged source files,6unchanged ABI-specific native components and399Hotpot
+file origins,0violations. Original CP313 source/installed failures remain failed
+historical receipts; no chemical or production change is inferred. Durable
+evidence is indexed by final-delivery/validation/ast-checker-portability.json.
+
+The terminal436e027 same-sdist clean/repaired build completed on all five ABIs.
+Root runs root-review01/verify_wheels.py and independently compares all510Python/
+stub members against committed436e027, exact assembly/FF repair members, and six
+native payloads per wheel. Every log contains130fresh C++compile nodes, the actual
+two-smoke installed shell command and terminal successful wheel production. Root
+archives24source/sdist/wheel/log/command/review files with verified copies at
+.plan20-artifacts/20261104/stage12/repaired-five-wheels. This is actual build/
+release-smoke evidence, not full installed acceptance or chemical equality. The
+final-delivery repaired-five-wheels.json retains all five artifact identities.
+
+Root reads the complete prepared202line installed-qualification supervisor, its
+selection guard and48immutable machinery identities. ROOT_RELEASE01.json permits
+only sequential affected technical commands, CP311 first:273installed cases each
+ABI plus35missing source assembly/annotation cases eachCP310/312/313. A failure
+stops further execution and retains its actual evidence; no retry or repair. The
+separate seven-case CP311 actual-business command remains held. This does not
+release a full-default/model/corpus/benchmark or any main-scope completion gate.
+
+Current-status summaries are reconciled to their already accepted Stage7C,
+Stage8A(A1–A11), Stage9 and Decision12/13 records. Historical nested limits and
+actual failure records are retained; D028 and final scientific/performance/
+release/global obligations stay open. No completed stage or new acceptance is
+created by those wording corrections. Dedicated local Sol/max SpaceGroup planning
+continues in exclusively owned Stage15 documents without changing frozen product.

@@ -20,8 +20,10 @@ bounded clean CP311 native migration; [Stage11A](stages/stage11/reference-assets
 accepts immutable reference assets, and [Stage12A](stages/stage12/lazy-imports/validation/checkpoint.json)
 accepts explicit/lazy imports. [Stage11B](stages/stage11/commands/validation/checkpoint.json)
 accepts the command cutover and actual conversion at CP311 source/installed boundaries.
-Decision13/D028/D029, optional research execution, other native/release/version
-obligations, final scientific/performance and full-plan acceptance remain open. The owner-approved [goal](goal.md) governs execution;
+[Stage11C](stages/stage11/legacy-assets/validation/checkpoint.json) closes
+Decision13 and D029 in the affected CP311 scope. D028 optional research
+execution, other native/release/version obligations, final scientific/performance
+and full-plan acceptance remain open. The owner-approved [goal](goal.md) governs execution;
 [goal_v1](goal_v1.md) is historical.
 
 Owner-directed additional task branches are registered as

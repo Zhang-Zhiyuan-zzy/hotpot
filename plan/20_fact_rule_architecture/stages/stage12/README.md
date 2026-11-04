@@ -79,3 +79,6 @@ Consolidated cross-stage optimization and deferred-item review use the
 
 - [Official installed Eu xTB four routes and retained finite failures](final-delivery/validation/plan12-eu-xtb.json)
 - [Original ec4d618 CP310/313 source and installed outcomes](final-delivery/validation/ec4d618-version-observations.json)
+
+- [Portable semantic AST checker and bounded D030 closure](final-delivery/validation/ast-checker-portability.json)
+- [Repaired same-sdist five-ABI builds and installation smokes](final-delivery/validation/repaired-five-wheels.json)

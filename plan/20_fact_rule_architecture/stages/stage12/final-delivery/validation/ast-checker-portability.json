@@ -1,0 +1,94 @@
+{
+  "scope": "P20-D030 semantic AST contract serialization portability; no product changes",
+  "status": "CLOSED_WITHIN_TESTED_PY310_PY314_SOURCE_CHECKER_SCOPE",
+  "product_source_commit": "436e027690a0b0f4125c11e3bf3259423c716573",
+  "test_path": "tests/test_cheminfo/calculator/test_scientific_state_ownership.py",
+  "test_sha256": "0f99239ca8a912eed58ff532f7815e3c6230cf26fd983aaaf6d68f9127894a78",
+  "business_contract": "Public scientific-state function/class contracts and all existing scientific assertions remain enforced. The interpreter-specific omission of empty AST fields is normalized only at checker serialization.",
+  "change": "Use ast.dump(show_empty=True) on Python3.13+; earlier versions retain the same existing serialization. No expected fingerprints, assertions, product or scientific algorithm changed.",
+  "checks": {
+    "all_other_ast_nodes_unchanged": true,
+    "existing_assertions_unchanged": 30,
+    "five_stdlib_contract_serializations_equal": true
+  },
+  "runs": {
+    "cp311": {
+      "counts": {
+        "tests": 166,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "unchanged_source_files_checked": 1521,
+      "native_components_checked": 6,
+      "observed_hotpot_file_origins_checked": 399,
+      "returncode": 0,
+      "argv_record": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp311/intent.json",
+      "junit": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp311/junit.xml"
+    },
+    "cp310": {
+      "counts": {
+        "tests": 166,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "unchanged_source_files_checked": 1521,
+      "native_components_checked": 6,
+      "observed_hotpot_file_origins_checked": 399,
+      "returncode": 0,
+      "argv_record": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp310/intent.json",
+      "junit": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp310/junit.xml"
+    },
+    "cp312": {
+      "counts": {
+        "tests": 166,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "unchanged_source_files_checked": 1521,
+      "native_components_checked": 6,
+      "observed_hotpot_file_origins_checked": 399,
+      "returncode": 0,
+      "argv_record": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp312/intent.json",
+      "junit": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp312/junit.xml"
+    },
+    "cp313": {
+      "counts": {
+        "tests": 166,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "unchanged_source_files_checked": 1521,
+      "native_components_checked": 6,
+      "observed_hotpot_file_origins_checked": 399,
+      "returncode": 0,
+      "argv_record": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp313/intent.json",
+      "junit": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp313/junit.xml"
+    },
+    "cp314": {
+      "counts": {
+        "tests": 166,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "unchanged_source_files_checked": 1521,
+      "native_components_checked": 6,
+      "observed_hotpot_file_origins_checked": 399,
+      "returncode": 0,
+      "argv_record": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp314/intent.json",
+      "junit": ".plan20-artifacts/20261104/stage12/ast-checker-portability/cp314/junit.xml"
+    }
+  },
+  "total_passed": 830,
+  "archive": ".plan20-artifacts/20261104/stage12/ast-checker-portability",
+  "root_review": ".plan20-artifacts/20261104/stage12/ast-checker-portability/ROOT_REVIEW.json",
+  "original_failures": "stages/stage12/final-delivery/validation/ec4d618-version-observations.json",
+  "limits": [
+    "Isolated source validation with unchanged prebuilt ABI components; no build, installed-wheel, final-wheel, full-default, model/engine or performance claim.",
+    "Original CP313 source/installed failures remain preserved in their original outputs."
+  ]
+}

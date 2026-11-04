@@ -90,7 +90,8 @@
     {
       "owner_stage": "Stage7C",
       "scope": "Reconcile ordinary public values, selected typed results and necessary internal diagnostics/provenance under existing approved interfaces.",
-      "status": "current acceptance open"
+      "status": "ROOT_ACCEPTED_CP311_OWNING_SCOPE; later/global obligations remain open",
+      "acceptance_record": "stages/stage07/selected-results/completion_20261103.json"
     },
     {
       "owner_stage": "Stage8A",
@@ -108,7 +109,8 @@
     {
       "owner_stage": "Stage9",
       "scope": "Current resolver/projector consumers and removal of obsolete duplicate scientific paths.",
-      "status": "current acceptance open"
+      "status": "ROOT_ACCEPTED_CP311_COLLECTION_AND_STAGE9; later/global obligations remain open",
+      "acceptance_record": "stages/stage09/collections/validation/checkpoint.json"
     },
     {
       "owner_stage": "Stage10",
@@ -238,7 +240,7 @@
       }
     }
   ],
-  "diagnostic_control_debt_limits": "Concrete later-owner assignment under existing Stage7C/8A scope; not implemented, not accepted, no waiver/new stage gate/optional scientific profile activation. Global finding-control acceptance remains open.",
+  "diagnostic_control_debt_limits": "Stage8A A10/A11 fulfilment is implemented and accepted within the recorded CP311 owning scope (stages/stage08/scientific-state/completion_20261103.json); Stage7C selected-result scope is separately accepted at CP311. Historical nested run limits retain their original meaning. Global finding-control, unsupported versions and optional scientific profile activation remain separate and open; no new gate or waiver.",
   "source_consumer_inventory": {
     "task_id": "p20-state-result-consumer-inventory-704283-30",
     "task_hash": "f098b4307313fba1c966ac24b55362e54c3c3847816d8f8cf8fe0ef8428e44c5",

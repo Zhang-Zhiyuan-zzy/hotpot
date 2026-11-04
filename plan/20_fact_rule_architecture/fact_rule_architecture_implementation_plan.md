@@ -2464,8 +2464,10 @@ The [Stage12B H inventory decision](stages/stage12/hydrogen-representation/contr
 and [checkpoint](stages/stage12/hydrogen-representation/validation/checkpoint.json)
 accept the connected import/target/residual/materialization correction for P20-D026
 within affected CP311 source/installed, rebuilt RDKit-native and actual model/workflow
-evidence, including intentional field14 and private-pickle effects. Independent Decisions12/13,
-final docs, other versions/release and global validation remain open.
+evidence, including intentional field14 and private-pickle effects. Stage11A/C
+subsequently close Decisions12/13 in their recorded CP311 scopes; optional outer
+workflow execution remains D028. Final docs, other versions/release and global
+validation remain open.
 The [Stage12C checkpoint](stages/stage12/scientific-hardening/validation/checkpoint.json)
 accepts actual ordinary selected/terminal-frame publication, source640/installed639
 contracts and45+45public-UFF phosphorus observations. P20-D023 closes in that CP311

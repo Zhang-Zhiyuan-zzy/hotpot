@@ -211,12 +211,19 @@ def _source(module_name):
     return path.with_suffix(".py") if path.with_suffix(".py").is_file() else path / "__init__.py"
 
 
+def _dump_contract(node):
+    # Python 3.13+ omits empty fields by default; retain the fingerprint format.
+    if sys.version_info >= (3, 13):
+        return ast.dump(node, show_empty=True)
+    return ast.dump(node)
+
+
 def _function_contract(node):
     return (
         node.name,
-        ast.dump(node.args),
-        ast.dump(node.returns) if node.returns else None,
-        tuple(ast.dump(item) for item in node.decorator_list),
+        _dump_contract(node.args),
+        _dump_contract(node.returns) if node.returns else None,
+        tuple(_dump_contract(item) for item in node.decorator_list),
     )
 
 
@@ -238,13 +245,13 @@ def _class_contract(node):
                     value=child.value,
                     simple=child.simple,
                 )
-            members.append(ast.dump(child))
+            members.append(_dump_contract(child))
         elif isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef)):
             members.append(_function_contract(child))
     return (
-        tuple(ast.dump(item) for item in node.bases),
-        tuple(ast.dump(item) for item in node.keywords),
-        tuple(ast.dump(item) for item in node.decorator_list),
+        tuple(_dump_contract(item) for item in node.bases),
+        tuple(_dump_contract(item) for item in node.keywords),
+        tuple(_dump_contract(item) for item in node.decorator_list),
         members,
     )
 

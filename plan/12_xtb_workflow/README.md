@@ -52,7 +52,7 @@ in this Plan12 set are historical, superseded surfaces for integrated implementa
 A9 controls the approved six required fields (`identity, facts_identity,
 candidates, admissibility, resolution, findings`), exact retained detailed public
 resolver/projection/workflow reports, four D02 finding/reason types and two
-distinct D03 toggle types. A9 implementation/runtime is [accepted within CP311](../20_fact_rule_architecture/stages/stage08/scientific-state/validation/confidence_checkpoint.json); whole Stage8A remains open.
+distinct D03 toggle types. A9 implementation/runtime is [accepted within CP311](../20_fact_rule_architecture/stages/stage08/scientific-state/validation/confidence_checkpoint.json); the later [Stage8A completion](../20_fact_rule_architecture/stages/stage08/scientific-state/completion_20261103.json) accepts A1–A11 within its recorded CP311 owning scope. Global obligations remain open.
 Scientific rule semantics and optional-profile review/activation and Phase 10
 held-out gates are unchanged. The indexed `rules/`, `providers/`, `execution/`
 and `recovery/` remain inherited scientific requirements within this precedence;

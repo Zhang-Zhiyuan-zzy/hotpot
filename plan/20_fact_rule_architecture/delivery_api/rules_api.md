@@ -1231,7 +1231,7 @@ OxidationStateInferenceResult(identity: str, facts_identity: MolecularFactsIdent
 定义 owner `hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.contracts.ElementOxidationStateDomain`；基类 无。
 
 ```python
-ElementOxidationStateDomain(atomic_number: int, states: Tuple[int, ...], source_identity: str, registry_version: str, content_digest: str)
+ElementOxidationStateDomain(atomic_number: int, states: Tuple[int, ...], source_identity: str, registry_version: str, content_digest: str, common_states: Tuple[int, ...] = (), important_states: Tuple[int, ...] = (), default_state: Optional[int] = None, default_basis: str = "")
 ```
 
 - `atomic_number: int` [只读值字段]
@@ -1239,6 +1239,10 @@ ElementOxidationStateDomain(atomic_number: int, states: Tuple[int, ...], source_
 - `source_identity: str` [只读值字段]
 - `registry_version: str` [只读值字段]
 - `content_digest: str` [只读值字段]
+- `common_states: Tuple[int, ...]` = `()` [只读值字段；来源报告的常见氧化态子集]
+- `important_states: Tuple[int, ...]` = `()` [只读值字段；来源特别强调的常见态子集]
+- `default_state: Optional[int]` = `None` [只读值字段；具名的运行默认值，不代表任意环境下的真实氧化态]
+- `default_basis: str` = `""` [只读值字段；来源选择或建模择优规则]
 
 
 <a id="hotpot-cheminfo-rules-chemistry-scientific-state-oxidation-state-coordination-counting"></a>
@@ -1281,6 +1285,11 @@ infer_oxidation_states(facts: MolecularFacts, request: StateRequest=StateRequest
 ```python
 element_oxidation_state_domain(atomic_number: int) -> ElementOxidationStateDomain
 ```
+
+`states` 保留不排序优先级的可能态域；`important_states ⊆ common_states ⊆ states`。
+118 个元素均有具名的运行默认值：优先来源唯一强调的状态，多值时采用明确记录的
+最小非零绝对值选择；来源缺失时的元素态 0 是建模参考，不能冒充来源报道的常见态。
+Nh 的可能态域仍为空。实际求解先应用用户输入和适用的专门化学规则，再使用这些默认值。
 
 
 <a id="hotpot-cheminfo-rules-chemistry-scientific-state-providers"></a>

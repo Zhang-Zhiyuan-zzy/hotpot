@@ -1,4 +1,4 @@
-"""Versioned element oxidation-state candidate-domain registry."""
+"""Versioned element oxidation-state possible domains and operational defaults."""
 
 from __future__ import annotations
 
@@ -21,40 +21,35 @@ _REGISTRY_RESOURCE = "data/element_oxidation_states.json"
 
 
 @lru_cache(maxsize=1)
-def _load_registry() -> Tuple[str, str, str, Tuple[Tuple[int, Tuple[int, ...]], ...]]:
+def _load_registry() -> Tuple[ElementOxidationStateDomain, ...]:
     raw_bytes = resources.files(
         "hotpot.cheminfo.rules.chemistry.scientific_state"
     ).joinpath(_REGISTRY_RESOURCE).read_bytes()
     payload = json.loads(raw_bytes)
+    content_digest = hashlib.sha256(raw_bytes).hexdigest()
     rows = tuple(
-        (
-            int(row["atomic_number"]),
-            tuple(int(state["value"]) for state in row["states"]),
+        ElementOxidationStateDomain(
+            atomic_number=int(row["atomic_number"]),
+            states=tuple(int(state["value"]) for state in row["states"]),
+            source_identity=str(payload["registry_id"]),
+            registry_version=str(payload["registry_version"]),
+            content_digest=content_digest,
+            common_states=tuple(row["common_states"]),
+            important_states=tuple(row["important_states"]),
+            default_state=row["default_state"],
+            default_basis=row["default_basis"],
         )
         for row in payload["elements"]
     )
-    if tuple(atomic_number for atomic_number, _ in rows) != tuple(range(1, 119)):
+    if tuple(row.atomic_number for row in rows) != tuple(range(1, 119)):
         raise ValueError("Oxidation-state registry must contain ordered Z=1..118")
-    return (
-        str(payload["registry_id"]),
-        str(payload["registry_version"]),
-        hashlib.sha256(raw_bytes).hexdigest(),
-        rows,
-    )
+    return rows
 
 
 def element_oxidation_state_domain(
     atomic_number: int,
 ) -> ElementOxidationStateDomain:
-    """Return the bounded, unranked registry domain for one element."""
+    """Return unranked possible states and source-attributed element defaults."""
     if not 1 <= atomic_number <= 118:
         raise ValueError("atomic_number must be between 1 and 118")
-    source_identity, registry_version, content_digest, rows = _load_registry()
-    registered_atomic_number, states = rows[atomic_number - 1]
-    return ElementOxidationStateDomain(
-        atomic_number=registered_atomic_number,
-        states=states,
-        source_identity=source_identity,
-        registry_version=registry_version,
-        content_digest=content_digest,
-    )
+    return _load_registry()[atomic_number - 1]

@@ -1,9 +1,33 @@
 {
-  "applicability": "bounded candidate-domain expansion; never automatic selection",
+  "applicability": "Unranked possible domains with source-declared common/important subsets and explicitly modeled operational defaults; no universal compound-state or molecular-spin claim.",
+  "default_policy": {
+    "common_without_important": "Choose the least absolute nonzero common state, then the smaller signed value on equal absolute value; an operational tie break, not a source preference.",
+    "multiple_important": "Choose the least absolute nonzero important state, then the smaller signed value on equal absolute value; an operational tie break, not a frequency ranking.",
+    "no_compound_preference": "Use modeled elemental-reference zero without adding it to observed common/important states or to the possible domain.",
+    "precedence": "valid explicit state > applicable specific chemical rule > element operational default",
+    "scope": "Element priors only. Scoped lanthanide/actinide rules may override defaults in their own applicability domain. Oxidation states do not establish local or molecular spin.",
+    "unique_important": "Use the sole RSC source-emphasized important state as the operational default."
+  },
   "elements": [
     {
       "atomic_number": 1,
+      "common_states": [
+        -1,
+        1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "66c3f9ece8838c5a927c0359cbf0c6046e93259340dda7dcc2ec62248c65c78f",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/1/hydrogen"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -22,7 +46,18 @@
     },
     {
       "atomic_number": 2,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "blank",
+        "sha256": "76f33e3503e4cadc253fc7f69ac1cb233c41c9d046fa0782fb1647951f520373",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/2/helium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -35,7 +70,22 @@
     },
     {
       "atomic_number": 3,
+      "common_states": [
+        1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "e069d791afeb475fb17dc93ea21dc80e0ca5c87f1e79f2325e3ded76d81df397",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/3/lithium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -48,7 +98,22 @@
     },
     {
       "atomic_number": 4,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "e3e0e012f2671b5e554247acca0904f9598e1308790f17a67d1cdd4dbabb7cfc",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/4/beryllium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -73,7 +138,22 @@
     },
     {
       "atomic_number": 5,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "ab1eca7f8ca4b9e21b2ab125d28d20b49a792d630933897658c595ae4dea3e9e",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/5/boron"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -116,7 +196,30 @@
     },
     {
       "atomic_number": 6,
+      "common_states": [
+        -4,
+        -3,
+        -2,
+        -1,
+        0,
+        1,
+        2,
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "071aa6b65854c447b8fbf99c94558abc90dd4845ddb008f67ec970e07e4c3ad9",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/6/carbon"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -177,7 +280,26 @@
     },
     {
       "atomic_number": 7,
+      "common_states": [
+        -3,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "e27b062d5b1acbb77b4c54e66d5e2a5395a989f00e5667f7617a2180e2cd9331",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/7/nitrogen"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -238,7 +360,23 @@
     },
     {
       "atomic_number": 8,
+      "common_states": [
+        -2,
+        -1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "5af63e04775f93b84238d6f59246f662cc344607aaa3cc7b71739f2b3e3618f5",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/8/oxygen"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -275,7 +413,22 @@
     },
     {
       "atomic_number": 9,
+      "common_states": [
+        -1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "11b1bfe394e728606669926d96159344a63427b7f4964332c83800005c1627a4",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/9/fluorine"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -288,7 +441,18 @@
     },
     {
       "atomic_number": 10,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "blank",
+        "sha256": "97a1e248a76928860e11609eb24dfb179ffddbb4b1560aa6842db77e30996d8c",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/10/neon"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -301,7 +465,22 @@
     },
     {
       "atomic_number": 11,
+      "common_states": [
+        1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "1a846de0d1f12cf8790c0560293af73ec3e26f671e820210479e6059468b3837",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/11/sodium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -326,7 +505,22 @@
     },
     {
       "atomic_number": 12,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "53280a1bd8658a213e8ed816098432a3b49ed6354d359e7f1ce2ca9e3ae7d715",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/12/magnesium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -351,7 +545,22 @@
     },
     {
       "atomic_number": 13,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "13d747b558a7377b9cbf26148d7da1b88758aad5b3539c969ba1cfb8a5a70eba",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/13/aluminium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -394,7 +603,23 @@
     },
     {
       "atomic_number": 14,
+      "common_states": [
+        -4,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "f696622ccb571c1650b7159f49847d57b408ed60f5646670d14f5a29f1d565ec",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/14/silicon"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -455,7 +680,24 @@
     },
     {
       "atomic_number": 15,
+      "common_states": [
+        -3,
+        3,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 5,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        5
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "fdfaaf04f8d4d2cef9a0b2d880c48dfc4b14b7294eb8e8aaaec445af8d3aec43",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/15/phosphorus"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -516,7 +758,25 @@
     },
     {
       "atomic_number": 16,
+      "common_states": [
+        -2,
+        2,
+        4,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 6,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        6
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "95c0f9074b8394f350fa7421a2a3ce39b9834f49e42eab08b3713d1f78d4c1f9",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/16/sulfur"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -577,7 +837,26 @@
     },
     {
       "atomic_number": 17,
+      "common_states": [
+        -1,
+        1,
+        3,
+        5,
+        7
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "874b1a999d041cdfae79c9c451844245028ca9ede45506965679aee52246fd09",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/17/chlorine"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -632,7 +911,18 @@
     },
     {
       "atomic_number": 18,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "blank",
+        "sha256": "b64ab1b96e368ab6f7f9339a65d6a5f7a62e68ebe66cc6c8f7ad184dcc27ef75",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/18/argon"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -645,7 +935,22 @@
     },
     {
       "atomic_number": 19,
+      "common_states": [
+        1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "89f217abed78ac5360bdba467ab93f0c9b15f7f2bf0b46e33b32dcf450b597a2",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/19/potassium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -664,7 +969,22 @@
     },
     {
       "atomic_number": 20,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "51d862b1c870ba9381f25e4c63d69766bae1741d49afdfe5a7851d664fbcdfe6",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/20/calcium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -683,7 +1003,22 @@
     },
     {
       "atomic_number": 21,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "80ecf1cee8c8af46cb62494b10425e63de18afbee487cdb2fd8fa27bcfba4928",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/21/scandium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -714,7 +1049,23 @@
     },
     {
       "atomic_number": 22,
+      "common_states": [
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "f589cde9359f4cc83bfc5d6aad97397d513f1337462c14afd0dbe2d5288976a7",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/22/titanium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -763,7 +1114,26 @@
     },
     {
       "atomic_number": 23,
+      "common_states": [
+        0,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 5,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        5
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "e07892f6176fff68abbac63f662a301418347f314338cebf2676585cf7727b9b",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/23/vanadium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -818,7 +1188,25 @@
     },
     {
       "atomic_number": 24,
+      "common_states": [
+        0,
+        2,
+        3,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "dd729846aea0cc0355e6ad79413613ffdd65f8495dad7166e466536b54a1146e",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/24/chromium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -885,7 +1273,28 @@
     },
     {
       "atomic_number": 25,
+      "common_states": [
+        -1,
+        0,
+        2,
+        3,
+        4,
+        6,
+        7
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "68351d3c5998e52aaefe641fda6d7f191842e082fbbe9bbcc69687a236ea464d",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/25/manganese"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -958,7 +1367,26 @@
     },
     {
       "atomic_number": 26,
+      "common_states": [
+        -2,
+        0,
+        2,
+        3,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "51d2d12fd58c037e223113b5b537510e164e4d22bf607ff1d2ed9cf89de7ffbb",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/26/iron"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1031,7 +1459,25 @@
     },
     {
       "atomic_number": 27,
+      "common_states": [
+        -1,
+        0,
+        2,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "241439f3d33188161b5f7ba21d84736b029038c3343de06cd16c2768f26d1614",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/27/cobalt"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1086,7 +1532,24 @@
     },
     {
       "atomic_number": 28,
+      "common_states": [
+        0,
+        2,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "1237efb03c85c1f076e8b98058ab9005630b1ba07cd3f24b1867f8dfc65bbe54",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/28/nickel"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1135,7 +1598,23 @@
     },
     {
       "atomic_number": 29,
+      "common_states": [
+        1,
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "503c99821f78ef9202e050d39080529f41eed04034304870485cb747236831aa",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/29/copper"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1178,7 +1657,22 @@
     },
     {
       "atomic_number": 30,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "a9388ae16a7e28f0cdd2d51f5ef6e977a014fd58cc34732b6d0ace7d929b8609",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/30/zinc"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1209,7 +1703,22 @@
     },
     {
       "atomic_number": 31,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "3a5fc05e5919eee5375ffb1b6ae6d7d703def3f64d8d1358f7fbaf417c195e3b",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/31/gallium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1270,7 +1779,22 @@
     },
     {
       "atomic_number": 32,
+      "common_states": [
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "6945bd729e7915b54869a932267deda7b8467a08266360140dbfc8763409709e",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/32/germanium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1331,7 +1855,24 @@
     },
     {
       "atomic_number": 33,
+      "common_states": [
+        -3,
+        3,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "4281632b505452fc500ed4eb3baf8b0585112f5f346c98517e36b8fe5fefaa23",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/33/arsenic"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1392,7 +1933,24 @@
     },
     {
       "atomic_number": 34,
+      "common_states": [
+        -2,
+        4,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "5aff7a25f1123eb704585ff9d2de36dc5e60addaaa9cd4629082aae0fcb852a1",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/34/selenium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1453,7 +2011,26 @@
     },
     {
       "atomic_number": 35,
+      "common_states": [
+        -1,
+        1,
+        3,
+        5,
+        7
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "686a07f0a26c263f1f87f72132a84cb08052478e43704f9ca13639ec42762e22",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/35/bromine"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1502,7 +2079,22 @@
     },
     {
       "atomic_number": 36,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "b20f1b2d5a838be7b45ce4fb32b3ecfd9b15c985e2a6c67c5eb3f184a0b733cc",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/36/krypton"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1527,7 +2119,22 @@
     },
     {
       "atomic_number": 37,
+      "common_states": [
+        1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "17c360988fa8cdc8b0b1fc00c57a4e474849385f6f09520d7bf78279468dee73",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/37/rubidium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1546,7 +2153,22 @@
     },
     {
       "atomic_number": 38,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "4632d22b4ebc62a65bc478b799f4ebadb6b60bb4ea774c7866560080dbb53120",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/38/strontium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1565,7 +2187,22 @@
     },
     {
       "atomic_number": 39,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "d42678f31cdc3dbe20e8daea7d828074eb38ac32dfddb6a198b3f4aa84a273fe",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/39/yttrium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1596,7 +2233,22 @@
     },
     {
       "atomic_number": 40,
+      "common_states": [
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "3820c9eda08df346b995eae854a0e94229f01a580df50d93d6c96d8206fbc946",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/40/zirconium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1627,7 +2279,23 @@
     },
     {
       "atomic_number": 41,
+      "common_states": [
+        3,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 5,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        5
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "72bbbaceda55526b78a1286d044133349260cd46d8c2113814794838d64259e9",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/41/niobium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1682,7 +2350,27 @@
     },
     {
       "atomic_number": 42,
+      "common_states": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 6,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        6
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "a4cc3825d23b4f1ec5e01b633d45585595502124dea32fe93246aa87ceeeba74",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/42/molybdenum"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1749,7 +2437,22 @@
     },
     {
       "atomic_number": 43,
+      "common_states": [
+        7
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 7,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        7
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "387e70351ae5e6fb31b953cfc19f1c89833eec7b0e08c71c811e6fde0fe31f65",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/43/technetium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1810,7 +2513,28 @@
     },
     {
       "atomic_number": 44,
+      "common_states": [
+        -2,
+        0,
+        2,
+        3,
+        4,
+        6,
+        8
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "96c5409eb3002177072308f16401bc189f5c4e0bb999de745d4030aa2336859e",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/44/ruthenium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1823,6 +2547,13 @@
           "evidence_tier": "secondary",
           "source_class": "secondary_registry",
           "value": -2
+        },
+        {
+          "applicability": "candidate-domain expansion only; source-declared common state",
+          "evidence_tier": "compiled",
+          "source_class": "rsc_visual_elements_compiled",
+          "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+          "value": 0
         },
         {
           "applicability": "candidate-domain expansion only",
@@ -1877,7 +2608,27 @@
     },
     {
       "atomic_number": 45,
+      "common_states": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "1e4daae715e44426ab74231037fca4646235d6f77f3d691e24d859a1f3aa0baf",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/45/rhodium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -1890,6 +2641,13 @@
           "evidence_tier": "secondary",
           "source_class": "secondary_registry",
           "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only; source-declared common state",
+          "evidence_tier": "compiled",
+          "source_class": "rsc_visual_elements_compiled",
+          "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+          "value": 0
         },
         {
           "applicability": "candidate-domain expansion only",
@@ -1938,8 +2696,32 @@
     },
     {
       "atomic_number": 46,
+      "common_states": [
+        0,
+        2,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "732eea212905032d9aa0bab04f8a475510f60feabf8b015beb994be2e3fab1e7",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/46/palladium"
+      },
       "states": [
+        {
+          "applicability": "candidate-domain expansion only; source-declared common state",
+          "evidence_tier": "compiled",
+          "source_class": "rsc_visual_elements_compiled",
+          "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+          "value": 0
+        },
         {
           "applicability": "candidate-domain expansion only",
           "evidence_tier": "secondary",
@@ -1975,7 +2757,23 @@
     },
     {
       "atomic_number": 47,
+      "common_states": [
+        1,
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "bffc7ecaa4b1e5a83654d602f881e2b955bf10929d72119108e04a962db81c21",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/47/silver"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2018,7 +2816,22 @@
     },
     {
       "atomic_number": 48,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "935b40306d55f427c7470a85b9889ed67a0dde63a67fb6323c85d10047e6b223",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/48/cadmium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2043,7 +2856,22 @@
     },
     {
       "atomic_number": 49,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "b16cf0891e102803b2f5310b786bc66c91137c5cd35aabb59a6e0d9e9cd5469f",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/49/indium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2092,7 +2920,24 @@
     },
     {
       "atomic_number": 50,
+      "common_states": [
+        2,
+        4
+      ],
+      "default_basis": "modeled-least-absolute-nonzero-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2,
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "4a9d9040aa7ad7e1206b4cc01742cbbac57458a68efdf063cbcd96a75e5d5a20",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/50/tin"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2153,7 +2998,24 @@
     },
     {
       "atomic_number": 51,
+      "common_states": [
+        -3,
+        3,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "79e84dba1c1d48a499465e3aa8d249ae2d30da270eb50eac2914e1eeb03112a3",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/51/antimony"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2214,7 +3076,24 @@
     },
     {
       "atomic_number": 52,
+      "common_states": [
+        -2,
+        4,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "a4aa5c342ef776af0c1cc618449fb0809c9391524d61622ea783477034a7e62c",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/52/tellurium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2275,7 +3154,25 @@
     },
     {
       "atomic_number": 53,
+      "common_states": [
+        -1,
+        1,
+        5,
+        7
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "ca3f66a0ad08b381310e6434c42625e1701150eebcfb2cf3a2e5902a443eed65",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/53/iodine"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2330,7 +3227,22 @@
     },
     {
       "atomic_number": 54,
+      "common_states": [
+        2,
+        4,
+        6
+      ],
+      "default_basis": "modeled-least-absolute-nonzero-common",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "25f7a28f07f7c255ee65afeddc62bd6c80b75cdbd77184439b658b450f2ecaca",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/54/xenon"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2367,7 +3279,22 @@
     },
     {
       "atomic_number": 55,
+      "common_states": [
+        1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "44aa63ab69e0044ef19e6141a163ea4581296dfd047fd9934898d99d44d8a2b1",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/55/caesium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2386,7 +3313,22 @@
     },
     {
       "atomic_number": 56,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "75f4a427b7662d6eea219c28cc2f72e12575625da22c4c14a4dca41dedcaee79",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/56/barium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2405,7 +3347,22 @@
     },
     {
       "atomic_number": 57,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "09360972be82fdbe132791079a72ed49e1b1da3d5b64f81a34c78eff80aee905",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/57/lanthanum"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2436,7 +3393,23 @@
     },
     {
       "atomic_number": 58,
+      "common_states": [
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "ed7c537c8af2d0431b508fb1eb6a5187cf980dfcdf68db3045422fcf86ea6d95",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/58/cerium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2467,7 +3440,23 @@
     },
     {
       "atomic_number": 59,
+      "common_states": [
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "6af630a7d22adcf530de145310610eb5fa80d7940cda569b7ea3049709202c53",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/59/praseodymium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2510,7 +3499,22 @@
     },
     {
       "atomic_number": 60,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "34643edf9e01ef3b8bd00a92c5f9716f9aace3c30b352b4696ae5e2c71df5e6c",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/60/neodymium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2541,7 +3545,22 @@
     },
     {
       "atomic_number": 61,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "94a699181de28a222ff8f5b90c6e9b8aa2ae475bf863c1e5d5b8d25962930131",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/61/promethium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2560,7 +3579,23 @@
     },
     {
       "atomic_number": 62,
+      "common_states": [
+        2,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "98bfae02926a70f611de306e5694537e581320aca9a47d9559aefbcde66259fb",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/62/samarium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2591,7 +3626,23 @@
     },
     {
       "atomic_number": 63,
+      "common_states": [
+        2,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "958dd4e91ca2b50beffa26a2d3218f69c2d5bbf59ddb26096b495ac54bc911cf",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/63/europium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2616,7 +3667,22 @@
     },
     {
       "atomic_number": 64,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "ea411e3fdcdea9369dce7afb92de8a787d6110c1c72fc57de362f3d0c63f0975",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/64/gadolinium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2647,7 +3713,23 @@
     },
     {
       "atomic_number": 65,
+      "common_states": [
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "0706701bc9df64b7bfd86d7f57b241bccd77f76dfe68c38748c4f0eef51d8652",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/65/terbium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2684,7 +3766,22 @@
     },
     {
       "atomic_number": 66,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "0c56fc983819197358bf7f3597069c92bd802b22304ce45829653383991ee345",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/66/dysprosium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2721,7 +3818,22 @@
     },
     {
       "atomic_number": 67,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "02e6c1cb7c62be1a27eb237dc08ef63d2aaa6318147e0a2ec1274cad591789da",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/67/holmium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2752,7 +3864,22 @@
     },
     {
       "atomic_number": 68,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "3ae3885466be795ccccddadcd0358dd7e64fb9a958c5b0395fb6ef904943397f",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/68/erbium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2783,7 +3910,23 @@
     },
     {
       "atomic_number": 69,
+      "common_states": [
+        2,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "131b86b367db09a1dae91eefe6521dc5c6480e516050a3cf67fbd8c70ef6a6a6",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/69/thulium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2814,7 +3957,23 @@
     },
     {
       "atomic_number": 70,
+      "common_states": [
+        2,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "3b6098298f76294ecb3bbd7aba9f69e9ac0fa8e0565f56e7aa02a59985bae66a",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/70/ytterbium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2845,7 +4004,22 @@
     },
     {
       "atomic_number": 71,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "74afefa6e4ef89565afcfb170dd87f0e85e2c32834e0b2659c2f838282f785d6",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/71/lutetium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2876,7 +4050,22 @@
     },
     {
       "atomic_number": 72,
+      "common_states": [
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "96898eb8097b0e3e9e823dcd78d69d4aa36b3ed00cb11a6d5590f6f815324729",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/72/hafnium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2919,7 +4108,22 @@
     },
     {
       "atomic_number": 73,
+      "common_states": [
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 5,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        5
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "2f99c249462fd75776e744a6b8f077e2af56e8e6ce91df54fb5651bb335a7950",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/73/tantalum"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -2974,7 +4178,27 @@
     },
     {
       "atomic_number": 74,
+      "common_states": [
+        0,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 6,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        6
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "971f0e8ce2fcfc63fdf32ddc386e10ca90d5c1916936a1fbd087a93e2f515528",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/74/tungsten"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3041,7 +4265,26 @@
     },
     {
       "atomic_number": 75,
+      "common_states": [
+        -1,
+        2,
+        4,
+        6,
+        7
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 7,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        7
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "806a7bd80db47866bba5d8021ac036fb2de34ffd43191f59a8107288f5a54dd0",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/75/rhenium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3108,7 +4351,28 @@
     },
     {
       "atomic_number": 76,
+      "common_states": [
+        -2,
+        0,
+        2,
+        3,
+        4,
+        6,
+        8
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "c2d5553b8922a735bbe18879f3d87310e02beb2620a65e1560bb003b0ade9c93",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/76/osmium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3187,7 +4451,29 @@
     },
     {
       "atomic_number": 77,
+      "common_states": [
+        -1,
+        0,
+        1,
+        2,
+        3,
+        4,
+        6
+      ],
+      "default_basis": "modeled-least-absolute-nonzero-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1,
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "0d93e3357e2f97c407e4fffa3f59673d0739c80423a958154829caaf8683b309",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/77/iridium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3206,6 +4492,13 @@
           "evidence_tier": "secondary",
           "source_class": "secondary_registry",
           "value": -1
+        },
+        {
+          "applicability": "candidate-domain expansion only; source-declared common state",
+          "evidence_tier": "compiled",
+          "source_class": "rsc_visual_elements_compiled",
+          "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+          "value": 0
         },
         {
           "applicability": "candidate-domain expansion only",
@@ -3266,7 +4559,24 @@
     },
     {
       "atomic_number": 78,
+      "common_states": [
+        2,
+        4
+      ],
+      "default_basis": "modeled-least-absolute-nonzero-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2,
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "d2e0e9829212015d21c8dc0fb6d814b83e93fadaebc8e527d87cebb8b45d9531",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/78/platinum"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3333,7 +4643,27 @@
     },
     {
       "atomic_number": 79,
+      "common_states": [
+        -1,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "6db0169689b2cbc392ed85e2cff3eee0162a306e13c7a94334e3555e68f811cf",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/79/gold"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3378,6 +4708,13 @@
           "value": 3
         },
         {
+          "applicability": "candidate-domain expansion only; source-declared common state",
+          "evidence_tier": "compiled",
+          "source_class": "rsc_visual_elements_compiled",
+          "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+          "value": 4
+        },
+        {
           "applicability": "candidate-domain expansion only",
           "evidence_tier": "secondary",
           "source_class": "secondary_registry",
@@ -3388,7 +4725,23 @@
     },
     {
       "atomic_number": 80,
+      "common_states": [
+        1,
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "6078e536509dc0ea54d5092a4a453a7ebb89c04aec1099aa88acee6e45ed49dc",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/80/mercury"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3419,7 +4772,23 @@
     },
     {
       "atomic_number": 81,
+      "common_states": [
+        1,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "b343551323addac1727ecddf1cba1b6d2c28a39b94396bbebc0a58b7c9da821d",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/81/thallium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3462,7 +4831,23 @@
     },
     {
       "atomic_number": 82,
+      "common_states": [
+        2,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "275560abb37bd4bf61989d9b79e7106fef8da5d6c0bd45ae0b925c42eb5767e8",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/82/lead"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3517,7 +4902,23 @@
     },
     {
       "atomic_number": 83,
+      "common_states": [
+        3,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "f04b2c2fe8c4c3a8d5bb7d76dc7f0ba9d2d54c1a3f9ddf2fc1ac20ed32fef7c7",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/83/bismuth"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3578,7 +4979,24 @@
     },
     {
       "atomic_number": 84,
+      "common_states": [
+        2,
+        4,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "50ca46e45ad2db24960e973b00b305390c08d87a4e4f38f2456d16bb2198c9ae",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/84/polonium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3615,7 +5033,26 @@
     },
     {
       "atomic_number": 85,
+      "common_states": [
+        -1,
+        1,
+        3,
+        5,
+        7
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": -1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        -1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "023bec9eefad2a0e31f41da041307ed091d2fede12fa1087bb1e5cdd88be26a0",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/85/astatine"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3652,7 +5089,22 @@
     },
     {
       "atomic_number": 86,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "a4ed82bb70473a316e6eb2a95021e1658d042209e11fb8892c2d3f12edbc796a",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/86/radon"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3677,7 +5129,22 @@
     },
     {
       "atomic_number": 87,
+      "common_states": [
+        1
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 1,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        1
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "42f0a51e477e869332bab7a6ec2e5afd512f7342d3c945d08f0246fcd3621b62",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/87/francium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3690,7 +5157,22 @@
     },
     {
       "atomic_number": 88,
+      "common_states": [
+        2
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 2,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        2
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "571831a22c9c7ce254c2e7964e87a6918ee93c7fd1785e7b3925e5240e19b8f2",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/88/radium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3703,7 +5185,22 @@
     },
     {
       "atomic_number": 89,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "8a7c7c8b1330fc5bab4ba7bb806d81babf4d0a11dad7d920fbf1e63cfadde2d3",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/89/actinium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3716,7 +5213,22 @@
     },
     {
       "atomic_number": 90,
+      "common_states": [
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "dcd75940f3277a4111f26a934efd388ba03d3f294f0d94032a5858f002e6e704",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/90/thorium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3753,7 +5265,23 @@
     },
     {
       "atomic_number": 91,
+      "common_states": [
+        4,
+        5
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 5,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        5
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "9732e979cf5f45fb4869b325432e30f5abe9663ebb986e3a908807dc2acfcd36",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/91/protactinium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3784,7 +5312,25 @@
     },
     {
       "atomic_number": 92,
+      "common_states": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 6,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        6
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "399702aa8b93b0130f857e7fcd7b14c5f112235c3b70f8eb644549c0d4bca94e",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/92/uranium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3833,7 +5379,25 @@
     },
     {
       "atomic_number": 93,
+      "common_states": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 5,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        5
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "7a76603f9f68e3928e75dd21e122f23a49590624a5ad56d569667536fadf1d67",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/93/neptunium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3876,7 +5440,25 @@
     },
     {
       "atomic_number": 94,
+      "common_states": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 4,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        4
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "31447ccd81e72a68aef0c863bb78f085af83a30c34bc4648d1b0adbf88169a00",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/94/plutonium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3925,7 +5507,25 @@
     },
     {
       "atomic_number": 95,
+      "common_states": [
+        3,
+        4,
+        5,
+        6
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "921bb7a81d385de6025b1be6426277ba75a632c2f5e06a34e192600891fd5642",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/95/americium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3968,7 +5568,23 @@
     },
     {
       "atomic_number": 96,
+      "common_states": [
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "8031a43a03c8216eb47ed6a3a291bf5e6f605aad5023cd0ae4c2359a84ff6645",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/96/curium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -3999,7 +5615,23 @@
     },
     {
       "atomic_number": 97,
+      "common_states": [
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "2b331fa12d2630af547337a4ee94d8d84507607a91e24790096fb91aa8a5b75f",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/97/berkelium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4030,7 +5662,23 @@
     },
     {
       "atomic_number": 98,
+      "common_states": [
+        3,
+        4
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "eedcccfec97ee5d56cc0330a7fe0f9e07facc7e088a3a62acaf380e57665e61e",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/98/californium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4061,7 +5709,22 @@
     },
     {
       "atomic_number": 99,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "b5ecc56487e717572b463f32a25294267a7c63327dee5bab0ab08f9d7cdb1afe",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/99/einsteinium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4086,7 +5749,22 @@
     },
     {
       "atomic_number": 100,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "b8ca470161d447e2adadeac934941729cd6ffac5625d92c0f747fa3453ee7ae6",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/100/fermium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4105,7 +5783,22 @@
     },
     {
       "atomic_number": 101,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "337d412403792f08e3a84a1f1983f1576af52d53055995d4a0868c81834e35e5",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/101/mendelevium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4124,7 +5817,23 @@
     },
     {
       "atomic_number": 102,
+      "common_states": [
+        2,
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "0bdf06ba06ac4c85771117fccf9df35d51c65e19080a2dec71cf24c76fe5d757",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/102/nobelium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4143,7 +5852,22 @@
     },
     {
       "atomic_number": 103,
+      "common_states": [
+        3
+      ],
+      "default_basis": "rsc-unique-important",
+      "default_state": 3,
       "evidence_boundary": "compiled; environment required",
+      "important_states": [
+        3
+      ],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "reported",
+        "sha256": "c1a919ff35b2a4f9480017cec62e75e0ac90224d64125274e755e3903f78c9ea",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/103/lawrencium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4156,7 +5880,18 @@
     },
     {
       "atomic_number": 104,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "limited observations + prediction",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "139c986a64d113f86a3163b47e7842e7d5a15b9882ef0888396e6ea7eface3c5",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/104/rutherfordium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4175,7 +5910,18 @@
     },
     {
       "atomic_number": 105,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "limited observations + prediction",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "15b1938afd4c794e8b483e7c22bc757420d93b5ae9385240bff98a79cafc2c5b",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/105/dubnium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4200,7 +5946,18 @@
     },
     {
       "atomic_number": 106,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "limited observations + prediction",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "4bd7b9323e1744d1bc1927e78fb1311188afbb5506fb08443de511bb02bc85e0",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/106/seaborgium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4237,7 +5994,18 @@
     },
     {
       "atomic_number": 107,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "limited observations + prediction",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "8ad1ed26ff6119381b89e36aca4f39575c39ec5bdd007bdaa0628700a597b340",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/107/bohrium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4268,7 +6036,18 @@
     },
     {
       "atomic_number": 108,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "limited observations + prediction",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "8589d93126e58c4f6a40634dee84c5947c8abc8044fe8f8d8278b8e21dcbea67",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/108/hassium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4311,7 +6090,18 @@
     },
     {
       "atomic_number": 109,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "078ff903c372190f30e04da3f0a64975428cf8a32a192ca8562d68db8ae5b038",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/109/meitnerium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4354,7 +6144,18 @@
     },
     {
       "atomic_number": 110,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "fdc58fabccf3903170a2c7cd94706b9035477942ad830c15ded75d73b01619d5",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/110/darmstadtium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4391,7 +6192,18 @@
     },
     {
       "atomic_number": 111,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "3d1bc84ba0d64bd32311e2ddbbab82d2d6f1a797d1af3a37965f0b0f5bcd54ff",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/111/roentgenium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4422,7 +6234,18 @@
     },
     {
       "atomic_number": 112,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "b51e3a239b3f98d5f1b5e57988c8e27189884dbba0881492472f9441150714ff",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/112/copernicium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4453,13 +6276,35 @@
     },
     {
       "atomic_number": 113,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "f1735c5a5cf80b58bdb6afd9bae867bca5c025f0a754d1a99fcdac3ae0068e50",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/113/nihonium"
+      },
       "states": [],
       "symbol": "Nh"
     },
     {
       "atomic_number": 114,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "60cc28ce49fa5a812bc8de20fa720a77921873538cbb9b82308e0905f4caa221",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/114/flerovium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4496,7 +6341,18 @@
     },
     {
       "atomic_number": 115,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "95123c96c183397d6d8a45e93b0dc89d96dc71f515628ed27126047d48038be3",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/115/moscovium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4515,7 +6371,18 @@
     },
     {
       "atomic_number": 116,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "blank",
+        "sha256": "332d4ed7f0238783c165cceaaf6cc50ff3c7ea82a1a449ba5f15c7fa9f297e39",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/116/livermorium"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4540,7 +6407,18 @@
     },
     {
       "atomic_number": 117,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "4af128e2d05525e82823f6d894dcc29aa5cd0db201a334434abb18822592ffdc",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/117/tennessine"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4571,7 +6449,18 @@
     },
     {
       "atomic_number": 118,
+      "common_states": [],
+      "default_basis": "elemental-reference-no-compound-preference",
+      "default_state": 0,
       "evidence_boundary": "predominantly predicted",
+      "important_states": [],
+      "options_source": {
+        "access_date": "2026-11-05",
+        "common_status": "unknown",
+        "sha256": "88fcfbdec7684e657f2c2a81f1335f35af2b1d433585cf8d2e795f1081d2b329",
+        "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+        "url": "https://periodic-table.rsc.org/element/118/oganesson"
+      },
       "states": [
         {
           "applicability": "candidate-domain expansion only",
@@ -4613,9 +6502,11 @@
       "symbol": "Og"
     }
   ],
+  "parent_registry_sha256": "bfb1b9f8fb58ba96a6b328d7a6b17f050ec45cbba2596d1219d8b49c20763f3a",
+  "parent_registry_version": "2026-10-12.seed-v1",
   "registry_id": "hotpot-element-oxidation-domain",
-  "registry_version": "2026-10-12.seed-v1",
-  "schema_version": 1,
+  "registry_version": "2026-11-05.common-default-v1",
+  "schema_version": 2,
   "sources": [
     {
       "access_date": "2026-10-12",
@@ -4634,6 +6525,18 @@
       "name": "Mendeleev elements.db",
       "sha256": "8a6312b57603e22c58ab28005bb8cacfbff721bc859eea8ddc2b784c17ffd717",
       "url": "https://github.com/lmmentel/mendeleev"
+    },
+    {
+      "access_date": "2026-11-05",
+      "important_key_url": "https://www.rsc.org/images/VEDataSheetFRONTforWeb_tcm18-157957.pdf",
+      "important_key_verification": "Prior official-source audit recorded the PDF key; current direct PDF fetch returned HTTP403. Element HTML snapshots are available.",
+      "important_states_semantics": "Values emphasized with strong/b tags in the Common oxidation states value cell; source-declared most-important subset, with no ranking inside that subset.",
+      "name": "Royal Society of Chemistry Visual Elements common and important oxidation states",
+      "sha256": "68f92d548319b58df617f988461d88c08c0dd622d4af5453183e0f5e4b2f18ee",
+      "snapshot_kind": "Parsed 118-page snapshot containing source HTML value cells and complete page SHA256 identities",
+      "source_identity": "rsc-visual-elements-common-important-2026-11-05",
+      "source_version": "118-element HTML snapshot 2026-11-05; publisher supplies no data version",
+      "url": "https://periodic-table.rsc.org/"
     }
   ]
 }

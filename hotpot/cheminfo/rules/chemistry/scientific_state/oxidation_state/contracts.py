@@ -99,10 +99,19 @@ class OxidationStateInferenceResult:
 
 @dataclass(frozen=True)
 class ElementOxidationStateDomain:
-    """Versioned admissible oxidation-state domain for one element."""
+    """Unranked possible states, source subsets and modeled default for an element.
+
+    Common/important subsets describe the cited source. The operational default
+    follows ``default_basis`` and yields to explicit state and scoped rules; it
+    is neither a universal compound preference nor a spin assignment.
+    """
 
     atomic_number: int
     states: Tuple[int, ...]
     source_identity: str
     registry_version: str
     content_digest: str
+    common_states: Tuple[int, ...] = ()
+    important_states: Tuple[int, ...] = ()
+    default_state: Optional[int] = None
+    default_basis: str = ""

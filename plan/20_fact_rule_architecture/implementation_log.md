@@ -11459,3 +11459,130 @@ production and actualCP311native bytes remain unchanged. Output to hp_test is
 still blocked by the session read-only mount; the complete234MB tree is staged
 under the announced /tmp path with RESULT.md and an ordinary-shell copy command.
 [Owning run record](stages/stage12/final-delivery/validation/full-cohort-automatic-state-run.json).
+
+
+### 2026-11-05 — Automatic coordination-state workflow alignment and bounded authoring entry
+
+Owner authorizes scientific defaults for fully automatic CBond→FF→GFN-FF→GFN2-xTB
+on `feat/automatic-coordination-state-workflow`, based on
+`a2799dba45790a4385fc4d30f8a99cbb869c33a4` (0.5.5.0). This is a new bounded
+Stage8A/Stage12 business correction after accepted earlier delivery; the
+2026-11-05 full187 run and P20-D044 establish the current blocker. Earlier
+Stage8A ownership acceptance did not activate the planned coordination profile.
+The active goal, full current main plan, normative interface/alignment/Plan21
+companions, relevant Stage8A completion/validation, inherited Plan12 scientific
+owner decision and DEFAULT-002/003, and relevant log tail were inspected.
+Remaining affected source/companion inspection continues before finalizing
+the bounded method/activation contract. Historical agent notes and the unrelated
+untracked quantitative-rescore helper are not requirements and were not read.
+
+Preserve one factorized scientific-state resolver, provider/rule trace and
+serialization route. Valid explicit state precedes applicable specific rules,
+then documented common defaults. State legality and backend support remain
+named local gates; plausible screening defaults need no experimental-truth proof.
+No generic success envelope, arbitrary per-atom molecular-spin table, trained
+model/feature change, fresh native kernel change or bond-algebra redesign follows.
+The existing coordination profile is the chosen route: revise its versioned
+manifest/applicability and freeze independent held-out/stress acceptance before
+activation. Owner authorization does not by itself satisfy those gates.
+
+Root owns localized CBond publication: predicted new metal–donor edges become
+DATIVE with the existing numeric order1 and identical endpoints/features; source
+bonds remain source facts. When CBond actually adds a new metal/composition,
+clear inherited whole-ligand charge/spin declarations through the existing
+`_commit_molecular_declarations` transaction. Preserve atom formal-charge facts;
+do not change generic topology-mutation declaration semantics or clear
+declarations when the metal was already present. These are approved bounded
+representation/provenance corrections, subject to focused transaction tests.
+
+Method-specific backend projection must preserve physical scientific spin
+separately from active-space UHF. Official xTB6.7.1 ordinary GFN2 uses
+lanthanide f-in-core effective valence charge3; physical Eu(III) f6,2S6,M7
+must not force UHF6 on a closed-shell ligand active space. The selected
+backend context owns valence/effective-core counting and a safe spin projection;
+explicit backend UHF, compatible exact-context history and active-electron
+DEFAULT-004 remain execution choices. No unconditional local-f-spin subtraction
+is approved. GFN-FF remains charge-only.
+
+Bounded design writer owns only
+`stages/stage08/scientific-state/automatic-workflow/`, a minimal main-plan Stage8A
+reference/addendum, and this append-only alignment entry. Root retains source
+partitions/integration, validation, activation decision, commits, pushes and
+acceptance. Source tests, held-out/stress checks, actual full187 run, installed
+CP311 workflow, support/version and comparable-cost gates are not executed or
+closed by this entry. The 182 historical eligible count is never a target.
+
+Read-only checks executed: `git branch --show-current` and `git rev-parse HEAD`
+confirm the branch/base above; `git status --short` initially showed only the
+unrelated untracked helper. No backend/model/native execution was performed by
+this design author. Relevant inspected document byte identities at entry:
+
+- `plan/20_fact_rule_architecture/goal.md`: `76bccaac0a87a331f816f5a264461d192ab5afbb2daa6dfee48ea33f5f7fdbed`
+- `plan/20_fact_rule_architecture/fact_rule_architecture_implementation_plan.md`: `1577589c3340c6ddd22117fda6b68f65e56ce288013be752ed0c89bfa11f5505`
+- `plan/20_fact_rule_architecture/chemical_type_interface_contract.md`: `11fdb795930270f4fa44f101ad9a63d76496502439e8321907118cdb4afa51cd`
+- `plan/20_fact_rule_architecture/plan17_plan20_execution_alignment.md`: `feb7337c68a5d2790e006db9ecb667d218eb1d27e9a8cf08d1b9bbd14486940a`
+- `plan/21_metal_cluster/metal_cluster_implementation_plan.md`: `b423d77b2ea290e847725570cf8023a90ddbbcca7e14d1796ce4a1ec3f6be83d`
+- `plan/20_fact_rule_architecture/stages/stage08/scientific-state/contracts/validation.json`: `9323c5a0679f8970eb967781ce436a13e4ba86f4f28a34d5e5c13d092ee53ab3`
+- `plan/20_fact_rule_architecture/stages/stage08/scientific-state/completion_20261103.json`: `0a987214f8a68ba7f456e96268d854127a10480b3a0514091ca76bb415b5e4b6`
+- `plan/12_xtb_workflow/rules/DEFAULT-002-coordination-screening-v1.md`: `7a1e046ff76de678aa5977fc6f18481f707c65f37d1e8309228b44411550434a`
+- `plan/12_xtb_workflow/rules/DEFAULT-003-source-authority.md`: `c613f479b7ba42e621909e10e7dd781ca787a721d7c016750349fe4d070c9572`
+
+
+### 2026-11-05 — Automatic coordination-state workflow implementation entry
+
+Owner explicitly authorizes completing the unattended CBond→FF→GFN-FF→GFN2
+route on a new branch, reviewing full-periodic-table OS/local-spin options and
+applying user input > applicable specific chemical rule > documented operational
+default. The accepted objective is useful Not Error modeling, not experimental
+state identification. Branch feat/automatic-coordination-state-workflow starts
+at a2799dba45790a4385fc4d30f8a99cbb869c33a4, version0.5.5.0, with clean tracked
+source. Align the effective goal, main-plan Stage8A/8B/8D/12 and scientific
+reporting requirements, current Stage8A decisions, verification map and Plan12
+profile/consumer requirements; unchanged historical evidence keeps its scope.
+
+Read-only audit finds118unranked OS rows (Nh lacks registered values), no
+common/default fields,104available neutral-atom spin references and25registered
+ionic configurations. Actual182Eu products retain full input ligand composition
+and charge locations but700predicted metal bonds are SINGLE/unknown to state
+facts; adding Eu leaves stale ligand-level whole-molecule declarations. Current
+xTB convenience resolution omits rule/provider configuration. OfficialxTB6.7.1
+uses valence-electron counting and lanthanide f-in-core, incompatible with a
+universal full-electron highest-MS projection. These are implementation gaps,
+not grounds to refuse reasonable default modeling.
+
+Bound this change to existing fact/rule/controller owners, versioned option
+metadata and documented default selection, CBond composition/coordination
+semantics, backend-specific spin projection and actual automated execution.
+Preserve atom/H/protonation input, trained CBond/MCA features, FF algorithms,
+backends' element limits, user overrides, local failure attribution and all187
+source indices. Keep physical molecular spin distinct from backend active UHF.
+Do not activate historical optional profiles by a runner-side bypass. Sol-max
+owns the bounded design/method companion; partition local implementation and
+independent review, then validate affected CP311 contracts and real source and
+installed-package workflows. Retain all original failures, trajectories and
+findings; no fixed182success target or all-version/global acceptance follows.
+Baseline selected existing CBond/OS-registry/backend-context tests:35passed,
+2existing optional skips in0.87s; exact argv/JUnit/log under
+/tmp/hotpot_plan20/short/automatic-state-implementation-20261105/.
+
+
+### 2026-11-05 — Periodic options business checkpoint
+
+Extend the existing immutable ElementOxidationStateDomain with source-common,
+source-important and explicitly based operational-default metadata, retaining
+the possible-domain meaning and all631 previous registered values. Add the five
+direct RSC source values Ru0/Rh0/Pd0/Ir0/AuIV. All118 rows have attributable
+options/defaults; Nh possible states remain unavailable rather than fabricated.
+The18 source-blank/unknown elemental-zero defaults are modeled references;
+source emphasis is not a universal environmental chemical truth. Existing
+scoped priors and applicable rules precede this general metadata. The public
+function stays unchanged; constructor fields are appended with defaults.
+
+Validation: hp-usage Python3.11.16, current editable source. Command
+`python -m pytest -q tests/test_cheminfo/calculator/test_scientific_state_ownership.py tests/test_cheminfo/calculator/test_element_state_options.py tests/test_cheminfo/calculator/test_oxidation_state_registry.py`
+returns201passed in1.53s. Exactly two attribution fingerprints were updated
+after inspection of the intended DTO/resource delta; original failures and
+all other assertions remain intact. Evidence (argv/source/resource hashes,
+logs/JUnit): /tmp/hotpot_plan20/short/automatic-state-element-options-20261105/ownership_fixture_update_evidence.json.
+This checkpoint does not activate the automatic workflow or claim native
+execution, whole-periodic-table molecular spin, wheel or scientific acceptance.

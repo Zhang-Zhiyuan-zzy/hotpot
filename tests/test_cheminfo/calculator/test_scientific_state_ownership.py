@@ -43,7 +43,7 @@ _CLASS_CONTRACTS = {'rules.charge.contracts:NetChargeCandidateEvidence': 'c8e60f
  'rules.oxidation_state.contracts:CoordinationElectronCountingResult': '8655a9417e042560b51791d258307200ddfe8be4bd8bb045c04ae68ca16e3871',
  'rules.oxidation_state.contracts:OxidationStateCandidateEvidence': 'f30e282e53f2383d79107b0fd5e9ec48fbb37b25172dd8dd4eabe96713f9a221',
  'rules.oxidation_state.contracts:OxidationStateInferenceResult': '4a82495782ec26846ca3e44f4a35465f30429bcbdc20a5c5ea74ca0ef199101a',
- 'rules.oxidation_state.contracts:ElementOxidationStateDomain': 'e3048a8f9d40780ffc493738f302852fc7c203899ec1fe957e6af168267a89db',
+ 'rules.oxidation_state.contracts:ElementOxidationStateDomain': '276dce31d6473eb737edd6bd7f90db4403c5d307be8ed6a665e1a44e37595126',
  'rules.legality:_HardRuleAssessment': 'e533716f4789ff04f1cf0f0a6d7a04792aa27e32db22823515a3c0e3ddf6468a',
  'rules.composition:CandidateDomainScope': '64858839159e2a31f1d2990f70874386cde1a17fe873b93c0773fa2f71799226',
  'rules.composition:MaterializationStatus': 'dd9b146b22e04a7ba106994cb283c1759b93471e1fe2d604438be2831537be6e',
@@ -182,7 +182,7 @@ _FUNCTION_CONTRACTS = {'rules.charge.lewis:solve_main_group_lewis': '3ca2eae9372
  'operations.execution_selection:resolve_and_project_state': 'e1a1f89fb418368b8297eeeba1e5228c6372cf400d8424f486a739867ce98d7a'}
 
 _RESOURCE_DIGESTS = {'neutral_atom_references.json': 'ef504d3d5e2429623484a0b8935c46698d72a78a2f6a2b82e08afa5d44c4a3cf',
- 'element_oxidation_states.json': 'bfb1b9f8fb58ba96a6b328d7a6b17f050ec45cbba2596d1219d8b49c20763f3a',
+ 'element_oxidation_states.json': '004d4d4c8e6afbb8d777bd2f0af398821ef4b2c514bebbb277242c6c761eb31c',
  'coordination_screening_v1.json': '574ed32272b9af9ac3f1f2ff879082bd37ba78e4d67f3305a46bf8091bff8ab5',
  'lanthanide_iii_prior_v1.json': '4acdc05ddc3ed9742b84abf25674c9db659302d14640f1608df49a80ab7e33bb',
  'americium_curium_iii_prior_v1.json': 'e9a6574effd8b371c08a8d9397d85e47e4919a6056fddbe575dcddde7addb3eb',

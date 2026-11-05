@@ -87,9 +87,13 @@ Their handlers and the conversion helpers live in `hotpot.commands`; the retired
 
 `hotpot/ds/` contains the dataset API, CLI, assessment, and storage implementation.
 `hotpot/dataset/` is the single resource namespace for dataset documentation, schemas,
-manifests, and local payloads. The payload root, `hotpot/dataset/data/`, is ignored by Git;
-licensed structures and generated databases therefore remain local while their organization
-and validation rules remain reviewable.
+manifests, and local payloads. The payload root, `hotpot/dataset/data/`, is ignored
+by Git and excluded from Python packages. Formal dataset snapshots are distributed
+separately through a private Hugging Face dataset repository: administrators run
+`hotpot ds push`, and authorized users run `hotpot ds download` into a clean
+installation. Both commands require independent dataset tokens; model login is
+not reused. See [dataset transfer setup](hotpot/ds/cli_doc.md#transfer-a-store-through-hugging-face).
+Small shipped chemistry references remain read-only package inputs.
 
 A benchmark is a governed quality state of data or a subset, expressed through
 `quality_level` together with its evidence and policy metadata. Benchmarks

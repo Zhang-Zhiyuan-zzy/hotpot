@@ -498,6 +498,36 @@
         "excluded": {"$ref": "#/$defs/caseSetDigest"}, "idempotent": {"type": "boolean"}
       }
     },
+    "hf_push_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repo_id", "revision", "path_in_repo", "source_database", "store_uuid", "schema_id", "counts", "audit"],
+      "properties": {
+        "repo_id": {"$ref": "#/$defs/nonempty"},
+        "revision": {"$ref": "#/$defs/nonempty"},
+        "path_in_repo": {"const": "data/store.tar.gz"},
+        "source_database": {"$ref": "#/$defs/nonempty"},
+        "store_uuid": {"$ref": "#/$defs/nonempty"},
+        "schema_id": {"$ref": "#/$defs/nonempty"},
+        "counts": {"$ref": "#/$defs/store_copy_result/properties/counts"},
+        "audit": {"$ref": "#/$defs/store_copy_result/properties/audit"}
+      }
+    },
+    "hf_download_result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["repo_id", "revision", "path_in_repo", "destination_database", "generation_database", "target_package", "store_uuid", "schema_id", "counts", "audit"],
+      "properties": {
+        "repo_id": {"$ref": "#/$defs/nonempty"},
+        "revision": {"$ref": "#/$defs/nonempty"},
+        "path_in_repo": {"const": "data/store.tar.gz"},
+        "destination_database": {"$ref": "#/$defs/nonempty"},
+        "generation_database": {"$ref": "#/$defs/nonempty"},
+        "target_package": {"$ref": "#/$defs/nonempty"},
+        "store_uuid": {"$ref": "#/$defs/nonempty"},
+        "schema_id": {"$ref": "#/$defs/nonempty"},
+        "counts": {"$ref": "#/$defs/store_copy_result/properties/counts"},
+        "audit": {"$ref": "#/$defs/store_copy_result/properties/audit"}
+      }
+    },
     "store_copy_result": {
       "type": "object", "additionalProperties": false,
       "required": ["source_database", "destination_database", "generation_database", "target_package", "store_uuid", "schema_id", "counts", "audit"],

@@ -16,7 +16,7 @@ from hotpot._cli import MarkdownDocumentationAction
 from ._bundle_cleanup import remove_bundle_intermediates
 from ._communication import emit_envelope, read_input
 from ._export import export_records, render_structure_record
-from ._paths import DEFAULT_STORE_PATH
+from ._paths import DEFAULT_STORE_PATH, HOTPOT_PACKAGE_ROOT
 from ._store_copy import copy_store
 from .gates import BenchmarkGate, EvidenceGate, QualityGate
 from .gates._checker import CHECKER_PROTOCOL_DIGEST, _CheckerDefinition, _inspect_source
@@ -58,6 +58,8 @@ _DOCUMENTATION_HEADINGS = {
     "search": "### Filter and search",
     "export": "### Export",
     "copy": "### Copy an ingested store",
+    "push": "### Transfer a store through Hugging Face",
+    "download": "### Transfer a store through Hugging Face",
     "detail": "### Current-store diagnostics",
     "detail.status": "### Current-store diagnostics",
     "detail.audit": "### Current-store diagnostics",
@@ -299,6 +301,47 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
         metavar="PATH",
         help="source ingested store; defaults to the imported package store",
     )
+
+    for name in ("push", "download"):
+        transfer = _command(
+            actions,
+            name,
+            help=(
+                "push an ingested store to Hugging Face"
+                if name == "push"
+                else "download a store from Hugging Face"
+            ),
+            description="Transfer a verified formal store using independent dataset credentials.",
+            doc_topic=name,
+        )
+        transfer.add_argument(
+            "--repo-id", default="Zhang-Zhiyuan-zzy/hotpot-data",
+            help="Hugging Face dataset repository",
+        )
+        transfer.add_argument(
+            "--revision", default="main",
+            help="target branch for push; branch, tag, or commit for download",
+        )
+        credentials = transfer.add_mutually_exclusive_group()
+        credentials.add_argument(
+            "--token-file", metavar="PATH",
+            help=(
+                "optional dataset token file; otherwise use HOTPOT_DATA_TOKEN or "
+                "search ~/.config/hotpot/huggingface/datasets/OWNER/REPO/ "
+                "for write.token (push), read.token then write.token (download)"
+            ),
+        )
+        credentials.add_argument(
+            "--token-env", metavar="NAME",
+            help="read the dataset token only from this environment variable",
+        )
+        if name == "push":
+            _database(transfer)
+        else:
+            transfer.add_argument(
+                "--target-package", default=str(HOTPOT_PACKAGE_ROOT), metavar="PATH",
+                help="Hotpot package to install into; requires an absent active store",
+            )
 
     detail = _command(actions, "detail", help="inspect current storage", description="Current-store diagnostics.", doc_topic="detail")
     detail_actions = detail.add_subparsers(dest="detail_action", metavar="COMMAND")
@@ -1205,6 +1248,27 @@ def run(args: argparse.Namespace) -> int:
         if args.ds_action == "copy":
             result = copy_store(_active_database(args), args.target_package)
             emit_envelope("hotpot.ds.copy", result)
+            return 0
+
+        if args.ds_action in {"push", "download"}:
+            from ._hf import data_token, download_store, push_store
+
+            options = {
+                "token": data_token(
+                    write=args.ds_action == "push",
+                    repo_id=args.repo_id,
+                    token_file=args.token_file,
+                    token_env=args.token_env,
+                ),
+                "repo_id": args.repo_id,
+                "revision": args.revision,
+            }
+            result = (
+                push_store(_active_database(args), **options)
+                if args.ds_action == "push"
+                else download_store(args.target_package, **options)
+            )
+            emit_envelope(f"hotpot.ds.{args.ds_action}", result)
             return 0
 
         if args.ds_action == "detail":

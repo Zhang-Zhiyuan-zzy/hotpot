@@ -2,8 +2,10 @@
 
 `hotpot.dataset` is the single filesystem home for Hotpot dataset resources.
 The public API, CLI, assessment engine, and ingestion implementation live in
-`hotpot.ds`. Formal dataset payloads remain local, ignored data. The existing
-small shipped chemistry references live separately in `resources/`; they are
+`hotpot.ds`. Formal dataset payloads are Git-ignored local replicas, published
+separately through authenticated transfers to a private Hugging Face dataset
+repository. The existing small shipped chemistry references live separately
+in `resources/`; they are
 read-only package inputs, not formal datasets or new Bundle schemas.
 
 A benchmark is one governed archive class or subset within a dataset. It is not
@@ -38,8 +40,10 @@ licensed structures, generated databases, Bundle facts, certificates,
 assessment generations, supplier records, and audit outputs. A clone contains
 schemas, rules, documentation and the bounded shipped reference inputs, but not
 formal dataset payloads. Restore data
-from an authorized artifact source or rebuild it with current owner/admin
-tools.
+with `hotpot ds download` using a dataset read token, or rebuild it with
+current owner/admin tools. Administrators publish the verified formal store
+with `hotpot ds push`. These commands never use model credentials implicitly;
+see the [transfer setup](../ds/cli_doc.md#transfer-a-store-through-hugging-face).
 
 The default query store is:
 

@@ -11330,3 +11330,74 @@ returns0:5passed/0skip in3.01s, including C11 compilation and actual C++17 facad
 execution for both libstdc++ ABIs using the mock runtime. Python/PEP621 version
 match and whitespace checks pass. No fresh native implementation/SDK build,
 installed-package rename or new chemical/scientific acceptance is claimed.
+
+
+### 2026-11-05 — Integrate authenticated Hugging Face dataset transfers
+
+Owner requests integrating feat/ds-huggingface-transfer into current0.5.5.0
+source d9f5071e while keeping code and formal datasets separately managed.
+The branch's settled feature commits98663d89/49aca43f are absent from this
+mainline; their CLI/store-copy owners remain unchanged here since the common
+base0a4b0ee6. Preserve current Plan20 representation, public scientific APIs,
+version, packaged read-only chemistry references and updated storage contract.
+Align with the effective goal, existing Stage12 packaging/delivery boundary,
+Plan13's established compact-store/Bundle contracts and maintained storage
+replication rules. This is additive transfer integration, not a second store,
+new assessment route or change to published scientific facts.
+
+Reuse the branch's authenticated private-repository upload/download, immutable
+commit selection and existing audited atomic store-copy operation. Code,
+schemas and bounded shipped references remain tracked; formal SQLite/CAS
+payloads remain Git-ignored and excluded from packages. Independent dataset
+credentials must be present before network activity and must not silently use
+model credentials. Check actual behavior, corruption rejection, access control,
+CLI contracts and connected dataset callers. A local independent read-only
+review examines transfer contracts; root retains application and acceptance.
+No data token is configured in default dataset credential files or
+HOTPOT_DATA_TOKEN; the local formal database exists. Therefore no actual
+private-Hub publication or remote download can be claimed until credentials
+are supplied. Preserve local data and owner files; no remote permission change.
+
+
+### 2026-11-05 — Authenticated dataset transfer integrated on0.5.5.0
+
+Apply the two feature commits onto current primary without replacing current
+chemical/runtime source owners. Independent local review identifies missing
+download privacy enforcement and global archive-cache reuse; root adds a
+private-repository requirement and per-transfer cache directory. Credential
+lookup remains independent of model authentication; metadata/archive401 and
+commit409 failures propagate without activation, overwrite or retry. Code and
+bounded shipped references remain packaged; formal SQLite/CAS data remains
+Git-ignored and is transferred only through the private repository contract.
+
+The actual current-schema source has three valid frozen historical runtime
+policies, rather than ambient-current policies. Sol-max review reconciles
+replication with Plan13§4.2/owner decision16: existing frozen policy/receipt
+verification preserves sealed facts without executing assessment, parsers,
+checkers, certification or ingestion. Current schema, exact target ds owner,
+receipt equality/content/CAS audits and atomic no-overwrite publication remain.
+New assessment/certification/ingestion still requires current runtime. Main
+Plan13 receives the bounded clarification; source history is never rewritten.
+
+Actual root read-only database/CAS audit passes:3datasets/3releases,252665cases,
+2289registered objects/8674972bytes; database stat unchanged,34.078s. It is not
+a frozen upload snapshot. Original worker fixture failures remain retained.
+The final integrated selection returns3failed/484passed/30skipped in158.87s;
+all three failures are new mocked HTTP exception constructors lacking required
+response objects. A test-only correction and exact three-case retry pass3/0skip
+in2.09s with unchanged production. Combined unique coverage is487passed/30skip,
+not a rewritten original full result. Skips are29external and1scientific-boundary
+opt-ins. Exact argv, interpreters, source hashes and JUnit are archived.
+
+Actual isolated PEP5170.5.5.0 sdist passes with all six current transfer files,
+no formal payload paths and three excluded synthetic private-data canaries.
+The corrected HTTP test is not a distributed member; packaged bytes remain
+current. No native build or all-version/performance/scientific acceptance.
+Root independently verifies the33-file evidence archive and final bindings.
+
+Actual `hotpot ds push` credential preflight exits2 before network; no dataset
+read/write token or HOTPOT_DATA_TOKEN exists. Accept bounded code/local-data
+integration while real private-HF publication, authenticated download and
+server-side access checks remain OPEN as P20-D043. No remote commit or uploaded
+data is claimed. Details and original failures:
+[HF dataset transfer integration](stages/stage12/final-delivery/validation/hf-dataset-transfer-integration.json).

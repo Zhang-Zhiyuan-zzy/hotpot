@@ -708,6 +708,15 @@ a sealed release, it identifies creation of a successor release under the
 current policy. `bundle.status.runtime_policy_current` reports this distinction.
 No compatibility runtime is loaded.
 
+Copying or transferring an already ingested current-schema store uses the same
+frozen verification rule. Transport verifies policy structure and digests,
+receipt-policy equality, persisted scientific content, and referenced CAS
+objects without assessment, parser/checker execution, recertification, or
+re-ingestion. It preserves the frozen policies and receipts unchanged; a newer
+ambient assessment runtime alone does not require rewriting sealed history.
+The current store schema, matching target package's current `ds` implementation,
+and atomic publication without overwriting an active store remain required.
+
 For an editable Bundle, a newer trusted governance registry also invalidates
 the assessment input. The next explicit `synchronize()` snapshots and audits
 that trusted registry revision before reassessment; a caller cannot supply or

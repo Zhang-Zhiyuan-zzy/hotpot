@@ -12,7 +12,7 @@ The public workflow is arranged by purpose:
 Query:       list, info, get, labels, subset, search, export
 Prepare:     bundle build, bundle status/get/set/gate, bundle synchronize
 Publish:     certify, ingest
-Replicate:   copy
+Replicate:   copy, push, download
 ```
 
 Every successful operational command writes one validated JSON envelope to
@@ -948,6 +948,136 @@ Common pitfalls:
   of allowing both copies to diverge independently.
 - Historical canonical paths in signed receipts remain unchanged. They are
   provenance facts, while normal reads resolve assets from the replica.
+
+### Transfer a store through Hugging Face
+
+```text
+hotpot ds push [--db PATH] [--repo-id REPO] [--revision BRANCH]
+               [--token-file PATH | --token-env NAME]
+hotpot ds download [--target-package PATH] [--repo-id REPO]
+                   [--revision BRANCH_TAG_OR_COMMIT]
+                   [--token-file PATH | --token-env NAME]
+```
+
+These commands transfer the complete already-certified and ingested formal
+store, including its referenced content-addressed assets. They do not publish
+unbuilt intakes, working Bundles, source directories, audit working files, or
+credentials. As with `copy`, this is an exact store replica: any incomplete
+Cases explicitly archived during ingestion remain in the snapshot and retain
+their normal query isolation. There is no per-dataset or quality-level filter.
+
+The default repository is `Zhang-Zhiyuan-zzy/hotpot-data`. `push` creates it as
+a private **dataset** repository if absent. Both commands reject public
+repositories; a nonempty token alone does not make public data access-controlled.
+`push` takes a SQLite online-backup snapshot, verifies receipt-bound content and all referenced assets, then uploads `data/store.tar.gz` in one
+commit. Publishing replaces that archive on the selected branch; other remote
+files and previous commits remain untouched. A concurrent change to the
+branch causes the push to fail instead of silently publishing over it.
+
+Dataset credentials are independent of model authentication. `--token-file` is
+optional: without an explicit credential source, the command searches the
+repository's directory in this layout:
+
+```text
+~/.config/hotpot/
+`-- huggingface/
+    `-- datasets/
+        `-- Zhang-Zhiyuan-zzy/
+            `-- hotpot-data/
+                |-- read.token     # read-only dataset credential
+                `-- write.token    # read/write dataset credential
+```
+
+For `--repo-id OWNER/REPO`, use
+`~/.config/hotpot/huggingface/datasets/OWNER/REPO/`. Each token file contains
+only the token text; no JSON, TOML, or key name is needed. Actual permissions
+are enforced by Hugging Face.
+
+Credential resolution order:
+
+1. An explicit `--token-file PATH` or `--token-env NAME` uses only that source.
+2. Otherwise, a nonempty `HOTPOT_DATA_TOKEN` environment variable is used.
+3. Otherwise, `push` reads `write.token` in the repository's directory.
+4. Otherwise, `download` tries `read.token`, then `write.token`. Missing or
+   empty default files are skipped. A publisher can therefore download using
+   only its `write.token`; a user needs only `read.token`.
+
+If no token is found, the command fails before contacting Hugging Face and
+prints the token settings URL, required repository permission, searched files,
+and exact recommended file location. These
+commands do not fall back to `HF_TOKEN`, `HF_TOKEN_PATH`, or the active HF
+login, and do not change any of them. Use a fine-grained token scoped to the
+dataset repository: write access for `push`, read access for `download`.
+Keep token files outside the checkout with owner-only permissions.
+
+Get a token from <https://huggingface.co/settings/tokens>. The HF account
+creating it must already have access to the private dataset. Users can also
+request a read-only dataset token from the repository owner.
+
+For example, save a read-only token interactively without putting it in shell
+history:
+
+```bash
+hotpot_token_dir="$HOME/.config/hotpot/huggingface/datasets/Zhang-Zhiyuan-zzy/hotpot-data"
+mkdir -p "$hotpot_token_dir"
+chmod 700 "$hotpot_token_dir"
+(
+    umask 077
+    read -rsp "Dataset token: " hotpot_data_token
+    printf '\n'
+    printf '%s' "$hotpot_data_token" > "$hotpot_token_dir/read.token"
+)
+chmod 600 "$hotpot_token_dir/read.token"
+```
+
+On the publication machine, save a read/write token as `write.token` in the
+same directory, then push the imported package's current store without flags:
+
+```bash
+hotpot ds push
+```
+
+Choose a separate upload credential or source database when needed:
+
+```bash
+hotpot ds push --token-file /secure/hotpot-upload.token \
+  --db /srv/hotpot/datasets.sqlite3
+```
+
+An existing token file elsewhere, such as `~/.config/hotpot/data.token`, can
+still be selected with `--token-file`. Place it in the layout above to enable
+automatic discovery; the command does not move or rewrite credentials.
+
+On a clean user installation configured with its own read-only dataset token:
+
+```bash
+hotpot ds download
+hotpot ds list
+```
+
+`download` resolves the requested revision to one commit before fetching the
+archive. It rejects unsafe archive members, verifies the current store schema,
+valid frozen runtime policies, receipt-bound facts, and asset hashes, and activates a new
+local generation atomically. No build, certification, or ingestion is needed.
+The JSON result includes the exact HF commit in `payload.revision`; use that
+value with `--revision` to reproduce a download later.
+
+The target defaults to the imported Hotpot package. `--target-package` selects
+another concrete package directory with the exact same current `hotpot.ds`
+runtime, as for `copy`. An existing `store/active`, including a dangling link,
+is rejected without replacement or merging. Use a clean target installation
+when downloading another snapshot. Invalid frozen policies and incompatible
+store schemas fail verification. A valid sealed release may record a different
+assessment runtime: transfer preserves that history without executing it or
+reassessing the release. New assessment, certification, and ingestion still
+require the current runtime. Downloading is not a schema migration.
+
+The compressed archive, extracted snapshot, and installed generation require
+temporary disk space during transfer. Temporary staging directories are removed
+on success or failure. The archive cache is isolated under that temporary
+root; optional Hub/Xet chunk caches follow Hugging Face configuration. Transfers
+preserve the source store UUID and receipt-bound historical paths; choose one
+publication authority for that lineage.
 
 ## 4. JSON stdin/stdout protocol
 

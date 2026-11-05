@@ -11,9 +11,19 @@ import pytest
 
 import hotpot
 import hotpot.ds._store_copy as store_copy_module
+import hotpot.ds.gates._checker as checker_module
+import hotpot.ds.public._generation as generation_module
+import hotpot.ds.public._implementation as implementation_module
+import hotpot.ds.public.certificate as certificate_module
 from hotpot.ds._store_copy import StoreCopyError, copy_store
 from hotpot.ds.cli import build_parser, run
-from hotpot.ds.public._implementation import runtime_policy
+from hotpot.ds.public._implementation import (
+    PolicyProtocolError,
+    require_current_runtime_policy,
+    runtime_policy,
+    runtime_policy_is_current,
+    validate_frozen_runtime_policy,
+)
 from hotpot.ds.public.catalog import load
 from hotpot.ds.storage import (
     TARGET_SCHEMA_ID,
@@ -30,6 +40,15 @@ def _json_digest(value: object) -> str:
         value, ensure_ascii=False, sort_keys=True, separators=(",", ":")
     )
     return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+
+def _advance_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
+    current = runtime_policy()
+    current["runtime"]["python"]["version"] = "next-test-runtime"
+    current["digest"] = _json_digest(
+        {key: value for key, value in current.items() if key != "digest"}
+    )
+    monkeypatch.setattr(implementation_module, "runtime_policy", lambda: current)
 
 
 def _source_package(tmp_path: Path) -> tuple[Path, Path, Path, bytes]:
@@ -229,6 +248,161 @@ def test_copy_store_publishes_relocatable_current_store(tmp_path: Path) -> None:
     assert json.loads(copied_binding)["target_context"]["canonical_path"] == (
         historical_path
     )
+
+
+def test_copy_store_preserves_queryable_sealed_history_after_runtime_drift(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, source_database, source_generation_db, structure_bytes = _source_package(
+        tmp_path
+    )
+    store = TargetStore(source_generation_db)
+    policy = store.read_policy("spin")
+    receipt = store.load_release_metadata("spin", "spin.v001")["receipt"]
+    source_bytes = source_generation_db.read_bytes()
+    with sqlite3.connect(source_generation_db) as connection:
+        source_rows = tuple(connection.iterdump())
+        asset_paths = [
+            row[0]
+            for row in connection.execute("SELECT relative_path FROM target_assets")
+        ]
+    source_assets = {
+        relative: (store.asset_root / relative).read_bytes()
+        for relative in asset_paths
+    }
+    _advance_runtime(monkeypatch)
+    frozen = policy["value"]["runtime_policy"]
+    assert validate_frozen_runtime_policy(frozen) == frozen
+    assert not runtime_policy_is_current(frozen)
+    with pytest.raises(PolicyProtocolError, match="not current"):
+        require_current_runtime_policy(frozen)
+
+    def unexpected_execution(*args, **kwargs):
+        raise AssertionError("store transport must preserve sealed results")
+
+    for owner, name in (
+        (generation_module.AssessmentGeneration, "build"),
+        (generation_module, "_structure_is_parseable"),
+        (checker_module, "evaluate_configured_check"),
+        (certificate_module, "write_bundle_certificate"),
+        (TargetStore, "ingest"),
+    ):
+        monkeypatch.setattr(owner, name, unexpected_execution)
+    target_package = _target_package(tmp_path)
+
+    copy_store(source_database, target_package)
+
+    destination = _destination_database(target_package)
+    copied_store = TargetStore(destination)
+    with sqlite3.connect(destination) as connection:
+        assert tuple(connection.iterdump()) == source_rows
+    assert source_generation_db.read_bytes() == source_bytes
+    assert copied_store.read_policy("spin") == policy
+    assert copied_store.load_release_metadata("spin", "spin.v001")["receipt"] == receipt
+    assert {
+        path.relative_to(copied_store.asset_root).as_posix(): path.read_bytes()
+        for path in copied_store.asset_root.rglob("*")
+        if path.is_file()
+    } == source_assets
+    record = load("spin", db=destination).CSD_identifier["EUCASE"]
+    assert record.label == {"spin": 3}
+    assert record.quality_level == "B4"
+    assert record.evidence_level == "E4"
+    assert record.archive_class == "benchmark"
+    assert record.structures.path("xyz").read_bytes() == structure_bytes
+
+
+@pytest.mark.parametrize("location", ["policy", "receipt"])
+@pytest.mark.parametrize("damage", ["missing-runtime", "invalid-digest", "invalid-schema"])
+def test_copy_store_rejects_malformed_frozen_runtime_bindings(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, location: str, damage: str
+) -> None:
+    _, source_database, source_generation_db, _ = _source_package(tmp_path)
+    _advance_runtime(monkeypatch)
+    with sqlite3.connect(source_generation_db) as connection:
+        query = (
+            "SELECT policy_json FROM dataset_policies"
+            if location == "policy"
+            else "SELECT binding_json FROM ingestion_receipts"
+        )
+        document = json.loads(connection.execute(query).fetchone()[0])
+        if damage == "missing-runtime":
+            del document["runtime_policy"]
+        else:
+            frozen = document["runtime_policy"]
+            if damage == "invalid-digest":
+                frozen["runtime"]["python"]["version"] = "tampered"
+            else:
+                frozen["schema"] = "hotpot-ds-runtime-policy/obsolete"
+                frozen["digest"] = _json_digest(
+                    {key: value for key, value in frozen.items() if key != "digest"}
+                )
+        canonical = json.dumps(
+            document, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        )
+        if location == "policy":
+            connection.execute(
+                "UPDATE dataset_policies SET policy_json=?,policy_digest=?",
+                (canonical, _json_digest(document)),
+            )
+        else:
+            connection.execute(
+                "UPDATE ingestion_receipts SET binding_json=?,receipt_id=?",
+                (canonical, "receipt-" + _json_digest(document)),
+            )
+    target_package = _target_package(tmp_path)
+    expected = (
+        "dataset policy binding is invalid"
+        if location == "policy"
+        else "ingestion receipt runtime binding is invalid"
+    )
+
+    with pytest.raises(StoreCopyError, match=expected):
+        copy_store(source_database, target_package)
+
+    store_root = target_package / "dataset" / "data" / "store"
+    assert not (store_root / "active").exists()
+    assert not tuple((store_root / "generations").iterdir())
+
+
+def test_copy_store_rejects_different_valid_frozen_receipt_and_policy_runtimes(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _, source_database, source_generation_db, _ = _source_package(tmp_path)
+    _advance_runtime(monkeypatch)
+    with sqlite3.connect(source_generation_db) as connection:
+        binding = json.loads(
+            connection.execute(
+                "SELECT binding_json FROM ingestion_receipts"
+            ).fetchone()[0]
+        )
+        assert not runtime_policy_is_current(binding["runtime_policy"])
+        frozen = binding["runtime_policy"]
+        frozen["runtime"]["python"]["version"] = "another-historical-runtime"
+        frozen["digest"] = _json_digest(
+            {key: value for key, value in frozen.items() if key != "digest"}
+        )
+        assert validate_frozen_runtime_policy(frozen) == frozen
+        assert not runtime_policy_is_current(frozen)
+        connection.execute(
+            "UPDATE ingestion_receipts SET binding_json=?,receipt_id=?",
+            (
+                json.dumps(
+                    binding, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+                ),
+                "receipt-" + _json_digest(binding),
+            ),
+        )
+    target_package = _target_package(tmp_path)
+
+    with pytest.raises(
+        StoreCopyError, match="receipt and dataset policy runtimes differ"
+    ):
+        copy_store(source_database, target_package)
+
+    store_root = target_package / "dataset" / "data" / "store"
+    assert not (store_root / "active").exists()
+    assert not tuple((store_root / "generations").iterdir())
 
 
 def test_copied_store_can_become_the_single_target_for_a_later_ingest(

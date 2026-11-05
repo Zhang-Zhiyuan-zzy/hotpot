@@ -1,0 +1,131 @@
+{
+  "status": "ROOT_ACCEPTED_LOCAL_INTEGRATION_LIVE_HF_PENDING",
+  "date": "2026-11-05",
+  "base_commit": "d9f5071eb9f108882e4ee0a7a5311bd8e635ff2b",
+  "version": "0.5.5.0",
+  "feature_source": {
+    "branch": "feat/ds-huggingface-transfer",
+    "tip": "49aca43f54e5aa76e4f0251a800475a172cb6f1c",
+    "commits": [
+      "98663d89",
+      "49aca43f"
+    ],
+    "integration": "Selected feature commits applied onto current primary; older chemistry/runtime files not substituted."
+  },
+  "behavior": [
+    "Code, schemas and bounded shipped references remain Git/package assets; formal datasets remain ignored local SQLite/CAS replicas, distributed separately through a private Hugging Face dataset repository.",
+    "hotpot ds push publishes an audited complete formal store; download resolves an immutable commit and verifies/audits before atomic activation without merge/overwrite.",
+    "Both transfer commands reject public repositories and require independent nonempty dataset credentials before Hub access; model login is not an implicit credential source.",
+    "Download archive cache is isolated under temporary transfer storage; optional Hub/Xet chunk caching follows client configuration.",
+    "Valid frozen source policy/receipt runtimes are verified and preserved without reassessment. Current schema, matching target ds implementation, receipt equality and scientific-content/CAS integrity remain required.",
+    "New assessment, certification and ingestion continue requiring current runtime. This follows Plan13 frozen-verification direction; no historical implementation is loaded."
+  ],
+  "repo_id": "Zhang-Zhiyuan-zzy/hotpot-data",
+  "remote_archive": "data/store.tar.gz",
+  "credential_sources": [
+    "Explicit --token-file or --token-env",
+    "HOTPOT_DATA_TOKEN",
+    "~/.config/hotpot/huggingface/datasets/OWNER/REPO/write.token for push; read.token then write.token for download"
+  ],
+  "validation": {
+    "python": "3.11.16",
+    "sqlite": "3.53.4",
+    "huggingface_hub": "1.33.0",
+    "full_selection": "tests/test_ds; tests/test_packaging_metadata.py; tests/test_packaging/test_packaged_reference_assets.py; tests/test_packaging/test_runtime_resources.py",
+    "full_invocation": {
+      "returncode": 1,
+      "elapsed_seconds": 159.57201367616653,
+      "log": "integrated-tests.log",
+      "source_unchanged": true,
+      "counts": {
+        "tests": 517,
+        "errors": 0,
+        "failures": 3,
+        "skipped": 30
+      }
+    },
+    "full_invocation_passed": 484,
+    "retained_failure": "Three newly added HTTP-error fixtures omitted required response constructor argument. No production error demonstrated by those failures.",
+    "targeted_retry": {
+      "returncode": 0,
+      "counts": {
+        "tests": 3,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "seconds": 2.09,
+      "only_changed_file": [
+        "tests/test_ds/test_hf_transfer.py"
+      ],
+      "scope": "Corrected fixture construction; production unchanged. Original full result remains retained."
+    },
+    "merged_unique_counts": {
+      "passed": 487,
+      "skipped": 30,
+      "failures_remaining": 0
+    },
+    "skip_reasons": {
+      "requires --run-external": 29,
+      "requires --run-scientific-boundary": 1
+    },
+    "coverage": "Real SQLite/CAS lifecycle with mocked HF metadata/upload/download; private rejection, explicit credentials, 401 failure/no activation, archive safety/corruption, commit pinning, 409 conflict/no retry, WAL snapshot and frozen historical transport.",
+    "worker_failures_retained": "Original hidden-facade spy lookup and inclusion of unregistered ingestion locks in test inventory; fixed tests and final integrated coverage retained.",
+    "argv_environment_junit": "evidence/integrated-intent.json, integrated-tests.xml, auth-fixture-retry-result.json and frozen-store-transport/attempt01..03/"
+  },
+  "actual_local_store": {
+    "status": "PASS",
+    "source": "/home/zhangzhiyuan/hotpot/hotpot/dataset/data/store/active/datasets.sqlite3",
+    "metadata": {
+      "store_uuid": "4e3433b6-0a8a-441f-bc21-f18df32bdf4a",
+      "schema_id": "hotpot-ds-store/compact-current"
+    },
+    "counts": {
+      "datasets": 3,
+      "releases": 3,
+      "cases": 252665,
+      "assets": 2289,
+      "asset_bytes": 8674972
+    },
+    "verified_registered_assets": 2289,
+    "database_stat_unchanged": true,
+    "elapsed_seconds": 34.07835562154651,
+    "scope": "Read-only live store/CAS audit; no duplicate database, mutation, reassessment or remote transfer; not a frozen publication snapshot."
+  },
+  "sdist": {
+    "status": "PASS",
+    "path": "evidence/dist/hotpot_zzy-0.5.5.0.tar.gz",
+    "bytes": 2974314,
+    "sha256": "1c4fab4f78de18bf14a68732e46a90d2034a8655c4fe319669aacf432bb65dd7",
+    "current_transfer_files_packaged": {
+      "hotpot/ds/_hf.py": "e00a245458f57144b9de106682fa865dbefd8fa56bb10e3d1d8c34bb4d51f8ed",
+      "hotpot/ds/_store_copy.py": "8d541a41cf48aa129902dd847b6ce03a8ceabb3e79f3ca18309d010d02149529",
+      "hotpot/ds/cli.py": "c9bcca72a127f4dff722d977771fafdd480ac83cd3bd0108c1caca0ffcb726c4",
+      "hotpot/ds/cli_doc.md": "98ea1aa2bfaae85b170cc5b1fd073380db84dfeef51acee852afd15e95e8293f",
+      "hotpot/ds/cli_communication.json": "1111468b214b8889df6c9f5b8d7e7b67104b7a949f129d7b17513a0e93b43974",
+      "hotpot/ds/schemas/cli/contracts.schema.json": "4efea422e3dac25022ed5335c08229bb444a1891a9e451eb848ca53615830413"
+    },
+    "formal_payload_paths_packaged": [],
+    "synthetic_ignored_payload_canaries_excluded": 3,
+    "note": "Final changed HTTP fixture test is absent from sdist; six packaged transfer-file bindings remain current. No regular wheel/native rebuild."
+  },
+  "remote_execution": {
+    "status": "NOT_EXECUTED_MISSING_DATASET_TOKEN",
+    "actual_cli_preflight": "hotpot ds push returns2 with empty stdout and dataset-credential guidance before Hub access. No default read/write token or HOTPOT_DATA_TOKEN configured.",
+    "privacy": "Private repository creation/access is implemented, not remotely established in this run.",
+    "open_issue": "P20-D043"
+  },
+  "evidence": {
+    "archive": ".plan20-artifacts/20261105/datasets/hf-transfer/evidence.tar.gz",
+    "bytes": 3152042,
+    "sha256": "698cfbe37b8fbf43478b7329519c61c2af2de19dbb1a4848f9a40a9bf92b315f",
+    "manifested_files": 33,
+    "final_inputs": ".plan20-artifacts/20261105/datasets/hf-transfer/evidence/final-inputs.json",
+    "formal_dataset_payloads_or_real_credentials_archived": false
+  },
+  "limits": [
+    "No real authenticated HF upload/download or wrong-token/revocation qualification; no remote commit or publication is claimed.",
+    "Thirty opt-in tests remain unexecuted; no all-version, new wheel/SDK, chemistry-population, performance or full-plan acceptance.",
+    "No actual data/assessment policy/receipt rewrite, source-store copy or secret archival. Registered CAS audit ignores legitimate unregistered source ingestion locks."
+  ]
+}

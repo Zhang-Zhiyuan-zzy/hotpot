@@ -1,4 +1,4 @@
-"""Verified replication of one current Hotpot dataset store.
+"""Verified replication of one current-schema Hotpot dataset store.
 
 This is an internal CLI support module.  Replication preserves the immutable
 SQLite rows and content-addressed objects exactly; it does not rebuild,
@@ -21,7 +21,7 @@ from typing import Any, Iterable, Mapping
 
 from .public._implementation import (
     PolicyProtocolError,
-    require_current_runtime_policy,
+    validate_frozen_runtime_policy,
 )
 from .storage import (
     SCHEMA,
@@ -163,9 +163,9 @@ def _audit_receipt(
     if policy is None:
         raise StoreCopyError("ingestion receipt has no dataset policy")
     try:
-        require_current_runtime_policy(binding["runtime_policy"])
+        validate_frozen_runtime_policy(binding["runtime_policy"])
     except (KeyError, PolicyProtocolError) as exc:
-        raise StoreCopyError("ingestion receipt runtime binding is not current") from exc
+        raise StoreCopyError("ingestion receipt runtime binding is invalid") from exc
 
     direct_fields = {
         "store_uuid": store_uuid,
@@ -286,10 +286,10 @@ def _audit_database(database: Path) -> tuple[dict[str, str], list[dict[str, Any]
                     json.loads(row["policy_json"])
                 ):
                     raise StoreCopyError("dataset policy is not canonical JSON")
+                # The store reader verifies the policy digest and frozen runtime.
                 policy = store._policy_mapping(row)
-                require_current_runtime_policy(policy["value"]["runtime_policy"])
-            except (KeyError, json.JSONDecodeError, PolicyProtocolError, TargetStoreError) as exc:
-                raise StoreCopyError("dataset policy runtime is not current") from exc
+            except (json.JSONDecodeError, TargetStoreError) as exc:
+                raise StoreCopyError("dataset policy binding is invalid") from exc
             policies[row["dataset_id"]] = policy
         if set(policies) != datasets:
             raise StoreCopyError("every dataset must have exactly one policy")
@@ -489,13 +489,39 @@ def _package_root(value: str | Path) -> tuple[Path, str]:
     return package, contract
 
 
+def _stage_store(source: Path, staging: Path) -> tuple[dict[str, str], dict[str, int]]:
+    """Snapshot and audit a store and its referenced asset closure."""
+
+    if not source.is_file():
+        raise StoreCopyError("source database does not exist")
+    source_assets = Path(str(source) + ".assets").resolve()
+    staged_database = staging / "datasets.sqlite3"
+    staged_assets = Path(str(staged_database) + ".assets")
+    staged_assets.mkdir()
+    _backup_database(source, staged_database)
+    metadata, assets, counts = _audit_database(staged_database)
+    if assets and not source_assets.is_dir():
+        raise StoreCopyError("source CAS asset directory is missing")
+    for asset in assets:
+        relative = Path(asset["relative_path"])
+        _copy_asset(
+            source_assets / relative,
+            staged_assets / relative,
+            asset["sha256"],
+            asset["size"],
+        )
+    _audit_cas(staged_assets, assets)
+    _fsync_directory_tree(staged_assets)
+    _fsync_directory(staging)
+    return metadata, counts
+
+
 def copy_store(source_db: str | Path, target_package: str | Path) -> dict[str, Any]:
-    """Copy an ingested current store into another Hotpot package atomically."""
+    """Copy an ingested current-schema store into a matching Hotpot package."""
 
     source = Path(source_db).expanduser().resolve()
     if not source.is_file():
         raise StoreCopyError("source database does not exist")
-    source_assets = Path(str(source) + ".assets").resolve()
     package, target_runtime_contract = _package_root(target_package)
     store_root = package / "dataset" / "data" / "store"
     active = store_root / "active"
@@ -516,24 +542,7 @@ def copy_store(source_db: str | Path, target_package: str | Path) -> dict[str, A
         final = generations / f"replica-{uuid.uuid4().hex}"
         published = False
         try:
-            staged_database = staging / "datasets.sqlite3"
-            staged_assets = Path(str(staged_database) + ".assets")
-            staged_assets.mkdir()
-            _backup_database(source, staged_database)
-            metadata, assets, counts = _audit_database(staged_database)
-            if assets and not source_assets.is_dir():
-                raise StoreCopyError("source CAS asset directory is missing")
-            for asset in assets:
-                relative = Path(asset["relative_path"])
-                _copy_asset(
-                    source_assets / relative,
-                    staged_assets / relative,
-                    asset["sha256"],
-                    asset["size"],
-                )
-            _audit_cas(staged_assets, assets)
-            _fsync_directory_tree(staged_assets)
-            _fsync_directory(staging)
+            metadata, counts = _stage_store(source, staging)
 
             staging.rename(final)
             _fsync_directory(generations)

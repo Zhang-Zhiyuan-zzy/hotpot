@@ -284,12 +284,31 @@ not repaired in place.
 
 ## Exact store replication
 
+`hotpot ds push` publishes an audited formal-store snapshot as
+`data/store.tar.gz` in the private Hugging Face dataset repository
+`Zhang-Zhiyuan-zzy/hotpot-data`. `hotpot ds download` fetches one pinned commit
+and installs it using the same verification and activation contract as `copy`.
+The archive contains only `datasets.sqlite3` and its referenced adjacent CAS
+files. Whole-store replication preserves explicitly archived incomplete Cases;
+it does not apply query filters. Working Bundles and source trees stay local.
+Dataset credentials come from optional `--token-file` / `--token-env`,
+`HOTPOT_DATA_TOKEN`, or automatic lookup under
+`~/.config/hotpot/huggingface/datasets/OWNER/REPO/`, independently of the
+model repository's HF login. `push` uses `write.token`; `download` prefers
+`read.token` and can use `write.token`. If no token exists, the command prints
+where to obtain it and the exact file in which to save it.
+See `hotpot ds push --doc` for setup and examples.
+
 `hotpot ds copy TARGET_HOTPOT_PACKAGE [--db SOURCE_DB]` installs an exact
 replica of one current formal store into another concrete Hotpot package. This
 is a publication-copy operation, not dataset ingestion or schema migration. It
 copies the whole SQLite store and the complete referenced CAS closure; copying
 only `datasets.sqlite3` is invalid. The target must contain the same exact
-current `hotpot.ds` runtime as the command performing the copy.
+current `hotpot.ds` runtime as the command performing the copy. Source policies
+and receipts retain their valid frozen assessment-runtime bindings; copying
+executes no historical assessment code and does not require those bindings to
+match the ambient runtime. New assessment, certification, and ingestion still
+require the current runtime.
 
 The command uses SQLite online backup to obtain one consistent source snapshot,
 streams and verifies every referenced CAS object, validates the current schema,

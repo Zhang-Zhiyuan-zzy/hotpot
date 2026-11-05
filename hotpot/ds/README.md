@@ -80,7 +80,10 @@ of the console-script wrapper. An editable installation therefore selects its
 source checkout, while an ordinary pip installation selects its installed
 package directory. Dataset payloads are not bundled with source distributions,
 so a clean installation commonly needs `db=` until a release is ingested or an
-existing formal store is replicated there with `hotpot ds copy`.
+existing formal store is replicated there with `hotpot ds copy` or downloaded
+from the private dataset repository with `hotpot ds download`. Administrators
+publish verified store snapshots with `hotpot ds push`. These HF commands use
+independent dataset credentials; see `hotpot ds push --doc`.
 
 ## 2. `Dataset` and `Data`
 

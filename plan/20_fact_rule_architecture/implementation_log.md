@@ -11169,3 +11169,53 @@ or scientific-population acceptance is claimed. Repeated native rebuild/cache
 work remains P20-D042 and does not block this delivery. Exact commands,
 observations and root decision: [editable parallel build](stages/stage12/final-delivery/validation/editable-parallel-build.json).
 Raw archive/index: `.plan20-artifacts/20261105/packaging/editable-parallel/`.
+
+
+### 2026-11-05 — First uncached compilation scope after parallel scheduling
+
+Owner restricts further acceleration to first uncached compilation and forbids
+business-code changes. Continue the existing Stage10/12 packaging boundary at
+e11281ca, aligned with the effective goal, native ownership decision, affected
+verification map and prior packaging acceptance. Source downloads/extraction,
+pip isolation, persistent caches, prebuilt wheels and extra CPU allocation are
+outside the proposed benefit. Keep all scientific/native sources, algorithms,
+optimization/ABI flags, source locks and public interfaces unchanged.
+
+Read-only local analysis identifies upstream RDKit's guarded unity option as
+an existing build-only experiment; its exclusions must remain. Compare fresh
+baseline/variant builds sequentially at the same16jobs, count generated unity
+work and retained failures, and separate actual compilation duration from total
+installation time. Use isolated copies under /tmp/hotpot_plan20/medium and do
+not overwrite shared hp-usage or checkout natives. Adopt only a measured useful
+candidate with affected actual native/chemical checks; root owns application,
+acceptance and Git. No cache or main-plan architecture redesign is authorized.
+
+
+### 2026-11-05 — Local first-build guarded unity compilation accepted
+
+One sequential fresh RD-native closure pair at e11281ca, CP311.16/GCC14.3/
+CMake4.4.3/Ninja1.13.2/jobs16 measures compile+link61.818s→53.431s:
+8.387s/13.567% less elapsed time. Object-compilation spans61.474s→53.112s.
+All143original source bytes/effective flags remain identical; compiler commands
+143→89 (27generated unity+62standalone), Ninja steps162→108, no missing/extra
+sources and upstream exclusions preserved. No compiler/PCH/object cache or
+extra cores; generated grouping work is included. This is one shared-host
+observation, not a statistical/general speedup or whole-pip-install measurement.
+
+Unfavorable results stay explicit: TorsionPreferences.cpp36.502s→36.601s,
+outside-Ninja overhead22.608s→22.827s, child-RSS maxima1290324→1290508KiB
+(not aggregate peak). Full driver84.425800s→76.258360s is reported separately.
+Each variant passes actual rebuilt RD-native origin,17binding tests/0fail/error/
+skip and core smoke; five identified accepted companion natives are reused.
+No installed-wheel, six-fresh-native or scientific-population acceptance follows.
+
+Root applies guarded ON/batch4 only to the existing local profile; explicit
+probe/release retain OFF/no batch and their previous effective configuration.
+Only the build driver, two guides and existing operational packaging test change;
+no business source, algorithm, optimization/ABI flag or source-lock edit.
+Final local configure argv,33packaging checks, shell syntax and whitespace pass.
+Root verifies final driver dispatch against the actual experimental variant,
+four changed file identities, both17-test JUnit outcomes, native origins/bytes
+and the5,461,341-byte/154-entry sealed archive. Exact evidence and scope:
+[first cold compilation](stages/stage12/final-delivery/validation/first-cold-unity-compile.json).
+Existing P20-D042 cache work remains separate; no further broad rebuild justified.

@@ -248,9 +248,17 @@ configure_args=(
     -DRDK_USE_BOOST_STACKTRACE=OFF
     -DRDK_OPTIMIZE_POPCNT=OFF
     -DRDK_USE_FLEXBISON=OFF
-    -DRDK_USE_UNITY_BUILDS=OFF
     -DRDK_LTO_MODE=OFF
 )
+
+if [[ "$build_profile" == local ]]; then
+    configure_args+=(
+        -DRDK_USE_UNITY_BUILDS=ON
+        -DCMAKE_UNITY_BUILD_BATCH_SIZE=4
+    )
+else
+    configure_args+=(-DRDK_USE_UNITY_BUILDS=OFF)
+fi
 
 if [[ "$build_python" == ON ]]; then
     python=$(command -v "$python_command")

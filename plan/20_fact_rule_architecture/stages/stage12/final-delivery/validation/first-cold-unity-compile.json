@@ -1,0 +1,210 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_FIRST_UNCACHED_COMPILATION",
+  "date": "2026-11-05",
+  "base_commit": "e11281ca29b2c3491a3e6b4f3bc3106c4c4ebb54",
+  "changed_files": {
+    "hotpot/cheminfo/rdWrappers/build_locked.sh": {
+      "bytes": 10428,
+      "sha256": "e9e4b9aa767060f946efabbd2cbf56f394857c4cf280d24d7ec35157fc216b47"
+    },
+    "hotpot/cheminfo/rdWrappers/_native/BUILDING.md": {
+      "bytes": 4355,
+      "sha256": "fce08719c04b08f1babbe436ee0004dcb0320bf5acd41dce01abe50f9ead4711"
+    },
+    "third_party/rdkit/README.md": {
+      "bytes": 7972,
+      "sha256": "35eaa3817daad531a96995984e2a62dcf605ef7f5109f1f7bcad4b87ab2403fd"
+    },
+    "tests/test_packaging/test_rdwrapper_build.py": {
+      "bytes": 11918,
+      "sha256": "cec1b99bea1c639fb31f2a2bf870ce6e3fc672330d2ef46ff8573aa33a70dda3"
+    }
+  },
+  "boundary": "Build configuration, existing packaging test, guides and evidence only. No business/scientific/native source, public interface, optimization/ABI flag or source-lock change.",
+  "implementation": "Existing local profile enables upstream guarded RDK_USE_UNITY_BUILDS=ON with CMAKE_UNITY_BUILD_BATCH_SIZE=4. Global CMAKE_UNITY_BUILD stays unset. Existing probe/manylinux profiles retain unity OFF and no batch argument.",
+  "root_rebind": "The experimental driver differs from base only in ON/batch4. Root verifies the maintained driver differs only by selecting that exact effective configuration for local; strict profiles retain original effective configuration. Final operational packaging test observes local configure argv.",
+  "protocol": {
+    "pair_count": 1,
+    "order": [
+      "baseline",
+      "candidate"
+    ],
+    "platform": "Linux x86_64, CPython3.11.16, GCC/G++14.3.0, CMake4.4.3, Ninja1.13.2",
+    "jobs_each": 16,
+    "fresh_work": "Fresh extracted source/build directories; no prebuilt/object/PCH/compiler caches. Same six source archives and dependencies. Include generated unity work in compile timing.",
+    "timing": "Observed .ninja_log elapsed span for complete hotpot_rd_native compile/link closure, excluding preceding verification/extraction/configuration. Shared-host filesystem/page caches were not flushed.",
+    "environment_and_tools": "Exact environment, compiler/interpreter hashes and resource snapshots in archive {baseline,candidate}/build-result.json."
+  },
+  "observed_seconds": {
+    "compile_link": {
+      "baseline": 61.818,
+      "candidate": 53.431,
+      "saved": 8.387,
+      "percent_reduction": 13.567245786017018
+    },
+    "object_compilation_span": {
+      "baseline": 61.474,
+      "candidate": 53.112
+    },
+    "driver_total_including_outside_compile": {
+      "baseline": 84.42579979635775,
+      "candidate": 76.25836021639407
+    },
+    "outside_ninja": {
+      "baseline": 22.607799796357753,
+      "candidate": 22.82736021639407
+    },
+    "unchanged_bottleneck_TorsionPreferences_cpp": {
+      "baseline": 36.502,
+      "candidate": 36.601,
+      "observation": "Candidate starts8.460s earlier; this source itself does not become faster."
+    }
+  },
+  "equivalent_work": {
+    "original_sources_each": 143,
+    "original_source_byte_differences": [],
+    "effective_original_source_flag_differences": [],
+    "missing_sources": [],
+    "extra_sources": [],
+    "compiler_commands": {
+      "baseline": 143,
+      "candidate": 89
+    },
+    "ninja_steps": {
+      "baseline": 162,
+      "candidate": 108
+    },
+    "candidate_generated_unity_units": 27,
+    "candidate_standalone_units": 62,
+    "upstream_exclusions_preserved": true,
+    "tracked_source_mutations": {
+      "baseline": [],
+      "candidate": []
+    }
+  },
+  "actual_build_and_runtime": {
+    "baseline": {
+      "build_argv": [
+        "bash",
+        "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/baseline/source-copy/hotpot/cheminfo/rdWrappers/build_locked.sh",
+        "/tmp/hotpot-plan17-release-cache",
+        "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/baseline/work",
+        "/tmp/hotpot_plan20/medium/editable-parallel-20261105/candidate/venv/bin/python"
+      ],
+      "cwd": "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/baseline",
+      "returncode": 0,
+      "source_manifest_sha256": "ff2e7eea9999b577d875a5d4797d3d997833349cc1b9e4b80ccc0468d1fad87d",
+      "native_identity": {
+        "path": "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/baseline/source-copy/hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "d2e65525e6738a9195615d52e35a7feb32a35011b607db6d7b0676c96fec6bf6",
+        "size": 5491648,
+        "runtime": {
+          "hotpot_version": "0.5.4.5",
+          "rdkit_version": "2026.09.1",
+          "native": true
+        },
+        "rdkit_commit": "fece8caa860bdf6c9c82bdb9253f22a0cf87150c",
+        "c_api_version": 1
+      },
+      "tests": {
+        "passed": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "runtime_returncodes": {
+        "rd-origin": 0,
+        "rd-native-tests": 0,
+        "core-smoke": 0
+      },
+      "child_cpu_seconds": 576.932409,
+      "maxrss_kib_children": 1290324
+    },
+    "candidate": {
+      "build_argv": [
+        "bash",
+        "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/candidate/source-copy/hotpot/cheminfo/rdWrappers/build_locked.sh",
+        "/tmp/hotpot-plan17-release-cache",
+        "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/candidate/work",
+        "/tmp/hotpot_plan20/medium/editable-parallel-20261105/candidate/venv/bin/python"
+      ],
+      "cwd": "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/candidate",
+      "returncode": 0,
+      "source_manifest_sha256": "854b7d55524ca0afa68ff012557d20632921f1aa8f6c41cc654c9c65db8de39d",
+      "native_identity": {
+        "path": "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/candidate/source-copy/hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "f665d0b4197e54a782152014bde9ec6e626113a71182920a72ac7dac1c3ccc29",
+        "size": 5364776,
+        "runtime": {
+          "hotpot_version": "0.5.4.5",
+          "rdkit_version": "2026.09.1",
+          "native": true
+        },
+        "rdkit_commit": "fece8caa860bdf6c9c82bdb9253f22a0cf87150c",
+        "c_api_version": 1
+      },
+      "tests": {
+        "passed": 17,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 0
+      },
+      "runtime_returncodes": {
+        "rd-origin": 0,
+        "rd-native-tests": 0,
+        "core-smoke": 0
+      },
+      "child_cpu_seconds": 431.45524299999994,
+      "maxrss_kib_children": 1290508
+    }
+  },
+  "packaging_validation": {
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/tmp/hotpot_plan20/medium/first-cold-compile-20261105/implementation/pytest-tmp",
+      "tests/test_packaging/test_rdwrapper_build.py",
+      "tests/test_packaging/test_github_workflows.py",
+      "tests/test_packaging_metadata.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "returncode": 0,
+    "passed": 33,
+    "shell_syntax": "PASS",
+    "scoped_whitespace": "PASS"
+  },
+  "root_decision": "Accept this small local-only scheduling/grouping configuration with complete affected RD-native checks and operational build regression. The measured first uncached compilation benefit needs no additional CPU allocation or scientific-code changes. Further costly samples are not justified for this bounded change.",
+  "limits": [
+    "One sequential paired observation, not a statistically established or universal speedup; resource snapshots and unfavorable timing/RSS observations remain.",
+    "Only RD native was rebuilt; five identified companion natives were reused. Actual source-mode native origins,17tests/core smoke each are not installed-wheel or six-fresh-native evidence.",
+    "Full pip installation was not remeasured. The13.567% benefit applies to the RD-native compile/link closure, not overall installation.",
+    "Per-child rusage RSS maxima do not measure simultaneous aggregate process-tree peak memory.",
+    "No new strict probe/release/SDK/other-ABI qualification; those effective build configurations remain original. Scientific population/performance parity is not claimed.",
+    "Persistent incremental/compiled-cache work remains separate P20-D042; no extraction/network/pip-isolation shortcut is introduced."
+  ],
+  "evidence_index": {
+    "artifact_root": ".plan20-artifacts/20261105/packaging/first-cold-compile",
+    "archive": {
+      "path": "evidence.tar.gz",
+      "bytes": 5461341,
+      "sha256": "3f94e67fa8cf130f150c577483760abe8be61020e5d3b6e1195c8ccaff8542e1",
+      "entries": 154,
+      "manifested_member_hashes_verified": 153
+    },
+    "read_on_demand": [
+      "report.md",
+      "pair-analysis.json",
+      "archive-index.json",
+      "member-manifest.json",
+      "root-acceptance/root-verification.json",
+      "root-acceptance/final-driver-rebind.json"
+    ],
+    "exact_runtime_commands": "evidence.tar.gz:{baseline,candidate}/runtime-results.json",
+    "build_reproduction": "evidence.tar.gz:run-build.py, analyze-ninja.py, verify-focused.py, both CMakeCache/compile_commands/.ninja_log and generated unit maps"
+  }
+}

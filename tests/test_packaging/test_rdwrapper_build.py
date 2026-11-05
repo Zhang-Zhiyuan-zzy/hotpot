@@ -165,6 +165,9 @@ def test_locked_driver_preserves_pythonpath_for_cmake_launcher(tmp_path: Path):
     configure, build = [json.loads(line) for line in calls.read_text().splitlines()]
     assert configure[:2] == ["-S", str(work / "source/rdkit")]
     assert "-DCMAKE_DISABLE_FIND_PACKAGE_Python=ON" in configure
+    assert "-DRDK_USE_UNITY_BUILDS=ON" in configure
+    assert "-DCMAKE_UNITY_BUILD_BATCH_SIZE=4" in configure
+    assert not any(argument.startswith("-DCMAKE_UNITY_BUILD=") for argument in configure)
     assert build == ["--build", str(work / "build"), "--target", "hotpot_rdwrappers"]
 
 

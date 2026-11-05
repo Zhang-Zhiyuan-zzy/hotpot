@@ -25,6 +25,13 @@ with source files within each pybind11 extension compiled in parallel. This
 workflow uses that environment variable for concurrency; `build_ext -j` requests
 extension-level parallelism.
 
+The `local` profile enables RDKit's guarded `RDK_USE_UNITY_BUILDS` with
+`CMAKE_UNITY_BUILD_BATCH_SIZE=4` to group eligible upstream source files during
+compilation. RDKit's target exclusions remain in effect; global
+`CMAKE_UNITY_BUILD` is not enabled. Explicit `probe` and
+`manylinux_2_28_x86_64` profiles retain unity builds disabled and their previous
+configuration.
+
 For an ordinary editable install, run this from the repository root:
 
 ```bash

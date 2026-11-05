@@ -11693,3 +11693,83 @@ in /tmp/hotpot_plan20/short/automatic-payload-identity-20261105/. Schema3 change
 historical digests intentionally; this does not assert chemical change or a
 cold pipeline/session migration. Scientific/actual/installed/default delivery
 remain separately owned gates.
+
+
+### 2026-11-05 — Actual automatic workflow and connected FF entry diagnosis
+
+Frozen7a90f331 CP311 original187 execution has terminal observations:182CBond,
+182complete UFF,182GFN-FF and165GFN2 successes;5CBond threshold failures and
+17GFN2 native failures remain in the187 denominator. Charge/UHF requests are
+absent; no production bytes or scientific budgets changed during execution.
+Export/render/artifact joins remain under the runner's source freeze. Its first
+verifier retained five terminal-log/final-coordinate mismatches; root requires
+actual native-final-file attribution, not relaxed tolerances or a fabricated pass.
+
+Outside-checkout installed182-file selection collected4244:4202passed/1runner
+failure/41skipped, followed by that node passing after an artifact-only spawn-main
+guard correction. Actual installed case1 completes the full four-stage route;
+all observed product imports resolve to the new venv, with six reused CP311
+natives. No rebuilt-native/ABI or other-interpreter claim follows.
+
+The extra installed public auto_optimize attempt exposes a connected regression:
+canonical CBond DATIVE reaches the intentionally strict native FAST builder
+before existing full-complex fallback. Root reviewed the isolated minimal repair:
+only registered metal–nonmetal DATIVE preflight becomes existing BUILD_FAILED
+provenance and uses pristine complete-complex fallback; mixed/unmapped DATIVE and
+unknown errors still propagate. Source apply waits for the current run's final
+verification/freeze release. No public type, native contract or source bond is
+changed by that selected route. Candidate/evidence owner:
+/tmp/hotpot_plan20/short/automatic-fast-dative-20261105/.
+
+The default suite's sole old mapped-N–Cu rejection is qualified to an unmapped
+N–B rejection plus actual mapped DTO/facts/feature/public-SMILES checks; complete
+MCA serialization40passed in1.11s, product unchanged. Original default and the
+new test's initial assumption failure remain under their separate attempts.
+
+
+### 2026-11-05 — Actual native convergence reporting correction entry
+
+Root inspected the five original zero-exit stdout/final-file observations and
+accepted the bounded correction now specified in automatic-workflow/interface_contract.md.
+Native success artifacts do not overrule an explicit terminal geometry failure.
+Converged=False finite complete output returns through existing parse/commit and
+XTB:convergence control, matching the approved goal. Required artifacts, native
+nonzero failures and technical integrity checks remain. Retain all original
+7a90f331 cohort reports and record corrected replay separately; no full native
+rerun or forced convergence. FF public-entry and xTB report fixes have distinct
+file owners and share no production edits. The cohort source freeze is released
+after corrected16782artifact checks/0failures; its original16787/5report remains.
+
+
+### 2026-11-05 — Public FF entry and truthful native convergence business checkpoint
+
+Root reviewed the final source and frozen local-partition evidence. The public
+Molecule.optimize() route records an unsupported native FAST build only for
+registered metal–nonmetal DATIVE and enters the existing pristine complete
+complex workflow. Unmapped/mixed DATIVE, unknown errors and atomic rollback
+remain explicit. Full affected FF selection:344passed/0failed/0skipped in19.55s,
+including19automatic-route cases. Initial342passed/2new-test failures remain
+preserved; fieldwise comparison corrected an eq=False record-identity assertion.
+Exact commands/environment/source bindings/JUnit:
+/tmp/hotpot_plan20/short/automatic-fast-dative-20261105/summary.json and
+attempt-02/command.json. Current bytes match every qualified final source hash.
+
+The xTB runner reads the last explicit native geometry decision; the adapter
+returns complete finite nonconverged observations while retaining execution,
+required artifacts, atom-order and finite-result gates. Actual five-case replay
+changed five falsely true convergence flags tofalse with exactly unchanged
+parsed numerical values and no native rerun. Focused26passed; connected xTB,
+CLI and pipeline514passed/10external skips in20.87s. Exact argv, failures,
+source identities and five-case values are indexed in
+/tmp/hotpot_plan20/short/automatic-native-convergence-20261105/validation.json.
+Required native artifacts are not relaxed. Existing XTB:convergence finding and
+explicit sample/batch control remain the only policy path.
+
+The qualified entire MCA serialization module40passed in1.11s, with both mapped
+N–Cu DTO/facts/feature/public-SMILES and unmapped N–B rejection covered; no MCA
+production change. These source results do not replace the default suite's
+original8442passed/1failed/163skipped/3xfailed record. A final192-file installed
+CP311 run and actual public-entry case1 are prepared but unexecuted at this
+checkpoint. Original187 numerical artifacts remain bound to7a90f331, with the
+five convergence-report replays separate. The next business commit freezes all
+these source/test bytes before that final installed gate.

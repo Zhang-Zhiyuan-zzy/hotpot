@@ -253,7 +253,24 @@ def test_coordination_graph_round_trip_preserves_site_semantics(molecule):
     )
 
 
-def test_dative_graph_keeps_the_existing_hotpot_smiles_failure():
+def test_unmapped_nonmetal_dative_graph_keeps_hotpot_smiles_failure():
+    molecule = Molecule()
+    molecule.create_atom(atomic_number=7, implicit_hydrogens=3)
+    molecule.create_atom(atomic_number=5)
+    molecule.add_bond(
+        0,
+        1,
+        1.0,
+        bond_kind=BondKind.DATIVE,
+        bond_direction="atom1_to_atom2",
+    )
+
+    with pytest.raises(ValueError, match="cannot represent dative bonds losslessly"):
+        normalize_molecule(molecule)
+
+
+
+def test_mapped_metal_dative_graph_keeps_facts_through_dto_and_public_smiles():
     molecule = Molecule()
     molecule.create_atom(atomic_number=7, implicit_hydrogens=3)
     molecule.create_atom(atomic_number=29)
@@ -265,8 +282,41 @@ def test_dative_graph_keeps_the_existing_hotpot_smiles_failure():
         bond_direction="atom1_to_atom2",
     )
 
-    with pytest.raises(ValueError):
-        normalize_molecule(molecule)
+    dto = pickle.loads(pickle.dumps(normalize_molecule(molecule)))
+    restored = hotpot_mol_from_dto(dto)
+    feature = rdmol_from_dto(dto)
+    public = Chem.MolFromSmiles(dto.smiles)
+
+    assert dto.atom_symbols == ("N", "Cu")
+    assert tuple(
+        (atom.atomic_number, atom.formal_charge, atom.implicit_hydrogens, atom.valence)
+        for atom in dto.atoms
+    ) == ((7, 0, 3, 3), (29, 0, 0, 2))
+    assert tuple(
+        (bond.begin_atom_index, bond.end_atom_index, bond.bond_order,
+         bond.bond_kind, bond.bond_direction)
+        for bond in dto.bonds
+    ) == ((0, 1, 1.0, "dative", "atom1_to_atom2"),)
+    for graph in (molecule, restored):
+        assert tuple(
+            (atom.atomic_number, atom.formal_charge, atom.implicit_hydrogens, atom.valence)
+            for atom in graph.atoms
+        ) == ((7, 0, 3, 3), (29, 0, 0, 2))
+        assert tuple(
+            (bond.a1idx, bond.a2idx, bond.bond_order, bond.bond_kind, bond.bond_direction)
+            for bond in graph.bonds
+        ) == ((0, 1, 1.0, BondKind.DATIVE, "atom1_to_atom2"),)
+        assert _site_records(graph) == ()
+    assert tuple(atom.GetSymbol() for atom in feature.GetAtoms()) == dto.atom_symbols
+    assert tuple(atom.GetTotalNumHs() for atom in feature.GetAtoms()) == (3, 0)
+    assert feature.GetBondWithIdx(0).GetBondType() == Chem.BondType.DATIVE
+    # The registered external projection is SINGLE; DTO facts stay authoritative.
+    assert dto.smiles == "[NH3][Cu]"
+    assert public is not None
+    assert tuple(atom.GetSymbol() for atom in public.GetAtoms()) == dto.atom_symbols
+    assert tuple(atom.GetTotalNumHs() for atom in public.GetAtoms()) == (3, 0)
+    projected = pybel.readstring("smi", dto.smiles).OBMol
+    assert projected.GetBond(0).GetBondOrder() == 1
 
 
 def test_hotpot_isotope_keeps_site_symmetry_distinction():

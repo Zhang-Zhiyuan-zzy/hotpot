@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 from copy import copy
-from dataclasses import replace
+from dataclasses import astuple, replace
 from typing import Optional
 
 import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.structure.bond_kind import BondKind
 from hotpot.cheminfo.operations.forcefields import attempts
 from hotpot.cheminfo.operations.forcefields import auto as auto_workflow
 from hotpot.cheminfo.operations.forcefields import ff
@@ -430,6 +431,189 @@ def test_native_programming_exception_is_not_converted_to_fallback(monkeypatch):
 
     with pytest.raises(RuntimeError, match="native attempt failed") as caught:
         auto_workflow.auto_optimize(molecule)
+
+    assert caught.value is failure
+    assert np.array_equal(molecule.coordinates, original_coordinates)
+
+
+def _dative_complex_molecule():
+    molecule = read_mol("[Eu]NC", fmt="smi")
+    molecule.coordinates = np.asarray(
+        ((0.0, 0.0, 0.0), (2.4, 0.0, 0.0), (3.8, 0.0, 0.0)),
+        dtype=np.float64,
+    )
+    molecule.bonds[0]._set_bond_metadata(
+        bond_kind=BondKind.DATIVE,
+        bond_direction="atom2_to_atom1",
+        bond_source="cbond",
+        bond_source_metadata={"prediction": {"score": 0.9}},
+    )
+    molecule.charge = 3
+    molecule.properties["source"] = "original"
+    return molecule
+
+
+@pytest.mark.parametrize("add_hydrogens", (False, True))
+def test_mapped_dative_uses_full_workflow_from_pristine_source(
+    monkeypatch, add_hydrogens,
+):
+    molecule = _dative_complex_molecule()
+    original_atoms = molecule.atoms
+    original_bonds = molecule.bonds
+    original_bond_facts = tuple(
+        (bond.a1idx, bond.a2idx, bond.attr_dict) for bond in original_bonds
+    )
+    original_coordinates = molecule.coordinates.copy()
+    calls = []
+    monkeypatch.setattr(
+        auto_workflow,
+        "_native_build",
+        lambda *args, **kwargs: pytest.fail("mapped DATIVE reached native build"),
+    )
+    monkeypatch.setattr(
+        auto_workflow,
+        "_run_ordinary_optimization_attempt",
+        lambda *args, **kwargs: pytest.fail("unsupported FAST reached optimization"),
+    )
+
+    def complex_workflow(current, forcefield, **options):
+        calls.append(current)
+        assert current is not molecule
+        assert len(current.atoms) == len(original_atoms)
+        assert np.array_equal(current.coordinates, original_coordinates)
+        assert current.charge == 3
+        assert current.properties == {"source": "original"}
+        assert tuple(
+            (bond.a1idx, bond.a2idx, bond.attr_dict) for bond in current.bonds
+        ) == original_bond_facts
+        assert options["add_hydrogens"] is add_hydrogens
+        assert options["convergence_level"] is ff.ConvergenceLevel.BALANCED
+        current.coordinates = current.coordinates + 0.1
+        return _complex_workflow_report(current)
+
+    monkeypatch.setattr(auto_workflow, "_complexes_build_workflow", complex_workflow)
+
+    result = molecule.optimize(
+        add_hydrogens=add_hydrogens,
+        convergence_level=ff.ConvergenceLevel.BALANCED,
+    )
+
+    assert len(calls) == 1
+    assert molecule.atoms == original_atoms
+    assert all(current is original for current, original in zip(molecule.bonds, original_bonds))
+    assert tuple(
+        (bond.a1idx, bond.a2idx, bond.attr_dict) for bond in molecule.bonds
+    ) == original_bond_facts
+    assert np.array_equal(molecule.coordinates, original_coordinates + 0.1)
+    assert molecule.charge == 3
+    assert molecule.properties == {"source": "original"}
+    routing = result.routing_report
+    assert routing.selected_route is ff.OptimizationRoute.COMPLEX_WORKFLOW
+    assert tuple(attempt.route for attempt in routing.attempts) == (
+        ff.OptimizationRoute.NATIVE_FAST,
+        ff.OptimizationRoute.COMPLEX_WORKFLOW,
+    )
+    assert tuple(attempt.status for attempt in routing.attempts) == (
+        ff.OptimizationAttemptStatus.BUILD_FAILED,
+        ff.OptimizationAttemptStatus.ACCEPTED,
+    )
+    preliminary = routing.attempts[0]
+    assert preliminary.build_succeeded is False
+    assert preliminary.quality_report is None
+    assert preliminary.message == (
+        "Open Babel native FAST build cannot represent metal-nonmetal "
+        "DATIVE bonds losslessly"
+    )
+    assert len(result.trajectory.preliminary_attempts) == 1
+    assert [frame.event for frame in result.trajectory.preliminary_attempts[0].frames] == [
+        ff.TrajectoryEvent.INITIAL,
+    ]
+
+
+@pytest.mark.parametrize("error_type", (ff.ForceFieldError, RuntimeError))
+def test_mapped_dative_fallback_failure_preserves_caller_atomically(
+    monkeypatch, error_type,
+):
+    molecule = _dative_complex_molecule()
+    auto_workflow._capture_working_source(molecule)
+    original_record, original_metadata = molecule._capture_factual_record(include_frames=False)
+    original_values = astuple(original_record)
+    original_atoms = molecule.atoms
+    original_bond = molecule.bonds[0]
+    failure = error_type("full complex workflow failed")
+    monkeypatch.setattr(
+        auto_workflow,
+        "_native_build",
+        lambda *args, **kwargs: pytest.fail("mapped DATIVE reached native build"),
+    )
+
+    def fail(current, *args, **kwargs):
+        current.coordinates = current.coordinates + 9.0
+        current.properties["source"] = "failed candidate"
+        current.bonds[0]._set_bond_metadata(bond_kind=BondKind.SINGLE)
+        raise failure
+
+    monkeypatch.setattr(auto_workflow, "_complexes_build_workflow", fail)
+    monkeypatch.setattr(
+        auto_workflow,
+        "_commit_working_copy",
+        lambda *args, **kwargs: pytest.fail("failed fallback committed"),
+    )
+
+    with pytest.raises(error_type, match="full complex workflow failed") as caught:
+        molecule.optimize(add_hydrogens=False)
+
+    assert caught.value is failure
+    current_record, current_metadata = molecule._capture_factual_record(include_frames=False)
+    assert astuple(current_record) == original_values
+    assert current_metadata == original_metadata
+    assert molecule.atoms == original_atoms
+    assert molecule.bonds[0] is original_bond
+    assert molecule.properties == {"source": "original"}
+
+
+@pytest.mark.parametrize("mapped_coordination", (False, True))
+def test_unmapped_dative_native_rejection_propagates(monkeypatch, mapped_coordination):
+    molecule = read_mol("[Eu]NC", fmt="smi")
+    if mapped_coordination:
+        molecule.bonds[0]._set_bond_metadata(
+            bond_kind=BondKind.DATIVE, bond_direction="atom2_to_atom1",
+        )
+    molecule.bonds[1]._set_bond_metadata(
+        bond_kind=BondKind.DATIVE, bond_direction="atom1_to_atom2",
+    )
+    original_coordinates = molecule.coordinates.copy()
+    monkeypatch.setattr(
+        auto_workflow,
+        "_complexes_build_workflow",
+        lambda *args, **kwargs: pytest.fail("unmapped DATIVE triggered fallback"),
+    )
+
+    with pytest.raises(ValueError, match="cannot represent dative bonds losslessly"):
+        molecule.optimize(add_hydrogens=False)
+
+    assert np.array_equal(molecule.coordinates, original_coordinates)
+    assert molecule.bonds[1].bond_kind is BondKind.DATIVE
+    assert molecule.bonds[1].bond_direction == "atom1_to_atom2"
+
+
+def test_unknown_native_build_error_propagates_without_fallback(monkeypatch):
+    molecule = _complex_molecule()
+    original_coordinates = molecule.coordinates.copy()
+    failure = ValueError("unrecognized native representation failure")
+
+    def fail(*args, **kwargs):
+        raise failure
+
+    monkeypatch.setattr(auto_workflow, "_native_build", fail)
+    monkeypatch.setattr(
+        auto_workflow,
+        "_complexes_build_workflow",
+        lambda *args, **kwargs: pytest.fail("unknown native error triggered fallback"),
+    )
+
+    with pytest.raises(ValueError, match="unrecognized native representation failure") as caught:
+        molecule.optimize(add_hydrogens=False)
 
     assert caught.value is failure
     assert np.array_equal(molecule.coordinates, original_coordinates)

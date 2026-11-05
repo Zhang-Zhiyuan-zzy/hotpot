@@ -9,6 +9,7 @@ from typing import Optional
 import numpy as np
 
 from hotpot.cheminfo.adapters.openbabel.forcefields import build as _native_build
+from hotpot.cheminfo.structure.bond_kind import BondKind
 from .attempts import _run_ordinary_optimization_attempt
 from .backend import _resolve_complex_forcefield
 from hotpot.cheminfo.rules.physics.forcefields.contracts import OptimizationStoppingCriteria
@@ -155,8 +156,21 @@ def _run_native_fast_build_attempt(
         start=trajectory_start,
     )
     _record_quick_build_frame(trajectory, working_mol, TrajectoryEvent.INITIAL)
-    build_report = _native_build(working_mol)
-    if not build_report.succeeded:
+    dative_bonds = tuple(
+        bond for bond in working_mol.bonds if bond.bond_kind is BondKind.DATIVE
+    )
+    if dative_bonds and all(bond.is_metal_ligand_bond for bond in dative_bonds):
+        build_failure = (
+            "Open Babel native FAST build cannot represent metal-nonmetal "
+            "DATIVE bonds losslessly"
+        )
+    else:
+        build_report = _native_build(working_mol)
+        build_failure = (
+            None if build_report.succeeded
+            else "obWrappers.build returned an unsuccessful report"
+        )
+    if build_failure is not None:
         return _NativeFastBuildAttempt(
             mol=working_mol,
             trajectory=trajectory,
@@ -165,7 +179,7 @@ def _run_native_fast_build_attempt(
                 route=OptimizationRoute.NATIVE_FAST,
                 status=OptimizationAttemptStatus.BUILD_FAILED,
                 build_succeeded=False,
-                message="obWrappers.build returned an unsuccessful report",
+                message=build_failure,
                 elapsed_seconds=perf_counter() - started,
             ),
             source=source,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import re
 from types import MappingProxyType
 from typing import Dict, Tuple
 
@@ -82,6 +83,14 @@ def _required_artifacts(request: XTBRequest) -> Tuple[str, ...]:
     return required
 
 
+def _geometry_optimization_converged(stdout: str) -> bool:
+    decisions = re.findall(
+        r"FAILED TO CONVERGE GEOMETRY OPTIMIZATION|GEOMETRY OPTIMIZATION CONVERGED",
+        stdout,
+    )
+    return not decisions or decisions[-1] == "GEOMETRY OPTIMIZATION CONVERGED"
+
+
 def _build_report(
     request: XTBRequest,
     process_result: NativeProcessResult,
@@ -119,6 +128,10 @@ def _build_report(
         converged=(
             process_result.return_code == 0
             and all(name in artifacts for name in _required_artifacts(request))
+            and (
+                request.task is not XTBTask.OPTIMIZE
+                or _geometry_optimization_converged(process_result.stdout)
+            )
         ),
         artifacts=MappingProxyType(artifact_records),
         provenance=provenance,

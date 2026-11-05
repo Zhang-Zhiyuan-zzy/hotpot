@@ -37,8 +37,12 @@ coincident:
 - an organic molecule whose coordinates are all coincident is built in 3D and
   then optimized;
 - a metal-containing molecule first receives a fresh native `FAST` build and
-  optimization; if that candidate fails the geometry gate, Hotpot discards it
-  and runs the complete complex build workflow from the original topology.
+  optimization when its bond representation is supported; if that candidate
+  fails the geometry gate, Hotpot discards it and runs the complete complex
+  build workflow from the original topology. Registered metal--nonmetal DATIVE
+  bonds are unsupported by the lossless native `FAST` representation, so they
+  record a failed preliminary build and use that complete workflow directly.
+  The original DATIVE kind, donor direction, and source facts are preserved.
 
 Use `--optimize-only` when an existing metal-complex geometry must be retained
 as the optimization starting point.
@@ -171,7 +175,7 @@ workers already running are not promised cancellation.
 
 | Value | Meaning |
 | --- | --- |
-| `auto` | Use the organic route for an organic topology. For a metal-containing topology, try a fresh native `FAST` build first and fall back to the complete complex workflow only if it is rejected. This is the default. |
+| `auto` | Use the organic route for an organic topology. For a metal-containing topology, try a fresh native `FAST` build when its bond representation is supported and fall back to the complete complex workflow if it is rejected. Registered metal--nonmetal DATIVE bonds use the complete workflow after a recorded unsupported-representation preliminary build. This is the default. |
 | `organic` | Use the ordinary molecular build/optimization workflow explicitly. |
 | `complex` | Use coordination restoration, ring--bond untangling, and complex optimization explicitly. |
 

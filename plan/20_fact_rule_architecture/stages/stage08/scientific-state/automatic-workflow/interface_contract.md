@@ -66,3 +66,26 @@ The source-binding finding now retains `(raw_source_identity, profile_artifact_d
 
 
 Accepted root lifecycle decision2026-11-05: any periodic/prior/default data change used by this profile MUST accompany a profile artifact/version revision, invalidating carried bundles through the existing digest binding. Data are fixed within an invocation/install; no hot-edit API or aggregate data hashing is added. The changed-profile rebind regression covers that boundary. A data-only manual edit without profile revision violates this maintenance contract.
+
+
+## Observed native convergence correction (2026-11-05)
+
+The frozen actual187 run exposed five zero-exit native optimizations whose
+stdout explicitly reports `FAILED TO CONVERGE GEOMETRY OPTIMIZATION` while all
+required artifacts, including `.xtboptok`, exist: GFN-FF59/74/135/136 and GFN2
+23. The report's artifact/exit-only `converged=True` is incorrect. Root accepts
+the bounded repair at the existing xTB runner/adapter owners: report the actual
+terminal native optimization decision; an explicit terminal nonconvergence
+cannot be overridden by file presence. Keep current required-artifact,
+nonzero-exit, finite-metric, atom-order and commit-integrity contracts.
+
+For a zero-exit, complete, finite, atom-consistent result, `converged=False`
+remains a usable observation. The artifact parser must not reject it solely for
+that flag. Existing stage code emits `XTB:convergence` and respects configured
+sample/batch breaks; no new result type, broad catch, retry, optimizer setting or
+claim of convergence is introduced. Missing required artifacts and SCC/native
+execution failures retain their precise local failure behavior and observations.
+Retain the original five reports unchanged and reparse their actual native
+outputs under the corrected code. Logger/final-coordinate differences are
+separate observations; authoritative final files must still exactly match the
+coordinates committed by the workflow.

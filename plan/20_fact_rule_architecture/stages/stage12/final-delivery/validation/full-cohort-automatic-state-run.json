@@ -1,0 +1,163 @@
+{
+  "status": "FULL_COHORT_ATTEMPT_COMPLETE_AUTOMATIC_SCIENTIFIC_STATE_BLOCKED",
+  "date": "2026-11-05",
+  "source_commit": "18d308e19079123fef2b150d5e6ecc39169e8fb1",
+  "source_version": "0.5.5.0",
+  "requested_output": "/home/zhangzhiyuan/hp_test",
+  "requested_output_written": false,
+  "output_access_reason": "Read-only file system; actual touch probe failed",
+  "actual_output": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01",
+  "route": [
+    "Hotpot CBond Eu",
+    "Hotpot complete-complex UFF",
+    "Hotpot GFN-FF optimize",
+    "Hotpot GFN2-xTB optimize"
+  ],
+  "sample_count": 187,
+  "historical_eligible_count_is_not_forced": true,
+  "actual_stage_counts": {
+    "cbond": {
+      "succeeded": 182,
+      "failed": 5
+    },
+    "ff": {
+      "succeeded": 182,
+      "not_attempted": 5
+    },
+    "gfnff": {
+      "failed": 182,
+      "not_attempted": 5
+    },
+    "xtb": {
+      "not_attempted": 187
+    }
+  },
+  "complete_four_stage_successes": 0,
+  "scientific_state_request": {
+    "resolver": "Hotpot resolve_xtb_state",
+    "policy": "coordination-screening-v1",
+    "charge": null,
+    "uhf": null,
+    "manual_state_assignment": false
+  },
+  "blocker_findings": {
+    "PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE": 182,
+    "PROFILE.REQUIRED_PROVIDER_MISSING": 182,
+    "PROFILE.RULE_SET_MISMATCH": 182,
+    "PROFILE.COORDINATION_BOUNDARY_REQUIRED": 182
+  },
+  "scientific_profile_activation_status": "planned; individual approval and held-out validation retained",
+  "native_xtb_version": "6.7.1/edcfbbe",
+  "native_xtb_engine_calls": 0,
+  "ff_trajectory": {
+    "archives": 182,
+    "branches": 370,
+    "frames": 13826,
+    "cadence": "all recorded executed epochs and build branches; no fabricated hidden optimizer substeps",
+    "all_archives_unmodified": true,
+    "selected_terminal_coordinate_differences": 0
+  },
+  "ff_standard_report": {
+    "passed": 181,
+    "flagged_finite_observations": 1,
+    "flagged_case": 61,
+    "findings": [
+      "forcefield_convergence",
+      "short_bond",
+      "bond_length_ratio"
+    ],
+    "short_eu_ligand_distances_angstrom": [
+      1.5145090895771958,
+      1.53291879498943
+    ]
+  },
+  "galleries": {
+    "cbond": {
+      "rendered": 182,
+      "placeholders": 5,
+      "png_sha256": "86f8deb44fde14c19be0dc4d684b4ac228be6340af6813bbfe5edffbf7523376",
+      "png_size": [
+        6000,
+        6204
+      ]
+    },
+    "ff": {
+      "rendered": 182,
+      "placeholders": 5,
+      "png_sha256": "a8b4e04d6f4b4c7ec02131ccbb3b639ce89b9330647da1a3d63ed2c089a4a005",
+      "png_size": [
+        6000,
+        6204
+      ]
+    },
+    "gfnff": {
+      "rendered": 0,
+      "placeholders": 187,
+      "png_sha256": "f95613f4e4911403467cfbc5fd9c93b0f801af937bd229658c8ab7870101a100",
+      "png_size": [
+        6000,
+        6204
+      ]
+    },
+    "xtb": {
+      "rendered": 0,
+      "placeholders": 187,
+      "png_sha256": "34dcbfff47b68c4df62ca31906382df7ab9d3d3ace03b342986a4da91a0b94fa",
+      "png_size": [
+        6000,
+        6204
+      ]
+    }
+  },
+  "artifact_integrity": {
+    "checks": 2033,
+    "failed_checks": 0,
+    "scope": "output completeness, actual source/native identity, mapping/coordinate and PNG integrity; not scientific correctness or four-stage acceptance"
+  },
+  "production_code_changed": false,
+  "open_issue": "P20-D044",
+  "evidence": {
+    "run-contract.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/run-contract.json",
+      "sha256": "0265827b14d20586b6f471e3e9606e6c3638be84caa9bff190ff167245255942"
+    },
+    "manifest.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/manifest.json",
+      "sha256": "d4bb9b4c699bd34f32757e47a070ff0b2541a65407e7352b6061ec7027173d3a"
+    },
+    "root-verification.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/root-verification.json",
+      "sha256": "3f230f276a8fefd0d83842c6160ac9c058b7092d20c196d4b1e37d474a293918"
+    },
+    "blockers.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/blockers.json",
+      "sha256": "45267060b74489e163205b37a29c2ce9d0aee73588ef991e4c331fec308fddc8"
+    },
+    "RESULT.md": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/RESULT.md",
+      "sha256": "c8346983a9eee2b0efe626e6f1e31e081368b2bcae88f234499b9d09ff87e0a5"
+    },
+    "ff/xyz-export.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/ff/xyz-export.json",
+      "sha256": "e1bc9777702aa0745d6d4e3414490ecc7164dbb77293a0b94bbcb361d33f67b2"
+    }
+  },
+  "required_next_work": [
+    "Reconcile CBond coordination bond semantics and selected-profile provider/rule wiring.",
+    "Complete applicability/held-out evidence and explicit optional profile activation review before enabling.",
+    "Execute actual GFN-FF/GFN2 with automatically inferred state; retain this failed original run.",
+    "Make hp_test writable in session or copy artifacts outside sandbox."
+  ],
+  "limits": [
+    "Supported Eu route; not an Am xTB run.",
+    "GFN-FF/xTB final.png files are explicit unavailable placeholders, without optimized molecules or trajectories.",
+    "No comparative performance/global chemistry acceptance claim."
+  ],
+  "archive": {
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/workflows/full-cohort-automatic-state/evidence.tar.gz",
+    "bytes": 103054583,
+    "sha256": "35745e5bbc35d2a780712609eff146644cb82d1fa788b5f2ff784b573d9c13bc",
+    "members": 9171,
+    "required_members_present": true
+  }
+}

@@ -11401,3 +11401,61 @@ integration while real private-HF publication, authenticated download and
 server-side access checks remain OPEN as P20-D043. No remote commit or uploaded
 data is claimed. Details and original failures:
 [HF dataset transfer integration](stages/stage12/final-delivery/validation/hf-dataset-transfer-integration.json).
+
+
+### 2026-11-05 — Owner-requested full four-stage 187-ligand run entry
+
+Align the bounded scientific run with the effective goal, main-plan scientific
+reporting (§11), verification map, inherited pipeline and standard benchmark
+contracts. Current production source is18d308e19079123fef2b150d5e6ecc39169e8fb1
+(version0.5.5.0); no chemical source change is authorized by this run. Preserve
+all187 source indices, actual current CBond eligibility, failures, non-hard
+findings and optimizer trajectories, without imposing historical182 equality.
+Use the supported Eu four-stage CBond→complete UFF→GFN-FF→GFN2-xTB route;
+historical Am cannot reach current xTB6.7.1, whose verified maximum Z is86.
+Use only Hotpot scientific-state resolution under coordination-screening-v1,
+with charge=None/UHF=None and carried scientific state; no manual state input.
+Retain actual native files/logs and FF archive branches. Draw only copies along
+the largest mass-weighted principal inertia axis, preserving scientific output.
+
+Owner-requested /home/zhangzhiyuan/hp_test exists but the session write probe
+fails with Read-only file system. Stage work in
+/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01; delivery into
+hp_test remains pending writable directory access. Input, source/model hashes,
+resources and predeclared route are recorded in run-contract.json there. This
+is an additional actual scientific run, not a new stage gate or global acceptance.
+
+
+### 2026-11-05 — Full-cohort actual results expose automatic-state blocker
+
+The full-standard preflight uses original cases1/8 (3.331s); the unchanged
+resume invocation accounts for all187 original cases in116.604s, retaining
+preflight failures rather than retrying. Actual current Eu CBond182returned/
+5below-threshold; complete UFF182returned/5not-attempted. Case61 retains finite
+energy/geometry with nonconvergence and two short Eu–ligand distances
+(1.514509/1.532919Å);181standard quality reports pass, one is flagged.
+
+All182GFN-FF attempts stop before native execution with
+XTBStateResolutionError/HARD-008.SCIENTIFIC_STATE_NOT_SELECTED. Each has
+PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE, REQUIRED_PROVIDER_MISSING,
+RULE_SET_MISMATCH and COORDINATION_BOUNDARY_REQUIRED. All187GFN2 records are
+not-attempted. Read-only owner tracing finds profile activation_status=planned,
+xTB policy-only resolution without configured providers/rules, and bare CBond
+metal–donor add_bond() producing no DATIVE semantic boundary for state facts.
+Plan20Stage8A/Plan12rules retain individual optional-profile approval,
+applicability artifacts and held-out validation. Do not waive those requirements,
+assign numerical charge/UHF or retype source bonds inside an evidence runner.
+P20-D044 is OPEN; this requested automatic four-stage capability remains blocked.
+
+CBond ACS1996 and FF principal-inertia galleries each contain182real structures/
+5labelled placeholders in187fixed slots. GFN-FF/GFN2 images contain187explicit
+unavailable placeholders each; no native trajectory or optimized structure is
+claimed. FF182archives retain370branches/13826frames, exported losslessly to
+XYZ with all original archive digests unchanged; selected/terminal coordinates,
+topology and energy agree despite distinct event indices. Root verifies2033
+artifact-integrity checks/0failures,364exact pickle/geometry pairs and748case
+PNGs; this is artifact integrity, not scientific or four-stage acceptance. All
+production and actualCP311native bytes remain unchanged. Output to hp_test is
+still blocked by the session read-only mount; the complete234MB tree is staged
+under the announced /tmp path with RESULT.md and an ordinary-shell copy command.
+[Owning run record](stages/stage12/final-delivery/validation/full-cohort-automatic-state-run.json).

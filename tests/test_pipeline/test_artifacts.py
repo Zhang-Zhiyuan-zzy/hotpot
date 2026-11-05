@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import pickle
 from pathlib import Path
 from typing import Callable
 
@@ -96,6 +97,193 @@ def test_payload_hash_covers_geometry_topology_and_scientific_state() -> None:
     assert payload_sha256(payload) == payload_sha256(identical)
     assert payload_sha256(payload) != payload_sha256(moved)
     assert payload_sha256(payload) != payload_sha256(charged)
+
+
+@pytest.mark.parametrize(
+    ("declaration", "first", "second"),
+    (
+        ("charge", (False, 0, None), (True, 0, "explicit")),
+        ("charge", (True, 0, "explicit"), (True, 0, "openbabel")),
+        ("spin_mult", (False, None, None), (True, 1, "explicit")),
+        ("spin_mult", (True, 1, "explicit"), (True, 3, "explicit")),
+        ("spin_mult", (True, 1, "explicit"), (True, 1, "openbabel")),
+    ),
+)
+def test_payload_hash_covers_raw_molecular_declarations_without_bundle(
+    declaration, first, second,
+) -> None:
+    from hotpot.cheminfo.structure._commit import _commit_molecular_declarations
+    from hotpot.cheminfo.structure._identity import _capture_source
+    from hotpot.pipeline.artifacts import payload_sha256
+    from hotpot.pipeline.contracts import MolecularPayload, MolecularRecord
+
+    first_mol = _water()
+    second_mol = first_mol.copy()
+    _commit_molecular_declarations(
+        first_mol, _capture_source(first_mol), **{declaration: first},
+    )
+    _commit_molecular_declarations(
+        second_mol, _capture_source(second_mol), **{declaration: second},
+    )
+
+    first_payload = MolecularPayload((MolecularRecord(first_mol),))
+    second_payload = MolecularPayload((MolecularRecord(second_mol),))
+
+    assert payload_sha256(first_payload) != payload_sha256(second_payload)
+    assert payload_sha256(second_payload) == payload_sha256(
+        MolecularPayload((MolecularRecord(second_mol.copy()),))
+    )
+
+
+@pytest.mark.parametrize("changed_fact", ("presence", "source"))
+def test_payload_hash_covers_raw_atom_formal_charge_evidence(changed_fact) -> None:
+    from hotpot import Molecule
+    from hotpot.cheminfo.structure._fields import (
+        ATOM_SOURCE_CODES, FIELD_INDEX,
+    )
+    from hotpot.pipeline.artifacts import payload_sha256
+    from hotpot.pipeline.contracts import MolecularPayload, MolecularRecord
+
+    first_mol = Molecule()
+    atom_facts = {"formal_charge": 0} if changed_fact == "source" else {}
+    first_mol.create_atom(
+        atomic_number=8, implicit_hydrogens=2, coordinates=(0., 0., 0.),
+        **atom_facts,
+    )
+    second_mol = first_mol.copy()
+    if changed_fact == "presence":
+        second_mol.atoms[0].formal_charge = 0
+    else:
+        # Change only the supplied provenance, preserving the charge value.
+        second_mol._atom_table._sources[0, FIELD_INDEX["formal_charge"]] = (
+            ATOM_SOURCE_CODES["openbabel"]
+        )
+
+    first_payload = MolecularPayload((MolecularRecord(first_mol),))
+    second_payload = MolecularPayload((MolecularRecord(second_mol),))
+
+    assert first_mol.atoms[0].formal_charge == second_mol.atoms[0].formal_charge == 0
+    assert payload_sha256(first_payload) != payload_sha256(second_payload)
+    assert payload_sha256(second_payload) == payload_sha256(
+        MolecularPayload((MolecularRecord(second_mol.copy()),))
+    )
+
+
+@pytest.mark.parametrize(
+    ("first_radicals", "first_source", "second_radicals", "second_source"),
+    (
+        (None, "source-a", 0, "source-a"),
+        (0, "source-a", 1, "source-a"),
+        (1, "source-a", 1, "source-b"),
+    ),
+)
+def test_payload_hash_covers_supplied_radical_occurrences(
+    first_radicals, first_source, second_radicals, second_source,
+) -> None:
+    from dataclasses import replace
+
+    from hotpot.cheminfo.stereo import (
+        AtomTransportRecord,
+        HydrogenTransportState,
+        get_stereo_payload,
+        set_stereo_payload,
+    )
+    from hotpot.pipeline.artifacts import payload_sha256
+    from hotpot.pipeline.contracts import MolecularPayload, MolecularRecord
+
+    first_mol = _water()
+    second_mol = first_mol.copy()
+    for mol, radicals, source in (
+        (first_mol, first_radicals, first_source),
+        (second_mol, second_radicals, second_source),
+    ):
+        transport = AtomTransportRecord(
+            atom=1, isotope=None, radical_electrons=radicals,
+            current_hydrogens=HydrogenTransportState(None, None, None),
+            source_hydrogens=HydrogenTransportState(None, None, None),
+            source_namespace=source,
+        )
+        set_stereo_payload(
+            mol, replace(get_stereo_payload(mol), atom_facts=(transport,)),
+        )
+
+    first_payload = MolecularPayload((MolecularRecord(first_mol),))
+    second_payload = MolecularPayload((MolecularRecord(second_mol),))
+
+    assert payload_sha256(first_payload) != payload_sha256(second_payload)
+    assert payload_sha256(second_payload) == payload_sha256(
+        MolecularPayload((MolecularRecord(second_mol.copy()),))
+    )
+
+
+def test_payload_hash_preserves_unprepared_caller_facts() -> None:
+    from hotpot import Molecule
+    from hotpot.pipeline.artifacts import payload_sha256
+    from hotpot.pipeline.contracts import MolecularPayload, MolecularRecord
+
+    mol = Molecule()
+    mol.create_atom(atomic_number=6, coordinates=(0., 0., 0.))
+    mol.create_atom(atomic_number=8, coordinates=(1.4, 0., 0.))
+    mol.add_bond(0, 1)
+    payload = MolecularPayload((MolecularRecord(mol),))
+    record_before = pickle.dumps(
+        mol._capture_factual_record(include_frames=False), protocol=5,
+    )
+    table = mol._atom_table
+    dependencies_before = (
+        table._group_status[:len(table)].tobytes(),
+        tuple(frozenset(seed) for seed in table._dirty_seeds),
+    )
+
+    first_hash = payload_sha256(payload)
+
+    assert pickle.dumps(
+        mol._capture_factual_record(include_frames=False), protocol=5,
+    ) == record_before
+    assert (
+        table._group_status[:len(table)].tobytes(),
+        tuple(frozenset(seed) for seed in table._dirty_seeds),
+    ) == dependencies_before
+    assert payload_sha256(payload) == first_hash
+    assert payload_sha256(MolecularPayload((MolecularRecord(mol.copy()),))) == first_hash
+
+
+
+def test_payload_hash_uses_one_snapshot_during_concurrent_caller_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from concurrent.futures import ThreadPoolExecutor
+    from threading import Event
+
+    from hotpot.pipeline import artifacts
+    from hotpot.pipeline.contracts import MolecularPayload, MolecularRecord
+
+    mol = _water()
+    payload = MolecularPayload((MolecularRecord(mol),))
+    expected_hash = artifacts.payload_sha256(payload)
+    captured = Event()
+    resume = Event()
+    atom_document = artifacts._atom_document
+
+    def pause_after_capture(atom):
+        if not captured.is_set():
+            captured.set()
+            assert resume.wait(timeout=10)
+        return atom_document(atom)
+
+    monkeypatch.setattr(artifacts, "_atom_document", pause_after_capture)
+    with ThreadPoolExecutor(max_workers=1) as executor:
+        future = executor.submit(artifacts.payload_sha256, payload)
+        try:
+            assert captured.wait(timeout=10)
+            mol.coordinates = mol.coordinates + (1., 0., 0.)
+            mol.charge = 1
+            mol.spin_mult = 2
+        finally:
+            resume.set()
+        assert future.result(timeout=10) == expected_hash
+
+    assert artifacts.payload_sha256(payload) != expected_hash
 
 
 def test_artifact_from_file_records_one_stage_relative_regular_file(

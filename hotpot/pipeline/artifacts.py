@@ -8,6 +8,11 @@ import os
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, Mapping, Optional, Tuple
 
+from hotpot.cheminfo.operations.calculation.scientific_state.facts import (
+    _molecule_state_source_identity,
+    extract_molecular_facts,
+)
+
 from .contracts import (
     Artifact,
     JSONValue,
@@ -88,7 +93,9 @@ def _bond_document(bond: "Bond") -> Mapping[str, JSONValue]:
 def _payload_document(payload: MolecularPayload) -> Mapping[str, JSONValue]:
     records: List[JSONValue] = []
     for record in payload.records:
-        mol = record.molecule
+        mol = record.molecule.copy()
+        facts = extract_molecular_facts(mol)
+        source_state_identity = _molecule_state_source_identity(mol, facts)
         bonds = sorted(
             (_bond_document(bond) for bond in mol.bonds),
             key=lambda item: (
@@ -102,10 +109,11 @@ def _payload_document(payload: MolecularPayload) -> Mapping[str, JSONValue]:
                 "atoms": tuple(_atom_document(atom) for atom in mol.atoms),
                 "bonds": tuple(bonds),
                 "scientific_state": _state_document(record.scientific_state),
+                "source_state_identity": source_state_identity,
                 "molecular_charge": int(mol.charge),
             }
         )
-    return {"records": tuple(records), "schema_version": 2}
+    return {"records": tuple(records), "schema_version": 3}
 
 
 # Molecular and JSON persistence.
@@ -231,7 +239,7 @@ def artifact_from_file(stage_directory: Path, path: Path) -> Artifact:
 
 
 def payload_sha256(payload: MolecularPayload) -> str:
-    """Return the deterministic identity of molecular topology, geometry and state."""
+    """Identify molecular topology, geometry, supplied facts and resolved state."""
 
     canonical = json.dumps(
         _payload_document(payload),

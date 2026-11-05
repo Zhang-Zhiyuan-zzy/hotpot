@@ -11672,3 +11672,24 @@ claim. Evidence: /tmp/hotpot_plan20/short/automatic-state-integration-20261105/
 (attempt-01 and fixture-correction-01). Existing Gemmi0.7.5 dependency path is
 explicit; no package environment was modified. Current-runtime/installed/default
 and original187 native execution remain pending at this business checkpoint.
+
+
+### 2026-11-05 — Automatic pipeline supplied-state lineage checkpoint
+
+After automatic source/default checkpoint93a5b948, append the existing
+operation-owned supplied-state identity to pipeline payload lineage and advance
+only the private hash document schema2to3. Each record is captured on an owned
+copy, preserving caller facts and existing topology/geometry/bundle coordinates.
+Absent/present-zero molecular charge, supplied spin, atom-charge provenance and
+radical changes now distinguish payloads. Equivalent copies remain equivalent;
+no per-atom full-molecule capture or second scientific solver is introduced.
+
+The local partition's258focused passed (one existing warning); broader313passed/
+1failed exposed the previously unbound legacy-bundle fixture, since corrected
+by obtaining state from the real shared resolver. The root182-file source run
+and84-case qualified repair above include the final payload implementation;
+all product bytes match. Exact historical attempts and source bindings remain
+in /tmp/hotpot_plan20/short/automatic-payload-identity-20261105/. Schema3 changes
+historical digests intentionally; this does not assert chemical change or a
+cold pipeline/session migration. Scientific/actual/installed/default delivery
+remain separately owned gates.

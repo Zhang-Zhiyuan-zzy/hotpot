@@ -11299,3 +11299,34 @@ population, performance or global-release acceptance follows. P20-D041 gains
 this dependency-declaration evidence; P20-D042 cache work remains separate.
 Exact commands, original failures, artifact identities and support boundaries:
 [Conda build dependencies](stages/stage12/final-delivery/validation/conda-build-dependencies.json).
+
+
+### 2026-11-05 — Owner names the current source version0.5.5.0
+
+Continue the existing packaging/delivery boundary after baa75506. Owner requests
+version0.5.5.0 and the hp5.5 Conda creation command. Update Python/PEP621, Conda
+recipe, native runtime/CMake SDK version strings, matching native test expectations
+and current installation examples together. Chemical algorithms and ABI version
+remain unchanged. Historical observations, benchmark fixtures and artifacts retain
+their actual old version; this rename does not relabel their evidence or publish
+a PyPI release. environment.yml retains its reusable name hp; CLI --name hp5.5
+overrides it, and the command runs from the checkout for its editable pip entry.
+
+Validation: cwd /home/zhangzhiyuan/hotpot, interpreter
+/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python, environment
+PYTHONDONTWRITEBYTECODE=1. `python -m pytest -q -p no:cacheprovider
+--basetemp /tmp/hotpot_plan20/short/version-0550-20261105
+tests/test_packaging/test_rdwrapper_build.py
+tests/test_packaging/test_github_workflows.py
+tests/test_packaging/test_audit_rdwrapper_wheel.py
+tests/test_packaging_metadata.py
+tests/test_cheminfo/rdWrappers/native_cpp/test_rdwrapper_api.py
+tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_locked_build_declares_offline_source_only
+tests/test_cheminfo/rdWrappers/native_cpp/test_sdk_package.py::test_locked_build_resolves_python_only_for_python_artifacts`
+returns0:45passed/5high-compute opt-in skips in0.80s. Run only the same three
+native_cpp selections with `--run-high-compute` and separate
+`--basetemp /tmp/hotpot_plan20/short/version-0550-native-headers-20261105`:
+returns0:5passed/0skip in3.01s, including C11 compilation and actual C++17 facade
+execution for both libstdc++ ABIs using the mock runtime. Python/PEP621 version
+match and whitespace checks pass. No fresh native implementation/SDK build,
+installed-package rename or new chemical/scientific acceptance is claimed.

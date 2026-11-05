@@ -91,7 +91,7 @@ cmake --install /path/to/work/build \
 External C++17 consumers use:
 
 ```cmake
-find_package(HotpotRDWrappers 0.5.4.5 EXACT CONFIG REQUIRED)
+find_package(HotpotRDWrappers 0.5.5.0 EXACT CONFIG REQUIRED)
 target_link_libraries(my_program PRIVATE Hotpot::rdwrappers)
 ```
 

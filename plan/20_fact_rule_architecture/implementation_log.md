@@ -10916,3 +10916,68 @@ freeze records, child origins and the CP311candidate wheel are retained.
 Disposable sites/support copies/caches and nonevidence scratch are excluded
 with exact selection in the manifest; these exclusions make no extra business
 pass or scientific claim.
+
+
+### 2026-11-05 — Whole-Plan20 delivery report, current API and Git delivery
+
+The bounded D039/D040 business repair is committed and normally pushed as
+2c2ef889abb6adcceba043b606da2e718dbea109. Complete base integration remains
+8785a06fca063a179976ca74d6bc8cb14bcce640; original Stage0–12 B_exp, Stage13
+D_exp/I_exp and Stage14/15 acceptance remain attributable to their recorded
+source. The whole-plan report now covers the owner's sections0–7: philosophy,
+architecture, preservation/tradeoffs, additions, performance, scientific
+validation, complete current API and known issues/future improvements.
+
+Root authors/reviews delivery_report.md and adapts the independent bounded
+evidence extraction into delivery_evidence.md plus delivery_evidence_graph.json.
+The graph has86unique claim nodes and52source entries, preserving original
+C22discovery and adding separateC23repair/E51/A02 andC24currentAPI/E52. Baseline
+8205defaultpasses/137disabledtiers/3strictknownxfails and fiveABI2015pass/3xfail
+perABI remain the8785scope, not fictional executions of the later repair.
+The final report preserves all62CPUtasks/5noncomparabilities, adverse/inconclusive
+costs, measured absolute work/resources, actual Eu/UFF/xTB/MCA populations,
+finite failures,33historical/27current unexplained numerical differences,
+optional research nonexecution and D038general periodic-graph deferral.
+Unified current ledger:40items,20CLOSED/19ACCEPTED_LIMITATION/1DEFERRED.
+
+A local Sol/low mechanical publication task regenerates the descriptive AST
+inventory at the committed business snapshot, without importing Hotpot:
+`python /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/api/extract_api.py --repo /home/zhangzhiyuan/hotpot --out /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/api-current`.
+The auxiliary renderer uses that inventory with explicit--inventory/--out;
+commands/scripts are retained in the raw inventory manifest. The maintained
+18-page reference expands526Pythonmodules=354main+172aux,6native stubs,33root
+exports and716core ownmembers after setter retirement. Full auxiliary215classes/
+268functions/941ownmembers/863fields/203inherited occurrences are documented,
+without qualifying optional runtime/science or third-party dynamic behavior.
+Explicit exports and accessible implementation definitions remain distinct.
+The old D036checker is not retried.
+
+Actual static publication check:
+`python /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/aux-api-current/check_published_api.py`.
+1353relative links,526module anchors,balanced fences,source identities and no
+local Molecule.setattr/__setattr__ declarations:0errors/mismatches. Raw8.5MB
+inventory and reproducible extractors/rendering/checks stay under ignored
+`.plan20-artifacts/20261105/overall/delivery-api-inventory/`; maintained pages
+link through an explicit read-on-demand index. Reproduction examples use the
+owner's /tmp/hotpot_plan20 lifecycle hierarchy. Root's independent stdlib
+`python -` report/JSON/link inspection checks21Markdownfiles,1537relative links,
+52evidence sourcepaths and all8requested reportsections:0errors. This inspects
+document structure and references, not chemistry. Its result/report manifest
+are retained at `.plan20-artifacts/20261105/overall/delivery-report/`.
+
+No business bytes changed after the accepted repair. No broad business rerun
+is justified by this report/publication work; source/installed/native/model/
+science/performance scope limits are explicit. Root accepts the report/API
+against actual current code and scoped evidence. The following coherent
+owner-requested documentation commit and normal push complete this report
+delivery; resolve its actual SHA from Git, without a self-hash-only followup
+commit. Unrelated owner file remains unread/unstaged/unmodified.
+
+Final staged `git diff --cached --check` initially reports generated API
+trailing spaces on empty base labels and extra EOF blank lines. Root preserves
+that raw formatting failure, normalizes13Markdownpages (empty base labels now
+say no explicit base) and updates the reproducible publisher/manifest. No API
+signature, source or chemistry changes. Repeated affected static API link/
+anchor/source inspection remains1353links/526modules/0errors/mismatches.
+The original formatting result is retained in the delivery-report archive;
+final staging verifies whitespace separately before the normal commit.

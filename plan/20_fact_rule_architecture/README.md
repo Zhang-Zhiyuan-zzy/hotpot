@@ -9,6 +9,24 @@ are accepted within their recorded domains. Final combined source/default/five-A
 retain their original source, counts and limitations; their former remaining
 work does not override this current index.
 
+## Whole-plan delivery reference
+
+The [complete delivery report](delivery_report.md) covers philosophy, architecture,
+preserved/retired functions, additions, performance, scientific validation,
+current API and known issues. Its [evidence tables](delivery_evidence.md) and
+[claim/evidence graph](delivery_evidence_graph.json) retain historical scopes,
+failures, adverse/inconclusive measurements and unexecuted tiers. The
+[full static API tree](delivery_api_tree.md) expands all526Python modules and
+6native stubs, including optional auxiliary declarations without claiming their
+runtime qualification.
+
+Report-discovered D039/D040 are [repaired and root reviewed](stages/stage12/final-delivery/validation/postdelivery-interface-cleanup.json)
+in the tested source/CP311installed scope, committed/pushed as
+`2c2ef889abb6adcceba043b606da2e718dbea109`. The original8785a06f combined default/
+five-ABI/scientific evidence keeps its executed scope; the current changed
+boundary has separate308pass/1opt-in-skip source and installed evidence. The
+unified issue index now contains40rows:20CLOSED,19ACCEPTED_LIMITATION,1DEFERRED.
+
 ## Historical checkpoint chronology
 
 Status: implementation authorized on2026-10-28. Stage0–8E owning gates are

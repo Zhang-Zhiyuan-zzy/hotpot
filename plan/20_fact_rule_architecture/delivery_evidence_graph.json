@@ -1,0 +1,5023 @@
+{
+  "schema": "hotpot.plan20.delivery-evidence-synthesis/1",
+  "review_date": "2026-11-05",
+  "business_head": "2c2ef889abb6adcceba043b606da2e718dbea109",
+  "purpose": "Whole-Plan20 delivery report evidence navigation: historical executed evidence, valid scoped reuse, current bounded fixes and unexecuted support remain distinct.",
+  "execution": {
+    "original_evidence_extraction": "Read/parse only. No engines/models/tests/builds/SSH/environment/product/git mutations.",
+    "root_followup": "Inspected and accepted actual bounded source/CP311 installed repair evidence, independently verified source/JUnit/wheel delta and236archive-member identities; source/runtime attempts remain separately attributed. No new model/science/fullsuite/matrix/benchmark."
+  },
+  "evidence_classes": [
+    "current-final-union",
+    "scoped-reuse",
+    "historical-final-performance-snapshot",
+    "historical-failed-or-incomparable",
+    "historical-current-only-cost",
+    "method-bound-scientific-observation",
+    "scientific-integrity-contract",
+    "accepted-scientific-limitation",
+    "domain-limited-mathematical-and-transport-evidence",
+    "unexecuted-tier"
+  ],
+  "sources": {
+    "E01": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/integration/report.md",
+      "lines": 178
+    },
+    "E02": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/integration/validation/checkpoint.json",
+      "lines": 638
+    },
+    "E03": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+      "lines": 4807
+    },
+    "E04": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-gpu-performance.json",
+      "lines": 606
+    },
+    "E05": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-common-test-cost.json",
+      "lines": 838
+    },
+    "E06": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-version-matrix.json",
+      "lines": 168
+    },
+    "E07": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-added-test-cost.json",
+      "lines": 92
+    },
+    "E08": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-new-mechanism-cost.json",
+      "lines": 76
+    },
+    "E09": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-sdf-write-resources.json",
+      "lines": 1348
+    },
+    "E10": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-plan12-eu-reference.json",
+      "lines": 138
+    },
+    "E11": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-plan12-eu-uff.json",
+      "lines": 2049
+    },
+    "E12": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-plan12-eu-xtb.json",
+      "lines": 213
+    },
+    "E13": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-mca-functional-routing.json",
+      "lines": 533
+    },
+    "E14": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-repaired-stereo-delivery.json",
+      "lines": 4427
+    },
+    "E15": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/cbond-chemical-reference.json",
+      "lines": 118
+    },
+    "E16": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/native-stereo-conversion.json",
+      "lines": 182
+    },
+    "E17": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/scientific-hardening/validation/report.md",
+      "lines": 88
+    },
+    "E18": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/hydrogen-representation/validation/report.md",
+      "lines": 72
+    },
+    "E19": {
+      "path": "plan/20_fact_rule_architecture/stages/stage13/integration/report.md",
+      "lines": 90
+    },
+    "E20": {
+      "path": "plan/20_fact_rule_architecture/stages/stage14/crystal/validation/report.md",
+      "lines": 112
+    },
+    "E21": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/persistence_report.md",
+      "lines": 99
+    },
+    "E22": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/geometry_report.md",
+      "lines": 80
+    },
+    "E23": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/exact_symmetry_report.md",
+      "lines": 66
+    },
+    "E24": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/linking_report.md",
+      "lines": 51
+    },
+    "E25": {
+      "path": "plan/20_fact_rule_architecture/deferred_issues.md",
+      "lines": 146
+    },
+    "E26": {
+      "path": "hotpot/cheminfo/operations/inference/mca/MODEL_CARD.md",
+      "lines": 31
+    },
+    "E27": {
+      "path": "hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json",
+      "lines": 44
+    },
+    "E28": {
+      "path": "hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json",
+      "lines": 43
+    },
+    "E29": {
+      "path": "hotpot/commands/cbond.md",
+      "lines": 320
+    },
+    "E30": {
+      "path": "hotpot/commands/mca.md",
+      "lines": 241
+    },
+    "E31": {
+      "path": "hotpot/cheminfo/rules/physics/forcefields/contracts.py",
+      "lines": 163
+    },
+    "E32": {
+      "path": "hotpot/cheminfo/rules/physics/forcefields/acceptance.py",
+      "lines": 662
+    },
+    "E33": {
+      "path": "hotpot/cheminfo/rules/mathematics/geometry/settings.py",
+      "lines": 109
+    },
+    "E34": {
+      "path": "tests/test_cheminfo/forcefields/test_stage12_observed_geometry.py",
+      "lines": 125
+    },
+    "E35": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/contracts/decisions.md",
+      "lines": 193
+    },
+    "E36": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/contracts/observations.md",
+      "lines": 146
+    },
+    "E37": {
+      "path": "plan/12_xtb_workflow/rules/HARD-001-boundary-identity.md",
+      "lines": 41
+    },
+    "E38": {
+      "path": "plan/12_xtb_workflow/rules/HARD-002-charge-conservation.md",
+      "lines": 36
+    },
+    "E39": {
+      "path": "plan/12_xtb_workflow/rules/HARD-013-backend-electron-uhf-legality.md",
+      "lines": 52
+    },
+    "E40": {
+      "path": "plan/12_xtb_workflow/rules/HARD-012-failure-and-gate-semantics.md",
+      "lines": 30
+    },
+    "E41": {
+      "path": "plan/12_xtb_workflow/recovery/RECOVERY-001-legal-state-retry.md",
+      "lines": 29
+    },
+    "E42": {
+      "path": "plan/20_fact_rule_architecture/stages/stage08/scientific-state/validation/lewis_report.md",
+      "lines": 75
+    },
+    "E43": {
+      "path": "plan/20_fact_rule_architecture/stages/stage08/forcefields/validation/whole-stage/report.md",
+      "lines": 85
+    },
+    "E44": {
+      "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/phosphorus/source-attempt02-tools/child.py",
+      "lines": 327
+    },
+    "E45": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/report.md",
+      "lines": 286
+    },
+    "E46": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/generation_report.md",
+      "lines": 59
+    },
+    "E47": {
+      "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/relation_report.md",
+      "lines": 63
+    },
+    "E48": {
+      "path": "plan/20_fact_rule_architecture/stages/stage14/molecule/validation/molecular_report.md",
+      "lines": 45
+    },
+    "E49": {
+      "path": "tests/test_cheminfo/kekulize/test_known_limitations.py",
+      "lines": 78
+    },
+    "E50": {
+      "path": "tests/test_cheminfo/test_forcefield_acceptance.py",
+      "lines": 556
+    },
+    "E51": {
+      "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/postdelivery-interface-cleanup.json",
+      "kind": "root-accepted-bounded-source-and-cp311-installed-followup",
+      "source_commit": "2c2ef889abb6adcceba043b606da2e718dbea109",
+      "sha256": "a5c02e38150fd5b632f27d4e19b91da0c98dab2524e61c8ab62471fef5d1d679"
+    },
+    "E52": {
+      "path": "plan/20_fact_rule_architecture/delivery_api_tree.md",
+      "kind": "current-descriptive-static-api-reference",
+      "source_commit": "2c2ef889abb6adcceba043b606da2e718dbea109",
+      "sha256": "0b753a979235d6137bbaa1c8281f79ea443d6483d25e937cf530bfa7f5f6e0f6",
+      "raw_inventory_index": ".plan20-artifacts/20261105/overall/delivery-api-inventory/manifest.json"
+    }
+  },
+  "archives": {
+    "A01": {
+      "path": ".plan20-artifacts/20261105/overall/combined-delivery/evidence.tar.gz",
+      "inspected_members": [
+        "default02/tests/intent.json",
+        "default02/RESULT.json",
+        "default02/junit.xml",
+        "installed01/cp311/tests/intent.json",
+        "installed01/cp311/RESULT.json",
+        "installed01/cp311/junit.xml",
+        "ROOT_REUSE_DECISION.json",
+        "ROOT_EXTERNAL_IDENTITY.json",
+        "reuse-review/REUSE.json",
+        "reuse-review/REVIEW.md",
+        "ROOT_CHECKER_DECISION.json",
+        "FINAL_SOURCE_REBIND.json"
+      ],
+      "all_payloads_reverified_this_review": false
+    },
+    "A02": {
+      "path": ".plan20-artifacts/20261105/overall/postdelivery-interface-cleanup/evidence.tar.gz",
+      "manifest": ".plan20-artifacts/20261105/overall/postdelivery-interface-cleanup/manifest.json",
+      "bytes": 8911129,
+      "sha256": "94cb3a3ca4b08223787b191394ea12754e0fdf94b3ede9805c8d31b25c1f343a",
+      "members": 236,
+      "root_verification": "All236member sizes and SHA256 verified; hashes attribute evidence/transport, not chemical truth."
+    }
+  },
+  "claims": [
+    {
+      "id": "C01",
+      "claim": "当前交付验证是组合证据；CP311完整默认与五ABI已安装受影响选择均有实际执行",
+      "scope": "current-final-union",
+      "evidence": [
+        {
+          "source": "E02",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/integration/validation/checkpoint.json",
+          "field": "final_cp311_source_default",
+          "line": 47
+        },
+        {
+          "source": "E02",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/integration/validation/checkpoint.json",
+          "field": "final_installed_matrix",
+          "line": 68
+        },
+        {
+          "source": "E02",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/integration/validation/checkpoint.json",
+          "field": "validation_corrections",
+          "line": 249
+        }
+      ],
+      "limits": "默认后仅checker/test有两文件加强；复用通过的业务默认，非新全套运行",
+      "observed": {
+        "returncode": 0,
+        "elapsed_seconds": 399.4679275006056,
+        "testcases": 8345,
+        "failures": 0,
+        "errors": 0,
+        "skipped": 140,
+        "passed": 8205,
+        "strict_known_limit_xfailed": 3,
+        "tier_skipped": 137,
+        "source_unchanged": true,
+        "guard_count": 1455,
+        "product_origin_observations": 429,
+        "origin_violations": [],
+        "finished_local": "2026-11-05T06:23:06.105397+08:00",
+        "scope": "Actual combined CP311 source default; original tier skips and strict known limits retained. No fixed historical counts as chemistry truth.",
+        "ordinary_skipped": 137,
+        "passed_junit_cases": 8205,
+        "evidence": "default02/RESULT.json",
+        "pytest_terminal_summary": "8205 passed, 137 skipped, 3 xfailed, 20 warnings, 49 subtests passed in 396.62s (0:06:36)"
+      }
+    },
+    {
+      "id": "C02",
+      "claim": "原生包和科学证据按受影响owner/consumer复用",
+      "scope": "scoped-reuse",
+      "evidence": [
+        {
+          "source": "E02",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/integration/validation/checkpoint.json",
+          "field": "native_and_scientific_evidence",
+          "line": 594
+        }
+      ],
+      "limits": "无全新原生/SDK/科学推理/驱动闭包；源二进制与manylinux发布二进制不同命名空间",
+      "observed": {
+        "models_rehashed": 88,
+        "xtb_executable_matches": true,
+        "reuse_owner_counts": {
+          "inference": 37,
+          "workflow_backend": 51,
+          "bonding_science": 40
+        }
+      }
+    },
+    {
+      "id": "C03",
+      "claim": "CPU62工作负载有完整原始样本，只有明确57项可作完整化学任务比较",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "source_commit",
+          "line": 2
+        },
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "counts",
+          "line": 5
+        },
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "not_complete_chemical_comparable_workloads",
+          "line": 17
+        }
+      ],
+      "limits": "B0 e6082f5 →16b864f；非最终8785HEAD重测；没有全局速率",
+      "observed": {
+        "source": "16b864f1050e7a61b9cb4e64d1672fb9c952408e",
+        "baseline": "e6082f5fd67cb1054726ddcf43db7f963f7091ed",
+        "counts": {
+          "baseline_all_attempts": 771,
+          "baseline_measured": 595,
+          "baseline_failed": 0,
+          "candidate_all_attempts": 771,
+          "candidate_measured": 595,
+          "candidate_failed": 0
+        },
+        "not_comparable": [
+          "clean_read_8",
+          "clean_read_64",
+          "clean_read_256",
+          "mca_cpu_8",
+          "mca_cpu_64"
+        ]
+      }
+    },
+    {
+      "id": "CPU-cold_import",
+      "claim": "cold_import",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[0]",
+          "line": 109
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {},
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 8.980405580252409,
+          "median_seconds": 0.8969476502388716,
+          "mad_seconds": 0.0010004527866840363,
+          "p95_seconds": 0.902080037817359,
+          "peak_rss_bytes": 196067328
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 5.55304698087275,
+          "median_seconds": 0.5553098125383258,
+          "mad_seconds": 0.001050175167620182,
+          "p95_seconds": 0.5574797720648348,
+          "peak_rss_bytes": 87588864
+        },
+        "runtime_ratio": 0.6191106163112617,
+        "paired_bootstrap_95ci": [
+          0.6170790778051128,
+          0.6197516486840902
+        ],
+        "baseline_seconds_per_call": 0.8969476502388716,
+        "candidate_seconds_per_call": 0.5553098125383258,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-empty_molecule",
+      "claim": "empty_molecule",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[1]",
+          "line": 157
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "loops": 1000
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.04122523032128811,
+          "median_seconds": 0.0041009001433849335,
+          "mad_seconds": 9.700655937194824e-06,
+          "p95_seconds": 0.004171417281031609,
+          "peak_rss_bytes": 197840896
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.7254049424082041,
+          "median_seconds": 0.07240015547722578,
+          "mad_seconds": 0.00046605244278907776,
+          "p95_seconds": 0.07329068705439568,
+          "peak_rss_bytes": 91574272
+        },
+        "runtime_ratio": 17.654698467606625,
+        "paired_bootstrap_95ci": [
+          17.31877223010733,
+          17.85612263693981
+        ],
+        "baseline_seconds_per_call": 4.1009001433849335e-06,
+        "candidate_seconds_per_call": 7.240015547722578e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-construct_8",
+      "claim": "construct_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[2]",
+          "line": 225
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.007654085755348206,
+          "median_seconds": 0.0007536187767982483,
+          "mad_seconds": 1.014024019241333e-05,
+          "p95_seconds": 0.000828681793063879,
+          "peak_rss_bytes": 197595136
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.06635618023574352,
+          "median_seconds": 0.006634019315242767,
+          "mad_seconds": 4.0572136640548706e-05,
+          "p95_seconds": 0.006687015946954489,
+          "peak_rss_bytes": 91582464
+        },
+        "runtime_ratio": 8.802884853038586,
+        "paired_bootstrap_95ci": [
+          8.599111954960856,
+          8.948623996755465
+        ],
+        "baseline_seconds_per_call": 0.00015072375535964965,
+        "candidate_seconds_per_call": 0.0013268038630485535,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-scalar_read_8",
+      "claim": "scalar_read_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[3]",
+          "line": 294
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0021727941930294037,
+          "median_seconds": 0.00021563004702329636,
+          "mad_seconds": 2.911314368247986e-06,
+          "p95_seconds": 0.0002276422455906868,
+          "peak_rss_bytes": 197345280
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.002196904271841049,
+          "median_seconds": 0.00021812785416841507,
+          "mad_seconds": 1.7434358596801758e-06,
+          "p95_seconds": 0.0002257249318063259,
+          "peak_rss_bytes": 90980352
+        },
+        "runtime_ratio": 1.0115837620016326,
+        "paired_bootstrap_95ci": [
+          0.9928234239363668,
+          1.0409677658585956
+        ],
+        "baseline_seconds_per_call": 1.0781502351164817e-05,
+        "candidate_seconds_per_call": 1.0906392708420753e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-scalar_write_8",
+      "claim": "scalar_write_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[4]",
+          "line": 363
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0006694886833429337,
+          "median_seconds": 6.690528243780136e-05,
+          "mad_seconds": 1.816079020500183e-07,
+          "p95_seconds": 6.734635680913926e-05,
+          "peak_rss_bytes": 197472256
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0012415871024131775,
+          "median_seconds": 0.00012308266013860703,
+          "mad_seconds": 7.208436727523804e-07,
+          "p95_seconds": 0.0001302717253565788,
+          "peak_rss_bytes": 90877952
+        },
+        "runtime_ratio": 1.8396553404139813,
+        "paired_bootstrap_95ci": [
+          1.8233105669387528,
+          1.8562216217721943
+        ],
+        "baseline_seconds_per_call": 3.345264121890068e-06,
+        "candidate_seconds_per_call": 6.154133006930351e-06,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-batch_facts_8",
+      "claim": "batch_facts_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[5]",
+          "line": 432
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0006738286465406418,
+          "median_seconds": 6.727129220962524e-05,
+          "mad_seconds": 2.300366759300232e-07,
+          "p95_seconds": 6.815865635871887e-05,
+          "peak_rss_bytes": 197537792
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.001802876591682434,
+          "median_seconds": 0.00017825886607170105,
+          "mad_seconds": 3.552064299583435e-06,
+          "p95_seconds": 0.00019428078085184094,
+          "peak_rss_bytes": 91291648
+        },
+        "runtime_ratio": 2.6498504817809283,
+        "paired_bootstrap_95ci": [
+          2.5956517532584207,
+          2.7129843077350366
+        ],
+        "baseline_seconds_per_call": 3.363564610481262e-06,
+        "candidate_seconds_per_call": 8.912943303585053e-06,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-coordinates_8",
+      "claim": "coordinates_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[6]",
+          "line": 501
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.01011880673468113,
+          "median_seconds": 0.001010335050523281,
+          "mad_seconds": 3.86405736207962e-06,
+          "p95_seconds": 0.001033781562000513,
+          "peak_rss_bytes": 197226496
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.004157835617661476,
+          "median_seconds": 0.0004154182970523834,
+          "mad_seconds": 2.289190888404846e-06,
+          "p95_seconds": 0.0004248425364494324,
+          "peak_rss_bytes": 90533888
+        },
+        "runtime_ratio": 0.41116884625276195,
+        "paired_bootstrap_95ci": [
+          0.40642655984886916,
+          0.4142853447065172
+        ],
+        "baseline_seconds_per_call": 5.051675252616405e-05,
+        "candidate_seconds_per_call": 2.077091485261917e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-insert_delete_8",
+      "claim": "insert_delete_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[7]",
+          "line": 571
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.008607720956206322,
+          "median_seconds": 0.000861072912812233,
+          "mad_seconds": 8.711591362953186e-06,
+          "p95_seconds": 0.0008709145709872246,
+          "peak_rss_bytes": 197255168
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.09593546763062477,
+          "median_seconds": 0.007943833246827126,
+          "mad_seconds": 8.032843470573425e-05,
+          "p95_seconds": 0.017124648671597225,
+          "peak_rss_bytes": 92352512
+        },
+        "runtime_ratio": 9.225505910855857,
+        "paired_bootstrap_95ci": [
+          9.121188410739686,
+          9.362473365997166
+        ],
+        "baseline_seconds_per_call": 4.305364564061165e-05,
+        "candidate_seconds_per_call": 0.00039719166234135627,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-matrix_8",
+      "claim": "matrix_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[8]",
+          "line": 640
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0072374846786260605,
+          "median_seconds": 0.00072428397834301,
+          "mad_seconds": 4.829838871955872e-06,
+          "p95_seconds": 0.000730426050722599,
+          "peak_rss_bytes": 197627904
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.001589437946677208,
+          "median_seconds": 0.00015827734023332596,
+          "mad_seconds": 5.979090929031372e-07,
+          "p95_seconds": 0.00016110232099890708,
+          "peak_rss_bytes": 90898432
+        },
+        "runtime_ratio": 0.218529395880642,
+        "paired_bootstrap_95ci": [
+          0.21707017768119646,
+          0.22093739504134804
+        ],
+        "baseline_seconds_per_call": 3.6214198917150495e-05,
+        "candidate_seconds_per_call": 7.913867011666299e-06,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-native_8",
+      "claim": "native_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[9]",
+          "line": 713
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20,
+          "fields": [
+            "ATOMIC_NUMBERS",
+            "FORMAL_CHARGES",
+            "COORDINATES"
+          ]
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.009248776361346245,
+          "median_seconds": 0.000922108069062233,
+          "mad_seconds": 6.5267086029052734e-06,
+          "p95_seconds": 0.0009419711306691169,
+          "peak_rss_bytes": 197853184
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.004108486697077751,
+          "median_seconds": 0.0003960318863391876,
+          "mad_seconds": 2.8274953365325928e-06,
+          "p95_seconds": 0.0004729554988443851,
+          "peak_rss_bytes": 90673152
+        },
+        "runtime_ratio": 0.4294853278335855,
+        "paired_bootstrap_95ci": [
+          0.42417940456141123,
+          0.4648242658986186
+        ],
+        "baseline_seconds_per_call": 4.610540345311165e-05,
+        "candidate_seconds_per_call": 1.980159431695938e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-partial_projection_8",
+      "claim": "partial_projection_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[10]",
+          "line": 788
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0012326110154390335,
+          "median_seconds": 0.000121300108730793,
+          "mad_seconds": 1.0058283805847168e-06,
+          "p95_seconds": 0.00013205902650952338,
+          "peak_rss_bytes": 197918720
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0015531089156866074,
+          "median_seconds": 0.00015526916831731796,
+          "mad_seconds": 4.256144165992737e-07,
+          "p95_seconds": 0.00015595760196447374,
+          "peak_rss_bytes": 91209728
+        },
+        "runtime_ratio": 1.2800414603247725,
+        "paired_bootstrap_95ci": [
+          1.252835865804122,
+          1.2907503608617457
+        ],
+        "baseline_seconds_per_call": 6.06500543653965e-06,
+        "candidate_seconds_per_call": 7.763458415865899e-06,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-mca_projection_8",
+      "claim": "mca_projection_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[11]",
+          "line": 857
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0004040282219648361,
+          "median_seconds": 4.036538302898407e-05,
+          "mad_seconds": 2.207234501838684e-07,
+          "p95_seconds": 4.113335162401199e-05,
+          "peak_rss_bytes": 197398528
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0015837512910366058,
+          "median_seconds": 0.00015921145677566528,
+          "mad_seconds": 6.854534149169922e-07,
+          "p95_seconds": 0.00015990231186151503,
+          "peak_rss_bytes": 90939392
+        },
+        "runtime_ratio": 3.944257302385677,
+        "paired_bootstrap_95ci": [
+          3.8781296023564065,
+          3.974382178907066
+        ],
+        "baseline_seconds_per_call": 2.0182691514492034e-06,
+        "candidate_seconds_per_call": 7.960572838783264e-06,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-write_read_8",
+      "claim": "write_read_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[12]",
+          "line": 927
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.01304173655807972,
+          "median_seconds": 0.001305101439356804,
+          "mad_seconds": 1.0018236935138702e-05,
+          "p95_seconds": 0.0013159719295799733,
+          "peak_rss_bytes": 197742592
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.1947411149740219,
+          "median_seconds": 0.017789674922823906,
+          "mad_seconds": 3.95188108086586e-05,
+          "p95_seconds": 0.027084134332835658,
+          "peak_rss_bytes": 91820032
+        },
+        "runtime_ratio": 13.630875260999813,
+        "paired_bootstrap_95ci": [
+          13.533932110992218,
+          13.77289188425194
+        ],
+        "baseline_seconds_per_call": 6.52550719678402e-05,
+        "candidate_seconds_per_call": 0.0008894837461411953,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-clean_read_8",
+      "claim": "clean_read_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[13]",
+          "line": 996
+        }
+      ],
+      "limits": "B0 returns unevaluated defaultH0; final evaluates H4 per isolated C. Counters agree but returned information differs; raw ratio is not equal-information chemical performance.",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0012078341096639633,
+          "median_seconds": 0.00012044887989759445,
+          "mad_seconds": 7.916241884231567e-07,
+          "p95_seconds": 0.00012257322669029236,
+          "peak_rss_bytes": 197636096
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.03894846327602863,
+          "median_seconds": 0.0038964198902249336,
+          "mad_seconds": 1.3770535588264465e-05,
+          "p95_seconds": 0.003951534442603588,
+          "peak_rss_bytes": 90931200
+        },
+        "runtime_ratio": 32.34915836110445,
+        "paired_bootstrap_95ci": [
+          31.88348251236363,
+          32.588419940328194
+        ],
+        "baseline_seconds_per_call": 6.022443994879723e-06,
+        "candidate_seconds_per_call": 0.0001948209945112467,
+        "comparable_complete_chemical_task": false
+      }
+    },
+    {
+      "id": "CPU-unrelated_read_8",
+      "claim": "unrelated_read_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[14]",
+          "line": 1067
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 8,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.017287924885749817,
+          "median_seconds": 0.0017140619456768036,
+          "mad_seconds": 1.5944242477416992e-05,
+          "p95_seconds": 0.0017928915098309516,
+          "peak_rss_bytes": 197435392
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.004462053999304771,
+          "median_seconds": 0.0004455447196960449,
+          "mad_seconds": 3.1152740120887756e-06,
+          "p95_seconds": 0.00045273546129465103,
+          "peak_rss_bytes": 90750976
+        },
+        "runtime_ratio": 0.2599350162459385,
+        "paired_bootstrap_95ci": [
+          0.25474314151262445,
+          0.2631935390453837
+        ],
+        "baseline_seconds_per_call": 8.570309728384018e-05,
+        "candidate_seconds_per_call": 2.2277235984802246e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-construct_64",
+      "claim": "construct_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[15]",
+          "line": 1136
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.11717183329164982,
+          "median_seconds": 0.011649626307189465,
+          "mad_seconds": 0.00011738203465938568,
+          "p95_seconds": 0.012128473073244094,
+          "peak_rss_bytes": 197988352
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.491694875061512,
+          "median_seconds": 0.04748255107551813,
+          "mad_seconds": 0.00010570697486400604,
+          "p95_seconds": 0.05699831396341322,
+          "peak_rss_bytes": 92880896
+        },
+        "runtime_ratio": 4.075886197844363,
+        "paired_bootstrap_95ci": [
+          4.019355120870037,
+          4.118327711164484
+        ],
+        "baseline_seconds_per_call": 0.002329925261437893,
+        "candidate_seconds_per_call": 0.009496510215103626,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-scalar_read_64",
+      "claim": "scalar_read_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[16]",
+          "line": 1205
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.016914622858166695,
+          "median_seconds": 0.0016862479969859123,
+          "mad_seconds": 1.9527040421962738e-05,
+          "p95_seconds": 0.001729847304522991,
+          "peak_rss_bytes": 197201920
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.01688534952700138,
+          "median_seconds": 0.0016915127635002136,
+          "mad_seconds": 1.7737969756126404e-05,
+          "p95_seconds": 0.0017235817387700081,
+          "peak_rss_bytes": 90632192
+        },
+        "runtime_ratio": 1.0031221780685355,
+        "paired_bootstrap_95ci": [
+          0.9812471901487988,
+          1.019505516863866
+        ],
+        "baseline_seconds_per_call": 8.431239984929562e-05,
+        "candidate_seconds_per_call": 8.457563817501068e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-scalar_write_64",
+      "claim": "scalar_write_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[17]",
+          "line": 1274
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0050679761916399,
+          "median_seconds": 0.0005056895315647125,
+          "mad_seconds": 1.1874362826347351e-06,
+          "p95_seconds": 0.0005154701881110668,
+          "peak_rss_bytes": 197558272
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.009580185636878014,
+          "median_seconds": 0.0009524021297693253,
+          "mad_seconds": 5.0049275159835815e-06,
+          "p95_seconds": 0.0009825757704675197,
+          "peak_rss_bytes": 90865664
+        },
+        "runtime_ratio": 1.8833732365832996,
+        "paired_bootstrap_95ci": [
+          1.871242533108934,
+          1.9153077008422983
+        ],
+        "baseline_seconds_per_call": 2.5284476578235626e-05,
+        "candidate_seconds_per_call": 4.762010648846626e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-batch_facts_64",
+      "claim": "batch_facts_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[18]",
+          "line": 1343
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.005165567621588707,
+          "median_seconds": 0.0005142763257026672,
+          "mad_seconds": 7.133930921554565e-07,
+          "p95_seconds": 0.0005228978581726551,
+          "peak_rss_bytes": 197738496
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.003702715039253235,
+          "median_seconds": 0.0003702063113451004,
+          "mad_seconds": 2.53971666097641e-06,
+          "p95_seconds": 0.00037845727056264874,
+          "peak_rss_bytes": 91267072
+        },
+        "runtime_ratio": 0.7198587468308584,
+        "paired_bootstrap_95ci": [
+          0.7085026427545752,
+          0.7224659536325284
+        ],
+        "baseline_seconds_per_call": 2.5713816285133362e-05,
+        "candidate_seconds_per_call": 1.851031556725502e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-coordinates_64",
+      "claim": "coordinates_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[19]",
+          "line": 1412
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0725743155926466,
+          "median_seconds": 0.007254955358803272,
+          "mad_seconds": 7.004477083683014e-06,
+          "p95_seconds": 0.0072748796083033085,
+          "peak_rss_bytes": 197414912
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.008309731259942055,
+          "median_seconds": 0.000832192599773407,
+          "mad_seconds": 5.380250513553619e-06,
+          "p95_seconds": 0.0008394813165068626,
+          "peak_rss_bytes": 90533888
+        },
+        "runtime_ratio": 0.11470678434480124,
+        "paired_bootstrap_95ci": [
+          0.11359185221974076,
+          0.11529245732547655
+        ],
+        "baseline_seconds_per_call": 0.0003627477679401636,
+        "candidate_seconds_per_call": 4.160962998867035e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-insert_delete_64",
+      "claim": "insert_delete_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[20]",
+          "line": 1482
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.02670041099190712,
+          "median_seconds": 0.0026667695492506027,
+          "mad_seconds": 1.057889312505722e-05,
+          "p95_seconds": 0.0026976420544087888,
+          "peak_rss_bytes": 197267456
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.1320931725203991,
+          "median_seconds": 0.01320471242070198,
+          "mad_seconds": 6.583612412214279e-05,
+          "p95_seconds": 0.013397954218089581,
+          "peak_rss_bytes": 92155904
+        },
+        "runtime_ratio": 4.95157612115853,
+        "paired_bootstrap_95ci": [
+          4.910525010426881,
+          4.980503480017961
+        ],
+        "baseline_seconds_per_call": 0.00013333847746253014,
+        "candidate_seconds_per_call": 0.000660235621035099,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-matrix_64",
+      "claim": "matrix_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[21]",
+          "line": 1551
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.05244229733943939,
+          "median_seconds": 0.005291457287967205,
+          "mad_seconds": 5.721859633922577e-05,
+          "p95_seconds": 0.005349698010832071,
+          "peak_rss_bytes": 197861376
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0017041116952896118,
+          "median_seconds": 0.00016478262841701508,
+          "mad_seconds": 1.2284144759178162e-06,
+          "p95_seconds": 0.0001963928341865539,
+          "peak_rss_bytes": 90746880
+        },
+        "runtime_ratio": 0.031141256453440798,
+        "paired_bootstrap_95ci": [
+          0.03073073582801497,
+          0.032457401516987415
+        ],
+        "baseline_seconds_per_call": 0.00026457286439836026,
+        "candidate_seconds_per_call": 8.239131420850754e-06,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-native_64",
+      "claim": "native_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[22]",
+          "line": 1624
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20,
+          "fields": [
+            "ATOMIC_NUMBERS",
+            "FORMAL_CHARGES",
+            "COORDINATES"
+          ]
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.05034377612173557,
+          "median_seconds": 0.005033132620155811,
+          "mad_seconds": 1.2989155948162079e-05,
+          "p95_seconds": 0.005065598245710135,
+          "peak_rss_bytes": 197341184
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.006575280800461769,
+          "median_seconds": 0.00065561942756176,
+          "mad_seconds": 1.4761462807655334e-06,
+          "p95_seconds": 0.0006724997423589229,
+          "peak_rss_bytes": 91246592
+        },
+        "runtime_ratio": 0.13026070978862145,
+        "paired_bootstrap_95ci": [
+          0.12948536888018675,
+          0.13084969446592257
+        ],
+        "baseline_seconds_per_call": 0.00025165663100779057,
+        "candidate_seconds_per_call": 3.2780971378088e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-partial_projection_64",
+      "claim": "partial_projection_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[23]",
+          "line": 1699
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.00849614292383194,
+          "median_seconds": 0.0008471915498375893,
+          "mad_seconds": 4.954636096954346e-06,
+          "p95_seconds": 0.0008650990203022957,
+          "peak_rss_bytes": 197996544
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.011625345796346664,
+          "median_seconds": 0.0011635469272732735,
+          "mad_seconds": 7.336027920246124e-06,
+          "p95_seconds": 0.0011717930436134338,
+          "peak_rss_bytes": 90644480
+        },
+        "runtime_ratio": 1.373416587425041,
+        "paired_bootstrap_95ci": [
+          1.352297170292521,
+          1.3849507371528331
+        ],
+        "baseline_seconds_per_call": 4.235957749187946e-05,
+        "candidate_seconds_per_call": 5.817734636366367e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-mca_projection_64",
+      "claim": "mca_projection_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[24]",
+          "line": 1768
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0021379124373197556,
+          "median_seconds": 0.00021049939095973969,
+          "mad_seconds": 6.230548024177551e-07,
+          "p95_seconds": 0.00022807037457823752,
+          "peak_rss_bytes": 197828608
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.010543882846832275,
+          "median_seconds": 0.0010508261620998383,
+          "mad_seconds": 1.601874828338623e-06,
+          "p95_seconds": 0.0010704755783081054,
+          "peak_rss_bytes": 91824128
+        },
+        "runtime_ratio": 4.992062719558273,
+        "paired_bootstrap_95ci": [
+          4.877514737307623,
+          5.03064303474883
+        ],
+        "baseline_seconds_per_call": 1.0524969547986985e-05,
+        "candidate_seconds_per_call": 5.2541308104991916e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-write_read_64",
+      "claim": "write_read_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[25]",
+          "line": 1838
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.1006166860461235,
+          "median_seconds": 0.010067757219076157,
+          "mad_seconds": 5.6616030633449554e-05,
+          "p95_seconds": 0.010128546692430972,
+          "peak_rss_bytes": 197771264
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 1.041631555184722,
+          "median_seconds": 0.10245066788047552,
+          "mad_seconds": 0.00012070406228303909,
+          "p95_seconds": 0.11210850700736044,
+          "peak_rss_bytes": 91615232
+        },
+        "runtime_ratio": 10.176116254209461,
+        "paired_bootstrap_95ci": [
+          10.123192523104397,
+          10.24740086589055
+        ],
+        "baseline_seconds_per_call": 0.0005033878609538078,
+        "candidate_seconds_per_call": 0.005122533394023776,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-clean_read_64",
+      "claim": "clean_read_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[26]",
+          "line": 1907
+        }
+      ],
+      "limits": "B0 returns unevaluated defaultH0; final evaluates H4 per isolated C. Counters agree but returned information differs; raw ratio is not equal-information chemical performance.",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.008986242115497589,
+          "median_seconds": 0.0008951025083661079,
+          "mad_seconds": 8.170492947101593e-06,
+          "p95_seconds": 0.0009164094924926757,
+          "peak_rss_bytes": 197242880
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.30414028838276863,
+          "median_seconds": 0.030345797538757324,
+          "mad_seconds": 6.448011845350266e-05,
+          "p95_seconds": 0.030835308693349363,
+          "peak_rss_bytes": 91684864
+        },
+        "runtime_ratio": 33.902036085397185,
+        "paired_bootstrap_95ci": [
+          33.38704172686675,
+          34.17234465601717
+        ],
+        "baseline_seconds_per_call": 4.4755125418305394e-05,
+        "candidate_seconds_per_call": 0.0015172898769378663,
+        "comparable_complete_chemical_task": false
+      }
+    },
+    {
+      "id": "CPU-unrelated_read_64",
+      "claim": "unrelated_read_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[27]",
+          "line": 1978
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.12435627356171608,
+          "median_seconds": 0.012398414313793182,
+          "mad_seconds": 4.5972876250743866e-05,
+          "p95_seconds": 0.012567001860588789,
+          "peak_rss_bytes": 197505024
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.029298333451151848,
+          "median_seconds": 0.002928975038230419,
+          "mad_seconds": 1.1762604117393494e-05,
+          "p95_seconds": 0.0029526958242058754,
+          "peak_rss_bytes": 90906624
+        },
+        "runtime_ratio": 0.23623787398134832,
+        "paired_bootstrap_95ci": [
+          0.2339716183874332,
+          0.23756167468291675
+        ],
+        "baseline_seconds_per_call": 0.0006199207156896592,
+        "candidate_seconds_per_call": 0.00014644875191152095,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-construct_256",
+      "claim": "construct_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[28]",
+          "line": 2047
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 1.2781459614634514,
+          "median_seconds": 0.12798188254237175,
+          "mad_seconds": 0.00038513075560331345,
+          "p95_seconds": 0.12851589461788535,
+          "peak_rss_bytes": 198336512
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 1.8734511490911245,
+          "median_seconds": 0.1873964313417673,
+          "mad_seconds": 0.00033323653042316437,
+          "p95_seconds": 0.18801063848659397,
+          "peak_rss_bytes": 93192192
+        },
+        "runtime_ratio": 1.464241872514454,
+        "paired_bootstrap_95ci": [
+          1.4601950874214393,
+          1.472379799174909
+        ],
+        "baseline_seconds_per_call": 0.02559637650847435,
+        "candidate_seconds_per_call": 0.037479286268353465,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-scalar_read_256",
+      "claim": "scalar_read_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[29]",
+          "line": 2116
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.06997922621667385,
+          "median_seconds": 0.006977885961532593,
+          "mad_seconds": 6.833486258983612e-05,
+          "p95_seconds": 0.00712189357727766,
+          "peak_rss_bytes": 197926912
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.06542117707431316,
+          "median_seconds": 0.006547550670802593,
+          "mad_seconds": 2.5869347155094147e-05,
+          "p95_seconds": 0.00658746287226677,
+          "peak_rss_bytes": 91648000
+        },
+        "runtime_ratio": 0.9383287011134411,
+        "paired_bootstrap_95ci": [
+          0.9225611729919139,
+          0.9483370272128205
+        ],
+        "baseline_seconds_per_call": 0.00034889429807662966,
+        "candidate_seconds_per_call": 0.00032737753354012967,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-scalar_write_256",
+      "claim": "scalar_write_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[30]",
+          "line": 2185
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.023494282737374306,
+          "median_seconds": 0.0021781353279948235,
+          "mad_seconds": 0.00014670193195343018,
+          "p95_seconds": 0.0027778919786214827,
+          "peak_rss_bytes": 198000640
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.03865787759423256,
+          "median_seconds": 0.003866264596581459,
+          "mad_seconds": 1.568533480167389e-05,
+          "p95_seconds": 0.0038993624038994312,
+          "peak_rss_bytes": 91824128
+        },
+        "runtime_ratio": 1.7750341527864184,
+        "paired_bootstrap_95ci": [
+          1.415960142449744,
+          1.8960676769887297
+        ],
+        "baseline_seconds_per_call": 0.00010890676639974117,
+        "candidate_seconds_per_call": 0.00019331322982907295,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-batch_facts_256",
+      "claim": "batch_facts_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[31]",
+          "line": 2254
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.020076382905244827,
+          "median_seconds": 0.0020061051473021507,
+          "mad_seconds": 6.833113729953766e-06,
+          "p95_seconds": 0.0020217456854879855,
+          "peak_rss_bytes": 197242880
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.010468810796737671,
+          "median_seconds": 0.001043134368956089,
+          "mad_seconds": 8.178874850273132e-06,
+          "p95_seconds": 0.0010678264312446117,
+          "peak_rss_bytes": 91512832
+        },
+        "runtime_ratio": 0.5199799075132808,
+        "paired_bootstrap_95ci": [
+          0.5168241733385941,
+          0.525504248458491
+        ],
+        "baseline_seconds_per_call": 0.00010030525736510753,
+        "candidate_seconds_per_call": 5.215671844780445e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-coordinates_256",
+      "claim": "coordinates_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[32]",
+          "line": 2323
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.2860134579241276,
+          "median_seconds": 0.028544209897518158,
+          "mad_seconds": 7.02226534485817e-05,
+          "p95_seconds": 0.02897787084802985,
+          "peak_rss_bytes": 197443584
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.021732060238718987,
+          "median_seconds": 0.0021717045456171036,
+          "mad_seconds": 1.2491829693317413e-05,
+          "p95_seconds": 0.0021982010453939437,
+          "peak_rss_bytes": 91746304
+        },
+        "runtime_ratio": 0.07608213901923162,
+        "paired_bootstrap_95ci": [
+          0.07569736939146433,
+          0.07644534655703321
+        ],
+        "baseline_seconds_per_call": 0.001427210494875908,
+        "candidate_seconds_per_call": 0.00010858522728085518,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-insert_delete_256",
+      "claim": "insert_delete_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[33]",
+          "line": 2393
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.08769162558019161,
+          "median_seconds": 0.008712821640074253,
+          "mad_seconds": 4.2154453694820404e-05,
+          "p95_seconds": 0.009063576441258192,
+          "peak_rss_bytes": 197423104
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.3265880588442087,
+          "median_seconds": 0.030938677489757538,
+          "mad_seconds": 0.00013038329780101776,
+          "p95_seconds": 0.040332905948162065,
+          "peak_rss_bytes": 92098560
+        },
+        "runtime_ratio": 3.550936627401668,
+        "paired_bootstrap_95ci": [
+          3.5309330407455963,
+          3.5857314744977957
+        ],
+        "baseline_seconds_per_call": 0.00043564108200371264,
+        "candidate_seconds_per_call": 0.001546933874487877,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-matrix_256",
+      "claim": "matrix_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[34]",
+          "line": 2462
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.20240012370049953,
+          "median_seconds": 0.020126930437982082,
+          "mad_seconds": 0.00012809038162231445,
+          "p95_seconds": 0.020751910656690596,
+          "peak_rss_bytes": 197881856
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.001807553693652153,
+          "median_seconds": 0.00017556268721818924,
+          "mad_seconds": 1.0672956705093384e-06,
+          "p95_seconds": 0.00020349547266960142,
+          "peak_rss_bytes": 91656192
+        },
+        "runtime_ratio": 0.008722775077856884,
+        "paired_bootstrap_95ci": [
+          0.008545920041774666,
+          0.009141003812392875
+        ],
+        "baseline_seconds_per_call": 0.0010063465218991042,
+        "candidate_seconds_per_call": 8.778134360909463e-06,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-native_256",
+      "claim": "native_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[35]",
+          "line": 2535
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20,
+          "fields": [
+            "ATOMIC_NUMBERS",
+            "FORMAL_CHARGES",
+            "COORDINATES"
+          ]
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.19381709396839142,
+          "median_seconds": 0.01935068517923355,
+          "mad_seconds": 2.9169954359531403e-05,
+          "p95_seconds": 0.01957062855362892,
+          "peak_rss_bytes": 197599232
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.015485584735870361,
+          "median_seconds": 0.0015464890748262405,
+          "mad_seconds": 5.330890417098999e-06,
+          "p95_seconds": 0.0015627845190465451,
+          "peak_rss_bytes": 91389952
+        },
+        "runtime_ratio": 0.07991908609447464,
+        "paired_bootstrap_95ci": [
+          0.07955992375055351,
+          0.08044058176842607
+        ],
+        "baseline_seconds_per_call": 0.0009675342589616776,
+        "candidate_seconds_per_call": 7.732445374131203e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-partial_projection_256",
+      "claim": "partial_projection_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[36]",
+          "line": 2610
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.03438702039420605,
+          "median_seconds": 0.0034268340095877647,
+          "mad_seconds": 2.2812746465206146e-05,
+          "p95_seconds": 0.003475811332464218,
+          "peak_rss_bytes": 197550080
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.04672405496239662,
+          "median_seconds": 0.004663629457354546,
+          "mad_seconds": 1.2566335499286652e-05,
+          "p95_seconds": 0.0046958946622908115,
+          "peak_rss_bytes": 91373568
+        },
+        "runtime_ratio": 1.3609148982140407,
+        "paired_bootstrap_95ci": [
+          1.3432671786873407,
+          1.3709165712369864
+        ],
+        "baseline_seconds_per_call": 0.00017134170047938824,
+        "candidate_seconds_per_call": 0.0002331814728677273,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-mca_projection_256",
+      "claim": "mca_projection_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[37]",
+          "line": 2679
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.007760260254144669,
+          "median_seconds": 0.0007736422121524811,
+          "mad_seconds": 3.3723190426826477e-06,
+          "p95_seconds": 0.0007880187593400478,
+          "peak_rss_bytes": 197906432
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.04086039960384369,
+          "median_seconds": 0.004084617830812931,
+          "mad_seconds": 8.931383490562439e-06,
+          "p95_seconds": 0.004111478384584188,
+          "peak_rss_bytes": 91660288
+        },
+        "runtime_ratio": 5.2797246151401485,
+        "paired_bootstrap_95ci": [
+          5.241966611753889,
+          5.303978074970856
+        ],
+        "baseline_seconds_per_call": 3.868211060762405e-05,
+        "candidate_seconds_per_call": 0.00020423089154064655,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-write_read_256",
+      "claim": "write_read_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[38]",
+          "line": 2749
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.40840676613152027,
+          "median_seconds": 0.04076430853456259,
+          "mad_seconds": 0.0004279669374227524,
+          "p95_seconds": 0.04168795570731163,
+          "peak_rss_bytes": 197566464
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 3.943607270717621,
+          "median_seconds": 0.38923006784170866,
+          "mad_seconds": 0.0011297930032014847,
+          "p95_seconds": 0.4080359769053757,
+          "peak_rss_bytes": 92000256
+        },
+        "runtime_ratio": 9.548305413096717,
+        "paired_bootstrap_95ci": [
+          9.475346281415097,
+          9.860730210846185
+        ],
+        "baseline_seconds_per_call": 0.0020382154267281293,
+        "candidate_seconds_per_call": 0.01946150339208543,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-clean_read_256",
+      "claim": "clean_read_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[39]",
+          "line": 2818
+        }
+      ],
+      "limits": "B0 returns unevaluated defaultH0; final evaluates H4 per isolated C. Counters agree but returned information differs; raw ratio is not equal-information chemical performance.",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.03543764911592007,
+          "median_seconds": 0.003528227098286152,
+          "mad_seconds": 1.3739801943302155e-05,
+          "p95_seconds": 0.0035978129133582117,
+          "peak_rss_bytes": 197660672
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 1.211470728740096,
+          "median_seconds": 0.12062277924269438,
+          "mad_seconds": 0.0005335323512554169,
+          "p95_seconds": 0.12348291948437691,
+          "peak_rss_bytes": 91922432
+        },
+        "runtime_ratio": 34.18792948483597,
+        "paired_bootstrap_95ci": [
+          33.7778385096673,
+          34.56815361812852
+        ],
+        "baseline_seconds_per_call": 0.0001764113549143076,
+        "candidate_seconds_per_call": 0.006031138962134719,
+        "comparable_complete_chemical_task": false
+      }
+    },
+    {
+      "id": "CPU-unrelated_read_256",
+      "claim": "unrelated_read_256",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[40]",
+          "line": 2889
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 256,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.4981832467019558,
+          "median_seconds": 0.04980949126183987,
+          "mad_seconds": 9.149964898824692e-05,
+          "p95_seconds": 0.05010510897263885,
+          "peak_rss_bytes": 197701632
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.11621369048953056,
+          "median_seconds": 0.01163154374808073,
+          "mad_seconds": 3.876350820064545e-05,
+          "p95_seconds": 0.011699626035988332,
+          "peak_rss_bytes": 91557888
+        },
+        "runtime_ratio": 0.23352062937032864,
+        "paired_bootstrap_95ci": [
+          0.23245601935594662,
+          0.23425149800326248
+        ],
+        "baseline_seconds_per_call": 0.0024904745630919935,
+        "candidate_seconds_per_call": 0.0005815771874040365,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_smi_small",
+      "claim": "io_smi_small",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[41]",
+          "line": 2958
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CCO",
+          "format": "smi",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.013109007850289345,
+          "median_seconds": 0.0012882445007562637,
+          "mad_seconds": 1.3988465070724487e-05,
+          "p95_seconds": 0.0014172460883855819,
+          "peak_rss_bytes": 197517312
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.05214238539338112,
+          "median_seconds": 0.005199618637561798,
+          "mad_seconds": 3.8918107748031616e-05,
+          "p95_seconds": 0.00542263938114047,
+          "peak_rss_bytes": 145686528
+        },
+        "runtime_ratio": 4.036204800027761,
+        "paired_bootstrap_95ci": [
+          3.8520196883913282,
+          4.084397227761757
+        ],
+        "baseline_seconds_per_call": 0.00025764890015125277,
+        "candidate_seconds_per_call": 0.0010399237275123597,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_mol2_small",
+      "claim": "io_mol2_small",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[42]",
+          "line": 3028
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CCO",
+          "format": "mol2",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.013276021927595139,
+          "median_seconds": 0.0013097301125526428,
+          "mad_seconds": 1.0975636541843414e-05,
+          "p95_seconds": 0.0014166798442602157,
+          "peak_rss_bytes": 198774784
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.07457188703119755,
+          "median_seconds": 0.007411318831145763,
+          "mad_seconds": 1.5689991414546967e-05,
+          "p95_seconds": 0.0076727777719497675,
+          "peak_rss_bytes": 145915904
+        },
+        "runtime_ratio": 5.658661093697558,
+        "paired_bootstrap_95ci": [
+          5.454153293070509,
+          5.704257278762517
+        ],
+        "baseline_seconds_per_call": 0.0002619460225105286,
+        "candidate_seconds_per_call": 0.0014822637662291528,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_sdf_small",
+      "claim": "io_sdf_small",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[43]",
+          "line": 3098
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CCO",
+          "format": "sdf",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.01419365219771862,
+          "median_seconds": 0.0014015734195709229,
+          "mad_seconds": 1.487787812948227e-05,
+          "p95_seconds": 0.0015047957189381123,
+          "peak_rss_bytes": 198078464
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.053805338218808174,
+          "median_seconds": 0.00536058284342289,
+          "mad_seconds": 2.3261643946170807e-05,
+          "p95_seconds": 0.0055652504786849015,
+          "peak_rss_bytes": 145539072
+        },
+        "runtime_ratio": 3.824689287460928,
+        "paired_bootstrap_95ci": [
+          3.687471172177692,
+          3.8772701253051522
+        ],
+        "baseline_seconds_per_call": 0.00028031468391418455,
+        "candidate_seconds_per_call": 0.0010721165686845779,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_smi_typical",
+      "claim": "io_smi_typical",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[44]",
+          "line": 3168
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+          "format": "smi",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.055440908297896385,
+          "median_seconds": 0.00552054587751627,
+          "mad_seconds": 0.00010016001760959625,
+          "p95_seconds": 0.005801260098814964,
+          "peak_rss_bytes": 199016448
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.09616034291684628,
+          "median_seconds": 0.009616371244192123,
+          "mad_seconds": 3.059208393096924e-05,
+          "p95_seconds": 0.009757665358483792,
+          "peak_rss_bytes": 145973248
+        },
+        "runtime_ratio": 1.7419239795392467,
+        "paired_bootstrap_95ci": [
+          1.7090115289373802,
+          1.7787001113851622
+        ],
+        "baseline_seconds_per_call": 0.001104109175503254,
+        "candidate_seconds_per_call": 0.0019232742488384247,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_mol2_typical",
+      "claim": "io_mol2_typical",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[45]",
+          "line": 3238
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+          "format": "mol2",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.05627733655273914,
+          "median_seconds": 0.005571769550442696,
+          "mad_seconds": 6.830506026744843e-05,
+          "p95_seconds": 0.0058953481726348395,
+          "peak_rss_bytes": 198168576
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.17881689965724945,
+          "median_seconds": 0.017896407283842564,
+          "mad_seconds": 0.00010352581739425659,
+          "p95_seconds": 0.018050496466457844,
+          "peak_rss_bytes": 147632128
+        },
+        "runtime_ratio": 3.2119790888373396,
+        "paired_bootstrap_95ci": [
+          3.139902463399184,
+          3.25004281281094
+        ],
+        "baseline_seconds_per_call": 0.001114353910088539,
+        "candidate_seconds_per_call": 0.003579281456768513,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_sdf_typical",
+      "claim": "io_sdf_typical",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[46]",
+          "line": 3308
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+          "format": "sdf",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0594230480492115,
+          "median_seconds": 0.005870360881090164,
+          "mad_seconds": 2.7684494853019714e-05,
+          "p95_seconds": 0.0062063405290246005,
+          "peak_rss_bytes": 198422528
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.10024673119187355,
+          "median_seconds": 0.010026473551988602,
+          "mad_seconds": 2.6030465960502625e-05,
+          "p95_seconds": 0.010140689555555582,
+          "peak_rss_bytes": 146731008
+        },
+        "runtime_ratio": 1.7079824826930607,
+        "paired_bootstrap_95ci": [
+          1.672442241129218,
+          1.7168220098411873
+        ],
+        "baseline_seconds_per_call": 0.0011740721762180328,
+        "candidate_seconds_per_call": 0.00200529471039772,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_smi_large",
+      "claim": "io_smi_large",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[47]",
+          "line": 3378
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "format": "smi",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.23935103230178356,
+          "median_seconds": 0.023884154856204987,
+          "mad_seconds": 9.706709533929825e-05,
+          "p95_seconds": 0.024295491259545086,
+          "peak_rss_bytes": 198914048
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.31822384893894196,
+          "median_seconds": 0.029802641831338406,
+          "mad_seconds": 8.623208850622177e-05,
+          "p95_seconds": 0.04161657765507696,
+          "peak_rss_bytes": 147365888
+        },
+        "runtime_ratio": 1.2477997237401024,
+        "paired_bootstrap_95ci": [
+          1.2381018245861306,
+          1.2527799387527874
+        ],
+        "baseline_seconds_per_call": 0.0047768309712409975,
+        "candidate_seconds_per_call": 0.005960528366267681,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_mol2_large",
+      "claim": "io_mol2_large",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[48]",
+          "line": 3448
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "format": "mol2",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.25012149661779404,
+          "median_seconds": 0.024992973543703556,
+          "mad_seconds": 8.154939860105515e-05,
+          "p95_seconds": 0.025301235914230346,
+          "peak_rss_bytes": 199806976
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.7231401409953833,
+          "median_seconds": 0.06589170638471842,
+          "mad_seconds": 0.00013917870819568634,
+          "p95_seconds": 0.08778470335528255,
+          "peak_rss_bytes": 148844544
+        },
+        "runtime_ratio": 2.636409239960902,
+        "paired_bootstrap_95ci": [
+          2.6246719423499414,
+          3.4889346169546953
+        ],
+        "baseline_seconds_per_call": 0.004998594708740711,
+        "candidate_seconds_per_call": 0.013178341276943683,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-io_sdf_large",
+      "claim": "io_sdf_large",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[49]",
+          "line": 3518
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+          "format": "sdf",
+          "loops": 5
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.259469348937273,
+          "median_seconds": 0.025918463245034218,
+          "mad_seconds": 5.20879402756691e-05,
+          "p95_seconds": 0.026226490270346403,
+          "peak_rss_bytes": 199565312
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.3382517769932747,
+          "median_seconds": 0.03179304674267769,
+          "mad_seconds": 5.187559872865677e-05,
+          "p95_seconds": 0.04355194428935645,
+          "peak_rss_bytes": 147910656
+        },
+        "runtime_ratio": 1.2266563199409208,
+        "paired_bootstrap_95ci": [
+          1.216217246795167,
+          1.229115459129781
+        ],
+        "baseline_seconds_per_call": 0.005183692649006843,
+        "candidate_seconds_per_call": 0.0063586093485355375,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-graph_search_geometry",
+      "claim": "graph_search_geometry",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[50]",
+          "line": 3588
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "c1ccc2ccccc2c1CCN",
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.10613749735057354,
+          "median_seconds": 0.010581102222204208,
+          "mad_seconds": 3.073364496231079e-05,
+          "p95_seconds": 0.010820795502513646,
+          "peak_rss_bytes": 199884800
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.34809979423880577,
+          "median_seconds": 0.034853302873671055,
+          "mad_seconds": 0.00016452837735414505,
+          "p95_seconds": 0.03509262567386031,
+          "peak_rss_bytes": 176275456
+        },
+        "runtime_ratio": 3.293919871649304,
+        "paired_bootstrap_95ci": [
+          3.2743975774925635,
+          3.308704014148596
+        ],
+        "baseline_seconds_per_call": 0.0005290551111102104,
+        "candidate_seconds_per_call": 0.0017426651436835527,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-geometry_screen",
+      "claim": "geometry_screen",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[51]",
+          "line": 3663
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "loops": 100
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.07428388483822346,
+          "median_seconds": 0.0073897019028663635,
+          "mad_seconds": 2.5758519768714905e-05,
+          "p95_seconds": 0.007620511017739772,
+          "peak_rss_bytes": 198565888
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.06987000070512295,
+          "median_seconds": 0.006986889056861401,
+          "mad_seconds": 3.107357770204544e-05,
+          "p95_seconds": 0.007040926907211542,
+          "peak_rss_bytes": 91172864
+        },
+        "runtime_ratio": 0.9454899735740737,
+        "paired_bootstrap_95ci": [
+          0.9368851408581846,
+          0.9510135156419117
+        ],
+        "baseline_seconds_per_call": 7.389701902866364e-05,
+        "candidate_seconds_per_call": 6.9868890568614e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-crystal_matrix",
+      "claim": "crystal_matrix",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[52]",
+          "line": 3731
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "matrix": [
+            [
+              8,
+              0,
+              0
+            ],
+            [
+              1,
+              9,
+              0
+            ],
+            [
+              2,
+              3,
+              10
+            ]
+          ],
+          "loops": 200
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.02067706547677517,
+          "median_seconds": 0.0020679784938693047,
+          "mad_seconds": 7.664784789085388e-06,
+          "p95_seconds": 0.0020857270807027816,
+          "peak_rss_bytes": 197812224
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.02261422760784626,
+          "median_seconds": 0.0022573163732886314,
+          "mad_seconds": 6.2016770243644714e-06,
+          "p95_seconds": 0.002293589245527983,
+          "peak_rss_bytes": 90800128
+        },
+        "runtime_ratio": 1.0915569866807777,
+        "paired_bootstrap_95ci": [
+          1.0844323621048522,
+          1.10035195542319
+        ],
+        "baseline_seconds_per_call": 1.0339892469346523e-05,
+        "candidate_seconds_per_call": 1.1286581866443157e-05,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-molecule_bundle",
+      "claim": "molecule_bundle",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[53]",
+          "line": 3816
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "molecules": 128,
+          "loops": 100
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0009523704648017883,
+          "median_seconds": 8.989125490188599e-05,
+          "mad_seconds": 4.954636096954346e-07,
+          "p95_seconds": 0.00011958740651607508,
+          "peak_rss_bytes": 197570560
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0008924268186092377,
+          "median_seconds": 8.942466229200363e-05,
+          "mad_seconds": 4.163011908531189e-07,
+          "p95_seconds": 8.986974135041236e-05,
+          "peak_rss_bytes": 92565504
+        },
+        "runtime_ratio": 0.9948093659345213,
+        "paired_bootstrap_95ci": [
+          0.9798372979095871,
+          1.0016317452398769
+        ],
+        "baseline_seconds_per_call": 8.989125490188599e-07,
+        "candidate_seconds_per_call": 8.942466229200364e-07,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-source_conformers",
+      "claim": "source_conformers",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[54]",
+          "line": 3885
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.045476846396923065,
+          "median_seconds": 0.004495375789701939,
+          "mad_seconds": 9.887851774692535e-06,
+          "p95_seconds": 0.004841142334043979,
+          "peak_rss_bytes": 197341184
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.26162659004330635,
+          "median_seconds": 0.02616462018340826,
+          "mad_seconds": 3.663450479507446e-05,
+          "p95_seconds": 0.02621270567178726,
+          "peak_rss_bytes": 92016640
+        },
+        "runtime_ratio": 5.820341036526132,
+        "paired_bootstrap_95ci": [
+          5.809980202737863,
+          5.839864049976299
+        ],
+        "baseline_seconds_per_call": 0.00022476878948509693,
+        "candidate_seconds_per_call": 0.001308231009170413,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-toolkit_conversions",
+      "claim": "toolkit_conversions",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[55]",
+          "line": 3956
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+          "loops": 20
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.11963403411209583,
+          "median_seconds": 0.011957671493291855,
+          "mad_seconds": 2.9707327485084534e-05,
+          "p95_seconds": 0.012033087480813266,
+          "peak_rss_bytes": 198688768
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.8469654079526663,
+          "median_seconds": 0.08469534385949373,
+          "mad_seconds": 0.00010763667523860931,
+          "p95_seconds": 0.08482129089534282,
+          "peak_rss_bytes": 147988480
+        },
+        "runtime_ratio": 7.08292947393705,
+        "paired_bootstrap_95ci": [
+          7.0619735997734585,
+          7.101097945428851
+        ],
+        "baseline_seconds_per_call": 0.0005978835746645927,
+        "candidate_seconds_per_call": 0.004234767192974687,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-mca_conformer_algorithm",
+      "claim": "mca_conformer_algorithm",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[56]",
+          "line": 4028
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CC(=O)Oc1ccccc1C(=O)O",
+          "seed": 42
+        },
+        "end_to_end": true,
+        "baseline_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.0376183707267046,
+          "median_seconds": 0.007517330348491669,
+          "mad_seconds": 6.673857569694519e-06,
+          "p95_seconds": 0.007547334954142571,
+          "peak_rss_bytes": 220160000
+        },
+        "candidate_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.037247953936457634,
+          "median_seconds": 0.007439872249960899,
+          "mad_seconds": 1.6652047634124756e-05,
+          "p95_seconds": 0.007505170628428459,
+          "peak_rss_bytes": 144314368
+        },
+        "runtime_ratio": 0.9896960629718353,
+        "paired_bootstrap_95ci": [
+          0.986605004333544,
+          0.995777884310923
+        ],
+        "baseline_seconds_per_call": 0.007517330348491669,
+        "candidate_seconds_per_call": 0.007439872249960899,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-organic_forcefield",
+      "claim": "organic_forcefield",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[57]",
+          "line": 4083
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "smiles": "CCO",
+          "seed": 42,
+          "epochs": 1,
+          "steps_per_epoch": 20
+        },
+        "end_to_end": true,
+        "baseline_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 4.837763713672757,
+          "median_seconds": 0.9679605532437563,
+          "mad_seconds": 0.0016919579356908798,
+          "p95_seconds": 0.9712130934000015,
+          "peak_rss_bytes": 201523200
+        },
+        "candidate_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 3.9045069497078657,
+          "median_seconds": 0.7801867481321096,
+          "mad_seconds": 0.00110519677400589,
+          "p95_seconds": 0.7849611859768629,
+          "peak_rss_bytes": 178561024
+        },
+        "runtime_ratio": 0.8060108911645281,
+        "paired_bootstrap_95ci": [
+          0.8018641398118556,
+          0.813275893879575
+        ],
+        "baseline_seconds_per_call": 0.9679605532437563,
+        "candidate_seconds_per_call": 0.7801867481321096,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-retained_molecules",
+      "claim": "retained_molecules",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[58]",
+          "line": 4152
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "atoms": 64,
+          "molecules": 16,
+          "loops": 1
+        },
+        "end_to_end": false,
+        "baseline_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.3695671148598194,
+          "median_seconds": 0.03695935849100351,
+          "mad_seconds": 0.0001394236460328102,
+          "p95_seconds": 0.03730903472751379,
+          "peak_rss_bytes": 200282112
+        },
+        "candidate_summary": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 1.5064420811831951,
+          "median_seconds": 0.15058969892561436,
+          "mad_seconds": 0.0002740100026130676,
+          "p95_seconds": 0.15118680633604525,
+          "peak_rss_bytes": 95383552
+        },
+        "runtime_ratio": 4.074467335851359,
+        "paired_bootstrap_95ci": [
+          4.052818714228022,
+          4.096913635161562
+        ],
+        "baseline_seconds_per_call": 0.03695935849100351,
+        "candidate_seconds_per_call": 0.15058969892561436,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "CPU-mca_cpu_8",
+      "claim": "mca_cpu_8",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[59]",
+          "line": 4224
+        }
+      ],
+      "limits": "Equal original model tensors/prediction workload and counters are observed, but B0 returned-SMILES/charge metadata is defective for the neutral-acid fixture. Keep inference-work latency, without certifying equal complete chemical outputs or whole-workflow speedup.",
+      "observed": {
+        "parameters": {
+          "backend": "cpu",
+          "molecules": 8,
+          "smiles": [
+            "CCO",
+            "CCN",
+            "CC(=O)O",
+            "c1ccncc1",
+            "CCOC",
+            "CCS",
+            "CC(=O)N",
+            "c1ccccc1O"
+          ],
+          "cpu_count": 8,
+          "seed": 42
+        },
+        "end_to_end": true,
+        "baseline_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.7242356780916452,
+          "median_seconds": 0.14478408731520176,
+          "mad_seconds": 0.002990422770380974,
+          "p95_seconds": 0.14783467054367067,
+          "peak_rss_bytes": 865730560
+        },
+        "candidate_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.8970488458871841,
+          "median_seconds": 0.1738949865102768,
+          "mad_seconds": 0.0011416543275117874,
+          "p95_seconds": 0.1991298321634531,
+          "peak_rss_bytes": 750866432
+        },
+        "runtime_ratio": 1.2010642173106996,
+        "paired_bootstrap_95ci": [
+          1.1761604790170819,
+          1.4257820129513048
+        ],
+        "baseline_seconds_per_call": 0.14478408731520176,
+        "candidate_seconds_per_call": 0.1738949865102768,
+        "comparable_complete_chemical_task": false
+      }
+    },
+    {
+      "id": "CPU-mca_cpu_64",
+      "claim": "mca_cpu_64",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[60]",
+          "line": 4296
+        }
+      ],
+      "limits": "Equal original model tensors/prediction workload and counters are observed, but B0 returned-SMILES/charge metadata is defective for the neutral-acid fixture. Keep inference-work latency, without certifying equal complete chemical outputs or whole-workflow speedup.",
+      "observed": {
+        "parameters": {
+          "backend": "cpu",
+          "molecules": 64,
+          "smiles": [
+            "CCO",
+            "CCN",
+            "CC(=O)O",
+            "c1ccncc1",
+            "CCOC",
+            "CCS",
+            "CC(=O)N",
+            "c1ccccc1O"
+          ],
+          "cpu_count": 8,
+          "seed": 42
+        },
+        "end_to_end": true,
+        "baseline_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 4.978552186861634,
+          "median_seconds": 0.9880282394587994,
+          "mad_seconds": 0.004415426403284073,
+          "p95_seconds": 1.0229329407215118,
+          "peak_rss_bytes": 871477248
+        },
+        "candidate_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 6.024152094498277,
+          "median_seconds": 1.2061987239867449,
+          "mad_seconds": 0.004605777561664581,
+          "p95_seconds": 1.210115932300687,
+          "peak_rss_bytes": 795484160
+        },
+        "runtime_ratio": 1.2208140170643809,
+        "paired_bootstrap_95ci": [
+          1.1751241826078642,
+          1.223430385943328
+        ],
+        "baseline_seconds_per_call": 0.9880282394587994,
+        "candidate_seconds_per_call": 1.2061987239867449,
+        "comparable_complete_chemical_task": false
+      }
+    },
+    {
+      "id": "CPU-cbond_cpu",
+      "claim": "cbond_cpu",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E03",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-cpu-performance.json",
+          "field": "rows[61]",
+          "line": 4368
+        }
+      ],
+      "limits": "本工作负载/采样/进程范围；无全局外推",
+      "observed": {
+        "parameters": {
+          "device": "cpu",
+          "loops": 20
+        },
+        "end_to_end": true,
+        "baseline_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.13989600725471973,
+          "median_seconds": 0.027975445613265038,
+          "mad_seconds": 1.630932092666626e-05,
+          "p95_seconds": 0.02801048122346401,
+          "peak_rss_bytes": 273874944
+        },
+        "candidate_summary": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 0.1399601697921753,
+          "median_seconds": 0.02795545943081379,
+          "mad_seconds": 9.393878281116486e-05,
+          "p95_seconds": 0.028147248923778533,
+          "peak_rss_bytes": 169328640
+        },
+        "runtime_ratio": 0.9992855812655306,
+        "paired_bootstrap_95ci": [
+          0.9959043985562739,
+          1.0067576155672175
+        ],
+        "baseline_seconds_per_call": 0.001398772280663252,
+        "candidate_seconds_per_call": 0.0013977729715406895,
+        "comparable_complete_chemical_task": true
+      }
+    },
+    {
+      "id": "C04",
+      "claim": "GPU MCA观测退化保留，四初始化会话性能样例只有两个设备实际推理",
+      "scope": "historical-final-performance-snapshot",
+      "evidence": [
+        {
+          "source": "E04",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-gpu-performance.json",
+          "field": "pairs",
+          "line": 11
+        },
+        {
+          "source": "E04",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-gpu-performance.json",
+          "field": "hardware",
+          "line": 563
+        },
+        {
+          "source": "E04",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-gpu-performance.json",
+          "field": "limits",
+          "line": 581
+        }
+      ],
+      "limits": "每项3测量/单进程/共享设备；B0酸元数据缺陷阻止完整化学输出parity；最终16b快照",
+      "observed": {
+        "mca_fallback": {
+          "baseline_median_s": 2.4140379894524813,
+          "candidate_median_s": 2.6059259232133627,
+          "ratio": 1.0794883653858334
+        },
+        "mca_1gpu": {
+          "baseline_median_s": 2.6115511246025562,
+          "candidate_median_s": 4.844943318516016,
+          "ratio": 1.855197576977687
+        },
+        "mca_4gpu": {
+          "baseline_median_s": 2.317406153306365,
+          "candidate_median_s": 4.653947297483683,
+          "ratio": 2.008257072608378
+        },
+        "cbond_cuda": {
+          "baseline_median_s": 0.05564865656197071,
+          "candidate_median_s": 0.05629724822938442,
+          "ratio": 1.0116551181553042
+        }
+      }
+    },
+    {
+      "id": "C05",
+      "claim": "共同测试/五ABI旧选集成本不能形成严格速度结论",
+      "scope": "historical-failed-or-incomparable",
+      "evidence": [
+        {
+          "source": "E05",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-common-test-cost.json",
+          "field": "raw_comparison",
+          "line": 215
+        },
+        {
+          "source": "E06",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-version-matrix.json",
+          "field": "by_version_attempt_wall_medians",
+          "line": 77
+        }
+      ],
+      "limits": "3948→3945物理节点且合同不同；版本候选30次旧checker失败；失败时间不是成功用时",
+      "observed": {
+        "common_cost_cells": {
+          "baseline-3948-test_collection": {
+            "phase": "baseline",
+            "operation": "test_collection",
+            "receipt_returncode": 0,
+            "receipt_started_utc": "2026-11-04T12:06:34.236652+00:00",
+            "receipt_finished_utc": "2026-11-04T12:07:32.746442+00:00",
+            "receipt_elapsed_seconds": 58.509696977213025,
+            "summary": {
+              "attempts": 5,
+              "completed": 5,
+              "failed": 0,
+              "no_output": 0,
+              "all_attempt_seconds": 45.32917411625385,
+              "median_seconds": 9.065756751224399,
+              "mad_seconds": 0.011609161272644997,
+              "p95_seconds": 9.081819750368595,
+              "peak_rss_bytes": 382832640
+            },
+            "warmup": {
+              "seconds": 10.223251979798079,
+              "peak_rss_bytes": 383176704
+            }
+          },
+          "candidate-3948-test_collection": {
+            "phase": "candidate",
+            "operation": "test_collection",
+            "receipt_returncode": 0,
+            "receipt_started_utc": "2026-11-04T12:07:32.771323+00:00",
+            "receipt_finished_utc": "2026-11-04T12:08:45.521286+00:00",
+            "receipt_elapsed_seconds": 72.74986336380243,
+            "summary": {
+              "attempts": 5,
+              "completed": 5,
+              "failed": 0,
+              "no_output": 0,
+              "all_attempt_seconds": 57.216160578653216,
+              "median_seconds": 11.455639256164432,
+              "mad_seconds": 0.009298227727413177,
+              "p95_seconds": 11.517840763926506,
+              "peak_rss_bytes": 383610880
+            },
+            "warmup": {
+              "seconds": 12.456279568374157,
+              "peak_rss_bytes": 391737344
+            }
+          },
+          "candidate-3948-test_execution": {
+            "phase": "candidate",
+            "operation": "test_execution",
+            "receipt_returncode": 0,
+            "receipt_started_utc": "2026-11-04T12:08:45.539834+00:00",
+            "receipt_finished_utc": "2026-11-04T12:31:55.173815+00:00",
+            "receipt_elapsed_seconds": 1389.6338525284082,
+            "summary": {
+              "attempts": 5,
+              "completed": 5,
+              "failed": 0,
+              "no_output": 0,
+              "all_attempt_seconds": 1154.1666050124913,
+              "median_seconds": 230.86810829676688,
+              "mad_seconds": 0.16394907236099243,
+              "p95_seconds": 231.57967048324645,
+              "peak_rss_bytes": 809656320
+            },
+            "warmup": {
+              "seconds": 232.18817357346416,
+              "peak_rss_bytes": 809168896
+            }
+          },
+          "baseline-3948-test_execution": {
+            "phase": "baseline",
+            "operation": "test_execution",
+            "receipt_returncode": 0,
+            "receipt_started_utc": "2026-11-04T12:31:55.189576+00:00",
+            "receipt_finished_utc": "2026-11-04T12:55:47.591785+00:00",
+            "receipt_elapsed_seconds": 1432.4020877815783,
+            "summary": {
+              "attempts": 5,
+              "completed": 5,
+              "failed": 0,
+              "no_output": 0,
+              "all_attempt_seconds": 1191.2967048846185,
+              "median_seconds": 238.02169154584408,
+              "mad_seconds": 1.2408563494682312,
+              "p95_seconds": 240.77219966500996,
+              "peak_rss_bytes": 808124416
+            },
+            "warmup": {
+              "seconds": 237.95170338451862,
+              "peak_rss_bytes": 806699008
+            }
+          }
+        },
+        "version_medians": [
+          {
+            "version": "3.10",
+            "baseline_seconds": 199.190777560696,
+            "candidate_failed_checker_seconds": 146.77116131596267
+          },
+          {
+            "version": "3.11",
+            "baseline_seconds": 95.88921583816409,
+            "candidate_failed_checker_seconds": 93.49879503622651
+          },
+          {
+            "version": "3.12",
+            "baseline_seconds": 207.11666344106197,
+            "candidate_failed_checker_seconds": 145.8432384673506
+          },
+          {
+            "version": "3.13",
+            "baseline_seconds": 216.37930339947343,
+            "candidate_failed_checker_seconds": 144.95854207500815
+          },
+          {
+            "version": "3.14",
+            "baseline_seconds": 230.09678244404495,
+            "candidate_failed_checker_seconds": 157.0212432667613
+          }
+        ]
+      }
+    },
+    {
+      "id": "C06",
+      "claim": "新增选集/机制和SDF只报当前成本",
+      "scope": "historical-current-only-cost",
+      "evidence": [
+        {
+          "source": "E07",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-added-test-cost.json",
+          "field": "cost",
+          "line": 23
+        },
+        {
+          "source": "E08",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-new-mechanism-cost.json",
+          "field": "usable_costs",
+          "line": 17
+        },
+        {
+          "source": "E09",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-sdf-write-resources.json",
+          "field": "plain_cost",
+          "line": 414
+        },
+        {
+          "source": "E09",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-sdf-write-resources.json",
+          "field": "root_dispositions",
+          "line": 648
+        }
+      ],
+      "limits": "非基线比较/非最终HEAD重测；包含私有探针，tracemalloc不覆盖原生分配",
+      "observed": {
+        "added": {
+          "attempts": 5,
+          "completed": 5,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 605.9102430026978,
+          "median_seconds": 121.52464201673865,
+          "mad_seconds": 1.0211175791919231,
+          "p95_seconds": 122.50213357433677,
+          "peak_rss_bytes": 722071552
+        },
+        "mechanism": {
+          "sparse20_marking_microseconds": [
+            54.745,
+            57.55,
+            57.709,
+            58.071
+          ],
+          "dense_marking_microseconds": [
+            15.779,
+            35.848,
+            100.313,
+            1350.371
+          ],
+          "full19_twenty_reads_ms": [
+            4.781,
+            24.262,
+            90.8,
+            1443.829
+          ],
+          "N4096_complete_projection_ms_per_read": 72.191,
+          "command_peak_RSS_KiB": {
+            "marking": 109572,
+            "projection": 110672
+          }
+        },
+        "sdf": {
+          "attempts": 10,
+          "completed": 10,
+          "failed": 0,
+          "no_output": 0,
+          "all_attempt_seconds": 6.471944697201252,
+          "median_seconds": 0.646559196524322,
+          "mad_seconds": 0.0006481288000941277,
+          "p95_seconds": 0.6511342993006111,
+          "peak_rss_bytes": 151887872,
+          "median_seconds_per_complete_call": 0.0323279598262161
+        }
+      }
+    },
+    {
+      "id": "C07",
+      "claim": "Stage13保留七cell配对原值，包括不利/不确定结果",
+      "scope": "accepted-original-paired-experiment",
+      "evidence": [
+        {
+          "source": "E19",
+          "path": "plan/20_fact_rule_architecture/stages/stage13/integration/report.md",
+          "field": "Comparable cost",
+          "line": 43
+        }
+      ],
+      "limits": "最终carrier有后续变化；完整工作流117.291/189.620ms是原实验成本，非最终union时长"
+    },
+    {
+      "id": "C08",
+      "claim": "Stage14/15现有完整业务成本有范围限定",
+      "scope": "current-owner-scoped-cost",
+      "evidence": [
+        {
+          "source": "E20",
+          "path": "plan/20_fact_rule_architecture/stages/stage14/crystal/validation/report.md",
+          "field": "mixed16",
+          "line": 76
+        },
+        {
+          "source": "E21",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/persistence_report.md",
+          "field": "actual_AFITUF_468site",
+          "line": 64
+        },
+        {
+          "source": "E22",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/geometry_report.md",
+          "field": "1024/0",
+          "line": 63
+        }
+      ],
+      "limits": "共享3995WX/单数值线程；普通Data/CIF/稀疏geometry各自负载；不能拼接全局基准"
+    },
+    {
+      "id": "C09",
+      "claim": "全187 Eu/独立UFF/738 xTB路线保留失败与有限观察",
+      "scope": "method-bound-scientific-observation",
+      "evidence": [
+        {
+          "source": "E10",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-plan12-eu-reference.json",
+          "field": "observations",
+          "line": 69
+        },
+        {
+          "source": "E11",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-plan12-eu-uff.json",
+          "field": "observations",
+          "line": 81
+        },
+        {
+          "source": "E12",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-plan12-eu-xtb.json",
+          "field": "route_outcomes",
+          "line": 40
+        }
+      ],
+      "limits": "计数不是实验正确率；动态资格与失败分母完整；原始16b快照+ED7受影响case54覆盖",
+      "observed": {
+        "reference": {
+          "cbond_rejected_cases": [
+            139,
+            182,
+            185,
+            186,
+            187
+          ],
+          "eligible_trajectory_gaps": [],
+          "failed_quality_case": 61,
+          "input_records": 187,
+          "model_pool_threads_observed_outside_requested_affinity": 2016,
+          "natural_cbond_eligible": 182,
+          "status_counts": {
+            "failed_cbond": 5,
+            "failed_quality": 1,
+            "passed": 181
+          },
+          "validation_warning_counts": {
+            "bond_ring_piercing": 1269,
+            "forcefield_convergence": 37
+          },
+          "work": {
+            "epochs_completed": 8747,
+            "initialization_steps": 967,
+            "main_frames": 12336,
+            "steps_submitted": 873733
+          }
+        },
+        "uff_counts": {
+          "ligand": {
+            "passed": 182,
+            "failed_quality": 5
+          },
+          "complex": {
+            "passed": 181,
+            "failed_quality": 1,
+            "not_eligible": 5
+          }
+        },
+        "xtb_routes": {
+          "ligand/direct-gfn2": {
+            "passed": 180,
+            "failed_final_quality": 4,
+            "failed_backend": 3
+          },
+          "ligand/gfnff-gfn2": {
+            "passed": 181,
+            "failed_final_quality": 4,
+            "failed_backend": 2
+          },
+          "complex/direct-gfn2": {
+            "passed": 161,
+            "failed_backend": 8,
+            "failed_final_quality": 13
+          },
+          "complex/gfnff-gfn2": {
+            "passed": 169,
+            "failed_backend": 4,
+            "failed_final_quality": 9
+          }
+        },
+        "retained": {
+          "passed": 691,
+          "failed_backend": 17,
+          "failed_final_quality": 30
+        }
+      }
+    },
+    {
+      "id": "C10",
+      "claim": "O0原因未明差异和磷标准UFF结果分开解释",
+      "scope": "accepted-scientific-limitation",
+      "evidence": [
+        {
+          "source": "E17",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/scientific-hardening/validation/report.md",
+          "field": "519selected",
+          "line": 59
+        },
+        {
+          "source": "E17",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/scientific-hardening/validation/report.md",
+          "field": "Both boundaries retain45",
+          "line": 38
+        },
+        {
+          "source": "E44",
+          "path": ".plan20-artifacts/20261104/stage12/scientific-hardening/raw/phosphorus/source-attempt02-tools/child.py",
+          "field": "historical_no_linear_collapse_monitor",
+          "line": 206
+        }
+      ],
+      "limits": "33个B20→Stage8B差异与27个Stage8B→Stage12C差异不是同一比较；种子非独立RNG证据；无新能量标准"
+    },
+    {
+      "id": "C11",
+      "claim": "MCA实际值验证包含独立原子/位点join与化学身份",
+      "scope": "scoped-real-model-observation",
+      "evidence": [
+        {
+          "source": "E13",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-mca-functional-routing.json",
+          "field": "counts",
+          "line": 6
+        },
+        {
+          "source": "E13",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-mca-functional-routing.json",
+          "field": "independent_oracles",
+          "line": 13
+        },
+        {
+          "source": "E13",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-mca-functional-routing.json",
+          "field": "repeat_tolerance",
+          "line": 513
+        },
+        {
+          "source": "E16",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/native-stereo-conversion.json",
+          "field": "actual_models",
+          "line": 82
+        }
+      ],
+      "limits": "零化学finding限8959行观察；非模型科学精度验证/全域能力；917历史元数据失败保留",
+      "observed": {
+        "counts": {
+          "cases": 12,
+          "calls": 19,
+          "chemical_rows_independently_reviewed": 8959,
+          "chemical_problems": 0,
+          "raw_events_reviewed": 129085
+        },
+        "repeat_tolerance": {
+          "rtol": 1e-05,
+          "atol_kj_mol": 0.001
+        },
+        "routing_scope": "255 sites uses CPU; 256 sites starts CUDA. A small middle call on a warm predictor uses CPU while retaining sessions.",
+        "cuda_scope": "The repeated mca_4gpu case executes CUDA nodes on all four devices. The single gpu_count_4 call initializes four sessions but only two receive work; do not claim four active calculating devices in that call."
+      }
+    },
+    {
+      "id": "C12",
+      "claim": "MCA资源阈值为整分子接纳前阈值，不是严格接纳后上限",
+      "scope": "accepted-resource-limitation",
+      "evidence": [
+        {
+          "source": "E13",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-mca-functional-routing.json",
+          "field": "resource_disposition",
+          "line": 508
+        },
+        {
+          "source": "E25",
+          "path": "plan/20_fact_rule_architecture/deferred_issues.md",
+          "field": null,
+          "line": 115
+        }
+      ],
+      "limits": "rolling4096峰8195>8192，resident10241<32768；仅7原子最大fixture，无任意大分子字节上限"
+    },
+    {
+      "id": "C13",
+      "claim": "MCA/CBond指针与历史模型迁移误差是明确方法参考",
+      "scope": "historical-model-release-evidence",
+      "evidence": [
+        {
+          "source": "E26",
+          "path": "hotpot/cheminfo/operations/inference/mca/MODEL_CARD.md",
+          "field": null,
+          "line": 1
+        },
+        {
+          "source": "E27",
+          "path": "hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json",
+          "field": null,
+          "line": 1
+        },
+        {
+          "source": "E28",
+          "path": "hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json",
+          "field": null,
+          "line": 1
+        }
+      ],
+      "limits": "格式精度parity不等于实验准确度；未运行新的独立化学heldout/校准验证",
+      "observed": {
+        "mca_artifact": {
+          "id": "mca",
+          "version": "1",
+          "repo_id": "Zhang-Zhiyuan-zzy/hotpot-models",
+          "revision": "adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe",
+          "subfolder": "mca/v1"
+        },
+        "cbond_artifact": {
+          "id": "cbond",
+          "version": "1",
+          "repo_id": "Zhang-Zhiyuan-zzy/hotpot-models",
+          "revision": "adf525b6a95d6d296ca0d5c68995b1a0ce14d5fe",
+          "subfolder": "cbond/v1"
+        },
+        "mca_model": {
+          "fp16": {
+            "file": "mecap_mca_fp16.onnx",
+            "sha256": "39f01a6c7a8c50a9898e2dedf8208846ea7e8f490e638988bcaa5631ff635f44",
+            "external_data": {
+              "glob": "model.*.weight",
+              "count": 83,
+              "sha256": "d1ec4d53720dbd042fc7500dd135616595bb355e7b9c67ec6e127e322aa038f4"
+            }
+          }
+        },
+        "cbond_validation": {
+          "fixed_shape_matrix": {
+            "reference_models": 28,
+            "max_abs_difference": 2.384185791015625e-06,
+            "rmse": 6.881243244406242e-07
+          },
+          "bundled_graph_fixtures": {
+            "molecules": 10,
+            "candidate_bonds": 222,
+            "max_abs_difference": 3.814697265625e-06,
+            "rmse": 9.69567347832232e-07
+          }
+        }
+      }
+    },
+    {
+      "id": "C14",
+      "claim": "CBond结果是有阈值的连通性与相对路径权重",
+      "scope": "method-contract-and-current-reference",
+      "evidence": [
+        {
+          "source": "E29",
+          "path": "hotpot/commands/cbond.md",
+          "field": "For each ordered",
+          "line": 103
+        },
+        {
+          "source": "E15",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/cbond-chemical-reference.json",
+          "field": "chemical_contract",
+          "line": 91
+        }
+      ],
+      "limits": "Prob不是校准物理概率/热力学群体；默认greedy不必Rank1；保留原5 logits/2weights/5e-6容差"
+    },
+    {
+      "id": "C15",
+      "claim": "H/电荷/自旋/映射有明确hard局部门控",
+      "scope": "scientific-integrity-contract",
+      "evidence": [
+        {
+          "source": "E18",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/hydrogen-representation/validation/report.md",
+          "field": "Ordinary nonmetal",
+          "line": 8
+        },
+        {
+          "source": "E37",
+          "path": "plan/12_xtb_workflow/rules/HARD-001-boundary-identity.md",
+          "field": null,
+          "line": 1
+        },
+        {
+          "source": "E38",
+          "path": "plan/12_xtb_workflow/rules/HARD-002-charge-conservation.md",
+          "field": null,
+          "line": 1
+        },
+        {
+          "source": "E39",
+          "path": "plan/12_xtb_workflow/rules/HARD-013-backend-electron-uhf-legality.md",
+          "field": null,
+          "line": 1
+        },
+        {
+          "source": "E40",
+          "path": "plan/12_xtb_workflow/rules/HARD-012-failure-and-gate-semantics.md",
+          "field": null,
+          "line": 1
+        }
+      ],
+      "limits": "规则只适用声明边界；UNRESOLVED与显式0区分；合法执行自旋默认不是基态判定"
+    },
+    {
+      "id": "C16",
+      "claim": "几何阈值是具体方法监控，不是宇宙化学真理",
+      "scope": "current-rule-and-retained-observations",
+      "evidence": [
+        {
+          "source": "E31",
+          "path": "hotpot/cheminfo/rules/physics/forcefields/contracts.py",
+          "field": null,
+          "line": 88
+        },
+        {
+          "source": "E32",
+          "path": "hotpot/cheminfo/rules/physics/forcefields/acceptance.py",
+          "field": null,
+          "line": 33
+        },
+        {
+          "source": "E32",
+          "path": "hotpot/cheminfo/rules/physics/forcefields/acceptance.py",
+          "field": null,
+          "line": 438
+        },
+        {
+          "source": "E34",
+          "path": "tests/test_cheminfo/forcefields/test_stage12_observed_geometry.py",
+          "field": null,
+          "line": 40
+        }
+      ],
+      "limits": "有限非hard finding默认返回继续，显式per-code break可控制；形状/非有限/映射破坏结果不可用"
+    },
+    {
+      "id": "C17",
+      "claim": "立体修复有实际坐标独立oracle且两Eu xTB质量失败继续保留",
+      "scope": "affected-real-backend-science",
+      "evidence": [
+        {
+          "source": "E14",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/final-repaired-stereo-delivery.json",
+          "field": "actual_affected_science",
+          "line": 4021
+        }
+      ],
+      "limits": "仅原case54受影响子集，非重跑整个187语料或证明所有立体全域正确",
+      "observed": {
+        "coordinate_oracle": {
+          "expected_centers": {
+            "1": "R",
+            "12": "R"
+          },
+          "reference_geometries": 1,
+          "uff_geometries": 2,
+          "actual_xtb_stage_geometries": 6,
+          "all_reviewed_geometries_match_original_declaration": true,
+          "evidence": [
+            {
+              "path": "/tmp/hotpot_plan20/long/stage12-stereo-repaired-case54-20261104/attempt02-input-support/reference-COORDINATE_REVIEW.json",
+              "bytes": 1655,
+              "sha256": "3ac6dfd5e139157cd3b634554e8e330b2e67988c141ec39fe23c3c40f30bdd7a"
+            },
+            {
+              "path": "/tmp/hotpot_plan20/long/stage12-stereo-repaired-case54-20261104/attempt02-input-support/uff-COORDINATE_REVIEW.json",
+              "bytes": 2644,
+              "sha256": "82ab00122843526d5495fc8ec89efba86b430ecc4d2cab74eb927950a92fc9bc"
+            },
+            {
+              "path": "/tmp/hotpot_plan20/long/stage12-stereo-repaired-case54-20261104/attempt02-input-support/xtb-COORDINATE_REVIEW.json",
+              "bytes": 5614,
+              "sha256": "d52edda8857a1a2c9120f4a4e4ede5a7d49618d79cbc438a39255689d3b23afd"
+            },
+            {
+              "path": "/tmp/hotpot_plan20/long/stage12-stereo-repaired-case54-20261104/attempt02-input-support/gfnff-sdf-review/RESULT.json",
+              "bytes": 4700,
+              "sha256": "681261739d285d47c927ddafa5ae027cda143b20414cbfdb751363b2e5136528"
+            }
+          ]
+        },
+        "routes": [
+          {
+            "target": "complex",
+            "route": "direct-gfn2",
+            "status": "failed_final_quality",
+            "finite_coordinates": true,
+            "total_seconds": 8.343905659392476
+          },
+          {
+            "target": "complex",
+            "route": "gfnff-gfn2",
+            "status": "failed_final_quality",
+            "finite_coordinates": true,
+            "total_seconds": 7.2999823316931725
+          },
+          {
+            "target": "ligand",
+            "route": "direct-gfn2",
+            "status": "passed",
+            "finite_coordinates": true,
+            "total_seconds": 2.4534568674862385
+          },
+          {
+            "target": "ligand",
+            "route": "gfnff-gfn2",
+            "status": "passed",
+            "finite_coordinates": true,
+            "total_seconds": 1.7331083696335554
+          }
+        ]
+      }
+    },
+    {
+      "id": "C18",
+      "claim": "Crystal确切代数/分析参照与真实CIF观察有独立边界",
+      "scope": "domain-limited-mathematical-and-transport-evidence",
+      "evidence": [
+        {
+          "source": "E23",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/exact_symmetry_report.md",
+          "field": "284089",
+          "line": 25
+        },
+        {
+          "source": "E24",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/linking_report.md",
+          "field": "Whitehead",
+          "line": 18
+        },
+        {
+          "source": "E21",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/domain/validation/persistence_report.md",
+          "field": "All11repository",
+          "line": 28
+        },
+        {
+          "source": "E35",
+          "path": "plan/20_fact_rule_architecture/stages/stage15/domain/contracts/decisions.md",
+          "field": "Cell and metric",
+          "line": 156
+        }
+      ],
+      "limits": "表内穷举不是每个群独立科学oracle；10支持/1拒绝；零link不是unlink证书"
+    },
+    {
+      "id": "C19",
+      "claim": "一般PyG CUDA合成训练证明传输可用",
+      "scope": "current-transport-functional",
+      "evidence": [
+        {
+          "source": "E20",
+          "path": "plan/20_fact_rule_architecture/stages/stage14/crystal/validation/report.md",
+          "field": "Actual installed Crystal CUDA",
+          "line": 34
+        },
+        {
+          "source": "E48",
+          "path": "plan/20_fact_rule_architecture/stages/stage14/molecule/validation/molecular_report.md",
+          "field": "Real installed CP311 CUDA",
+          "line": 36
+        }
+      ],
+      "limits": "A800一设备/32合成SGD步，不是已部署MCA/CBond推理、科学精度或GPU吞吐验收"
+    },
+    {
+      "id": "C20",
+      "claim": "D036三轮工具失败后不做第四次，D038一般自平行周期商图扩展继续deferred",
+      "scope": "accepted-and-deferred-limits",
+      "evidence": [
+        {
+          "source": "E25",
+          "path": "plan/20_fact_rule_architecture/deferred_issues.md",
+          "field": null,
+          "line": 118
+        },
+        {
+          "source": "E25",
+          "path": "plan/20_fact_rule_architecture/deferred_issues.md",
+          "field": null,
+          "line": 122
+        },
+        {
+          "source": "E49",
+          "path": "tests/test_cheminfo/kekulize/test_known_limitations.py",
+          "field": null,
+          "line": 1
+        }
+      ],
+      "limits": "工具未PASS；3 strict芳香已知限制保留；不折叠边/不自动扩胞"
+    },
+    {
+      "id": "C21",
+      "claim": "最终默认禁用tier仍未在该命令执行",
+      "scope": "current-default-tier-boundary",
+      "evidence": [
+        {
+          "path": ".plan20-artifacts/20261105/overall/combined-delivery/evidence.tar.gz",
+          "member": "default02/junit.xml",
+          "field": "testsuite/testcase/skipped",
+          "source": "A01"
+        }
+      ],
+      "limits": "实际模型/外部引擎证据可有单独历史运行；不能把本次跳过数当pass",
+      "observed": {
+        "pytest.skip: requires --run-optional": 11,
+        "pytest.skip: requires --run-model-artifacts": 44,
+        "pytest.skip: requires --run-scientific-boundary": 8,
+        "pytest.skip: requires --run-high-compute": 27,
+        "pytest.skip: requires --run-external": 47,
+        "pytest.xfail: the retained per-ring assignment makes aromaticity depend on ring order": 1,
+        "pytest.xfail: legacy per-ring Huckel counting does not perceive fused azulene globally": 1,
+        "pytest.xfail: legacy joint-ring grouping rejects rings sharing multiple edges": 1
+      }
+    },
+    {
+      "id": "C22",
+      "claim": "Initial report inspection preserved original38issue rows and identified D039 as an S1 retirement gap.",
+      "scope": "maintained-original-ledger-plus-root-static-review",
+      "evidence": [
+        {
+          "source": "E25",
+          "path": "plan/20_fact_rule_architecture/deferred_issues.md",
+          "field": "D001..D038 rows"
+        },
+        {
+          "path": "hotpot/cheminfo/structure/molecule.py",
+          "line": 328,
+          "field": "Molecule.setattr",
+          "owner_notice": "root current API review"
+        }
+      ],
+      "limits": "Initial extraction had no dynamic probe or product fix. Later root-authorized D039/D040 repair and acceptance are separate at C23/E51/A02; original acceptance never retrospectively clears the discovered defect.",
+      "status": "HISTORICAL_DISCOVERY_SUPERSEDED_BY_C23",
+      "superseded_by": "C23"
+    },
+    {
+      "id": "C23",
+      "claim": "D039/D040 are closed in tested current-source/CP311 installed scope; generic mutation is retired, Gaussian parsed values remain parser-owned and absent thermochemistry is not zero.",
+      "scope": "2c2ef889 affected11modules, actual historical log and synthetic cclib boundaries",
+      "evidence": [
+        {
+          "source": "E51",
+          "path": "plan/20_fact_rule_architecture/stages/stage12/final-delivery/validation/postdelivery-interface-cleanup.json",
+          "field": "expected_business_facts,source_validation,installed_validation,root_review"
+        },
+        {
+          "archive": "A02",
+          "member": "root-review.json"
+        },
+        {
+          "archive": "A02",
+          "member": "installed/SUMMARY.json"
+        },
+        {
+          "archive": "A02",
+          "member": "setattr/green02/run.json"
+        }
+      ],
+      "result": {
+        "source": {
+          "passed": 308,
+          "skipped": 1
+        },
+        "installed_unique": {
+          "passed": 308,
+          "skipped": 1,
+          "unresolved_failures": 0
+        },
+        "installed_attempts": [
+          "304pass/4missing-support-failures/1skip",
+          "4pass-only-recheck"
+        ]
+      },
+      "limits": [
+        "No single complete all-green installed run claimed.",
+        "The source/installed opt-in Gaussian executable test remains skipped.",
+        "Six native payloads reused, not rebuilt.",
+        "No fresh full/default/other-Python/model/scientific/performance campaign.",
+        "Source and installed original failures retained."
+      ]
+    },
+    {
+      "id": "C24",
+      "claim": "Current static API reference covers all526Python modules and6native stubs,33root exports, with716own core members after generic setter retirement. Full172auxiliary module declarations are included.",
+      "scope": "2c2ef889 AST/stubs/dynamic-install/native-binding evidence; explicit exports distinct from direct implementation surface.",
+      "evidence": [
+        {
+          "source": "E52",
+          "path": "plan/20_fact_rule_architecture/delivery_api_tree.md"
+        },
+        {
+          "path": ".plan20-artifacts/20261105/overall/delivery-api-inventory/artifact_checks.json",
+          "field": "1353relative links,526module anchors,0errors/identity mismatches"
+        },
+        {
+          "path": ".plan20-artifacts/20261105/overall/delivery-api-inventory/api_inventory.json",
+          "sha256": "ea9cce3c0b206c4f4f072e18d723894ceb73fd2587faf812b29d5037a2080862"
+        }
+      ],
+      "limits": "No Hotpot runtime/model/engine/optional integration execution. Finite locally resolvable inheritance and explicit dynamic install sites; third-party/metaclass runtime behavior not exhausted. Independent descriptive inventory, not D036 fourth retry."
+    }
+  ],
+  "future_improvements_are_proposals_not_new_scope": true,
+  "raw_current_intents": {
+    "default_cp311": {
+      "member": "default02/tests/intent.json",
+      "argv": [
+        "taskset",
+        "-c",
+        "40-47",
+        "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "-s",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--import-mode=importlib",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "origin_probe",
+        "--basetemp",
+        "/tmp/hotpot_plan20/medium/overall-integration-20261105/default02/pytest-temp",
+        "--junitxml",
+        "/tmp/hotpot_plan20/medium/overall-integration-20261105/default02/junit.xml",
+        "tests"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "selected_environment": {
+        "OMP_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "CUDA_VISIBLE_DEVICES": "",
+        "PYTHONNOUSERSITE": "1",
+        "PYTEST_DISABLE_PLUGIN_AUTOLOAD": "1"
+      }
+    },
+    "installed_cp311": {
+      "member": "installed01/cp311/tests/intent.json",
+      "argv": [
+        "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+        "-s",
+        "-B",
+        "-m",
+        "pytest",
+        "-q",
+        "-ra",
+        "--import-mode=importlib",
+        "-p",
+        "no:cacheprovider",
+        "-p",
+        "installed_origins",
+        "--basetemp",
+        "/tmp/hotpot_plan20/medium/overall-integration-20261105/installed01/cp311/pytest-temp",
+        "--junitxml",
+        "/tmp/hotpot_plan20/medium/overall-integration-20261105/installed01/cp311/junit.xml",
+        "tests/test_cheminfo/structure/test_crystal_matching.py",
+        "tests/test_cheminfo/structure/test_crystal_generation.py",
+        "tests/test_cheminfo/structure/test_crystal_identification.py",
+        "tests/test_cheminfo/structure/test_crystal_periodic_math.py",
+        "tests/test_cheminfo/structure/test_crystal_actions.py",
+        "tests/test_cheminfo/test_stereo_isometry.py",
+        "tests/test_cheminfo/test_stereo_level2_algebra.py",
+        "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
+        "tests/test_cheminfo/test_stereo_level1_remap.py",
+        "tests/test_cheminfo/structure/test_crystal_cell_math.py",
+        "tests/test_cheminfo/structure/test_crystal_lifecycle.py",
+        "tests/test_cheminfo/structure/test_crystal_convention.py",
+        "tests/test_cheminfo/structure/test_coordinate_frame_lifecycle.py",
+        "tests/test_cheminfo/structure/test_coordinate_frames.py",
+        "tests/test_cheminfo/structure/test_builder.py",
+        "tests/test_cheminfo/structure/test_uid_lifecycle.py",
+        "tests/test_cheminfo/structure/test_stage12_hydrogen_lifecycle.py",
+        "tests/test_cheminfo/test_partial_charge_lifecycle.py",
+        "tests/test_cheminfo/structure/test_source_identity.py",
+        "tests/test_cheminfo/structure/test_factual_imports.py",
+        "tests/test_cheminfo/adapters/test_crystal_transport.py",
+        "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+        "tests/test_cheminfo/structure/test_constraints.py",
+        "tests/test_cheminfo/structure/test_selected_results.py",
+        "tests/test_cheminfo/structure/test_conversion_freshness.py",
+        "tests/test_cheminfo/test_native_molecule_buffers.py",
+        "tests/test_cheminfo/structure/test_crystal_linking.py",
+        "tests/test_cheminfo/structure/test_crystal_linking_math.py",
+        "tests/test_cheminfo/structure/test_crystal_geometry.py",
+        "tests/test_cheminfo/structure/test_crystal_periodic_neighbors.py",
+        "tests/test_cheminfo/geometry/test_segment_cycle_relation.py",
+        "tests/test_cheminfo/geometry/test_native_cycle_batch.py",
+        "tests/test_cheminfo/geometry/test_native_prepared_invariants.py",
+        "tests/test_cheminfo/geometry/test_native_nonplanar_relation.py",
+        "tests/test_cheminfo/geometry/test_metamorphic.py",
+        "tests/test_cheminfo/structure/test_crystal_portable_codec.py",
+        "tests/test_cheminfo/structure/test_crystal_cif.py",
+        "tests/test_cheminfo/structure/test_crystal_symmetry_kinds.py",
+        "tests/test_cheminfo/structure/test_crystal_symmetry.py",
+        "tests/test_cheminfo/test_import_safety.py",
+        "tests/test_cheminfo/structure/test_stage9_carrier_owners.py",
+        "tests/test_cheminfo/test_pyg_transport.py",
+        "tests/test_cheminfo/structure/test_stage9_bundle.py",
+        "tests/test_cheminfo/structure/test_stereo_hydrogen_storage.py",
+        "tests/test_cheminfo/structure/test_stereo_fact_table.py",
+        "tests/test_cheminfo/test_stereo_level1_storage.py",
+        "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+        "tests/test_cheminfo/test_pyg_crystal_transport.py",
+        "tests/test_cheminfo/test_pyg_crystal_boundaries.py",
+        "tests/test_cheminfo/kekulize/test_protocol_contract.py",
+        "tests/test_cheminfo/kekulize/test_protocol_integration.py",
+        "tests/test_cheminfo/kekulize/test_known_limitations.py",
+        "tests/test_cheminfo/kekulize/test_legacy_api.py",
+        "tests/test_cheminfo/structure/test_stage5_bonding.py",
+        "tests/test_cheminfo/test_complex_hydrogens.py",
+        "tests/test_cheminfo/test_molecule_conversion.py",
+        "tests/test_cheminfo/test_aromatic_crystal_pyg_seam.py"
+      ],
+      "cwd": "/tmp/hotpot_plan20/medium/overall-integration-20261105/installed01/support"
+    }
+  },
+  "issues_original_D001_to_D038": {
+    "source": "E25",
+    "counts_by_status": {
+      "ACCEPTED_LIMITATION": 19,
+      "CLOSED": 18,
+      "DEFERRED": 1
+    },
+    "counts_by_severity": {
+      "S2": 18,
+      "S1": 9,
+      "S3": 9,
+      "S0": 2
+    },
+    "rows": [
+      {
+        "id": "P20-D001",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Root accepts the measured representative storage/H/graph/view costs, retaining all adverse medians and higher tracked retention. New marking/full19 mechanisms separately complete12cells/120measuredsamples.",
+        "owner": "Stage12 consolidated review2026-11-04, Stage3–5 owners."
+      },
+      {
+        "id": "P20-D002",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Historical72adverse stereo metrics and inconclusivechain512 retained; repaired sourceoriginalO0seeds and installedEu/UFF/sixactualbackendstages complete with independently derivedR,R. Bounded actual durations/resources accepted.",
+        "owner": "Stage12/Stage6 final bounded integration review2026-11-04."
+      },
+      {
+        "id": "P20-D003",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Final installed581complete writes/1162records pass production and independent semantic read-back. Plain3+10sampling gives32.328ms per complete256-carbon/two-frame call. Root accepts usable current cost; all historical adverse costs remain.",
+        "owner": "Stage12/Stage7A final representative cost disposition2026-11-04."
+      },
+      {
+        "id": "P20-D004",
+        "severity": "S2",
+        "category": "S2 / resource attribution",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Final320-write/640-frame resource window completes with48321tracked-byte and1081344RSS-byte growth, peak152969216RSSbytes; output/observer bookkeeping is included. Historical3264-byte step/native ownership remains unresolved.",
+        "owner": "Stage12/Stage7A bounded final resource disposition2026-11-04."
+      },
+      {
+        "id": "P20-D005",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Root accepts observed constraints/topologycosts: selectiveaxis6.276–19.854x, Bondexport2.651–2.741x, all14adversemedians/10peaks and samplednonlinear growth. RepresentativeFF/xTBwork completes.",
+        "owner": "Stage12 with Stage7B owners, final bounded review2026-11-04."
+      },
+      {
+        "id": "P20-D006",
+        "severity": "S1",
+        "category": "S1 / version adaptation",
+        "status": "CLOSED",
+        "boundary": "Declared Python3.10–3.14 scopes compose actual broad/source/installed evidence, 30graph cases per nonCP311ABI, CP312/314complement3204each and actual2469overlap each:2466pass/3strictknownlimitxfails. ED7changed stereo/native paths pass affected266/1existingboundaryskip on each fresh six-native wheel; corrected actualCBondmodelreference passes allfiveABIs.",
+        "owner": "Stage10 delivery and Stage12; closed2026-11-05 in declared source/installed/native scopes."
+      },
+      {
+        "id": "P20-D007",
+        "severity": "S1",
+        "category": "S1 / native delivery",
+        "status": "CLOSED",
+        "boundary": "RepairedED7same-sdist fiveABIbuilds each compile6nativecomponents and pass release/linkage smokes; each installedaffected267selection returns266passes/1existingboundaryskip. ActualCP311model4/business6plusdoc1exactrecheck complete.",
+        "owner": "Stage10/Stage12 selectedLinuxx86_64native scope; closed2026-11-04."
+      },
+      {
+        "id": "P20-D008",
+        "severity": "S1",
+        "category": "S1 / package contents",
+        "status": "CLOSED",
+        "boundary": "Original41 omission observations are reconciled individually:17packaged runtime/guides,18sdist/build/SDK roles,5repository/operator documents and1retired backup. Four actual workbook payloads are ordinary Git resources; two restored ML-reader dependencies are additional to the original list. No pointer text ships.",
+        "owner": "Stage12D with Stage10/11 asset owners; closed2026-11-04 within tested CP311 source/wheel/sdist boundary."
+      },
+      {
+        "id": "P20-D009",
+        "severity": "S3",
+        "category": "S3 / optional backend optimization",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "The private GTD optimization remains unshipped. Final CPU B0/current actual native/model preflights load the same installed Open Babel3.2.1library; selected library/SWIG/MDL files match the installed distribution RECORD. No delivered private-patch or speedup claim.",
+        "owner": "Stage12 with Stage7A backend owner; assessed2026-11-04 at final16b864f."
+      },
+      {
+        "id": "P20-D010",
+        "severity": "S3",
+        "category": "S3 / simplification",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "All nine original candidates are assessed at current owners: A2/A7 are retired; A1/A3–A6/A8/A9 retain narrow duplicate checks. No demonstrated core defect or measured bottleneck is established; retention is a simplification limitation, not a necessity or speed claim.",
+        "owner": "Stage12 with affected owners; assessed2026-11-04. Reopen for changed owning contracts, demonstrated errors or material batch/resource cost."
+      },
+      {
+        "id": "P20-D011",
+        "severity": "S2",
+        "category": "S2 / core-adjacent semantic assessment",
+        "status": "CLOSED",
+        "boundary": "B1 retains supported strict whole-xTB JSON/finite protocol; actual official JSON is accepted. B3/B4 complete frame fields and final-only/absent Gaussian histories are corrected. B2 required numeric failures retain null plus exact named causes, local failure and raw artifacts at the tested final installed boundaries.",
+        "owner": "Stage12 with Stage7D/Stage8 owners; closed2026-11-04 within these tested/report scopes. Reopen for demonstrated cause loss, changed producer/report protocol or expanded optional-field claims."
+      },
+      {
+        "id": "P20-D012",
+        "severity": "S3",
+        "category": "S3 / independent integrations",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "B5–B10 retain bounded independent parser-cause, thermo missing/error, dataset search/invalid, undefined-correlation, fitness-sentinel and visualization limitations. No optional scientific capability is qualified. Dataset invalidity can enter its required gate; finite failure sentinels must not be interpreted as measured fitness.",
+        "owner": "Stage12 with independent integration owners; assessed2026-11-04. Reopen before claiming/changing these capabilities or using them on a mandatory chemistry path."
+      },
+      {
+        "id": "P20-D013",
+        "severity": "S2",
+        "category": "S2 / diagnosed cache symptom",
+        "status": "CLOSED",
+        "boundary": "Current cache diagnostic loss is repaired: only actual EACCES/EROFS/ENOSPC/EDQUOT permits the existing temporary copy, with original error warning; unknown OSError identity and content/integrity failures propagate. Historical suppressed cause remains UNKNOWN, not attributed to ENOSPC.",
+        "owner": "Stage12 with Stage7C MCA/cache owner; closed2026-11-04 within affected CP311 source/installed scope."
+      },
+      {
+        "id": "P20-D014",
+        "severity": "S3",
+        "category": "S3 / validation tooling",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Retired preterminal receipt checks, copied-artifact Git-index completeness and legacy comparator-policy/parity verdicts as acceptance authorities. Original failures stay failed; actual terminal installed/source/build and direct comparable-work observations provide the bounded replacement evidence. Unequal-information clean-H ratios remain raw only.",
+        "owner": "Stage12 validation owner; final disposition2026-11-04."
+      },
+      {
+        "id": "P20-D015",
+        "severity": "S3",
+        "category": "S3 / record-layout tooling",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Actual catalog/index omissions and inline-code/editor-link parsing defects are repaired. Applied scoped audit checks448assets and still exits1 for one bare-SMILES false positive at historical log9027;36focused applied checks pass. No clean scanner pass is claimed.",
+        "owner": "Stage12 record/validation owner; final disposition2026-11-04 within maintained navigation scope."
+      },
+      {
+        "id": "P20-D016",
+        "severity": "S3",
+        "category": "S3 / independent Gaussian producer",
+        "status": "CLOSED",
+        "boundary": "Gaussian updater now publishes the complete attributed current observation set after geometry/declarations, then explicitly selects complete Mulliken charges through the sole charge owner. Frame arrays remain separate observations.",
+        "owner": "Stage7D with Gaussian owner; closed2026-11-03 within tested CP311 import/update scope."
+      },
+      {
+        "id": "P20-D017",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Frame/conformer/rollback costs accepted in measured scopes; finalN64two-frame1.308ms/call/5.820x. HistoricalN64/F256and scalar observations, higherallocations and actualSDF/trajectorywork retained.",
+        "owner": "Stage12 with Stage7D owners; final bounded review2026-11-04."
+      },
+      {
+        "id": "P20-D018",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Canonicalstereo/rollback sampled cost accepted: N256scalarisotoperollback4.512ms/155621Bpeak, fullrollback4.289ms. Canonicalowner unchanged; converters/nativebuilders separatelyqualified.",
+        "owner": "Stage12 with Stage7E owners, final bounded review2026-11-04."
+      },
+      {
+        "id": "P20-D019",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Smallscientific-statecosts accepted: extract0.782–1.070ms,resolve0.337–0.338ms,project0.049–0.051ms. ActualrequiredxTBroutescomplete; fullMoleculecopybeforeHpreparation remains.",
+        "owner": "Stage12 with Stage8A/stateprojection owners; review2026-11-04."
+      },
+      {
+        "id": "P20-D020",
+        "severity": "S1",
+        "category": "S1 / scientific snapshot semantics",
+        "status": "CLOSED",
+        "boundary": "A8 preserves present CURRENT implicit-H0 as0 instead of None, while absent/unresolved H and the exact conflict error retain their meanings. No inference algorithm, public schema or native/model change.",
+        "owner": "Stage8A; closed2026-11-03 within tested CP311 source/installed scope."
+      },
+      {
+        "id": "P20-D021",
+        "severity": "S1",
+        "category": "S1 / provider applicability",
+        "status": "CLOSED",
+        "boundary": "A11 enforces the existing complete-H Lewis domain: unresolved non-H site-total-H yields named empty NOT_EVALUATED/OUT_OF_DOMAIN before enumeration. Known0/positiveH and explicit H particles retain existing values; no arithmetic or ground-state defect is asserted.",
+        "owner": "Stage8A; closed2026-11-03 within tested CP311 source/installed scope."
+      },
+      {
+        "id": "P20-D022",
+        "severity": "S2",
+        "category": "S2 / scientific reproducibility assessment",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Historical33 B20-to-Stage8B selected differences and current27 Stage8B-to-Stage12C differences remain separate observations with unknown downstream cause. Current physical graph/T-E-R and selected attribution agree across546completed pairs;552provider frames are exact. Current545quality passes/1unchanged contact failure,107convergence-warning trials and incomplete ring coverage remain explicit.",
+        "owner": "Stage12C with Stage8B/8D owners; assessed2026-11-04 within named CP311 source O0/Am corpus scope. Reopen for core fact/attribution failure, mandatory batch loss, changed methods or expanded monitor/support claims."
+      },
+      {
+        "id": "P20-D023",
+        "severity": "S2",
+        "category": "S2 / phosphorus validation coverage",
+        "status": "CLOSED",
+        "boundary": "Original15-case/28-rule one-step finite transport fixture and extreme energies remain. Stage12C adds actual15inputs×3seeds public UFF normal optimization at source/installed:45observations and84selected/84terminalPsites each,45quality passes,43selected/45terminal convergence and2retained selected warnings. Actual ordinary terminal-role omission is fixed without numerical/native/schema changes.",
+        "owner": "Stage12C with Stage8B ordinary-wrapper owner; closed2026-11-04 within tested CP311 public-UFF scope."
+      },
+      {
+        "id": "P20-D024",
+        "severity": "S1",
+        "category": "S1 / assembly H transformation",
+        "status": "CLOSED",
+        "boundary": "Declared cap substitution now produces methanol H3/1 and charge0/0 across coherent inferred/user/OB/RDKit and graph-H inputs. Original inputs/source-H remain intact; genuine aromatic scaffold defects were also repaired locally. Generic H export/materialization remains P20-D026.",
+        "owner": "Stage8E with Stage5 H/lifecycle owner; closed2026-11-04 within declared CP311 source/installed scope."
+      },
+      {
+        "id": "P20-D025",
+        "severity": "S2",
+        "category": "S2 / performance",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Root accepts boundedsearch/SMARTS/MCAcosts; all233adverseobservations remain, including concurrentcompile1.252x. ActualfinalMCA and graphworkflow evidence retained.",
+        "owner": "Stage12/Stage8C consolidated review2026-11-04."
+      },
+      {
+        "id": "P20-D026",
+        "severity": "S1",
+        "category": "S1 / H representation consumers",
+        "status": "CLOSED",
+        "boundary": "Stage12B unifies ordinary site target T, graph E and residual R=max(T−E,0); new toolkit imports normalize T=E+R. Materialization, toolkit/native/conformer/search, assembly and scientific-state/xTB consumers share that physical inventory. Supplied/source history and explicit conflicts remain.",
+        "owner": "Stage12 with Stage5 H/conversion/lifecycle owners; closed2026-11-04 within affected CP311 source/installed scope. Other versions and global delivery retain D006/D007."
+      },
+      {
+        "id": "P20-D027",
+        "severity": "S2",
+        "category": "S2 / PyG dataset output edge",
+        "status": "CLOSED",
+        "boundary": "Empty identifiers use zero-based member ordinals; nonempty names and later-write-wins collisions remain. Actual source/installed each42passed, all43saved graph semantics agree; raw unordered-pair endpoint differences remain. No graph encoding or error/materialization contract changes.",
+        "owner": "Stage12 collection/PyG owner; closed2026-11-04 within affected CP311 source/installed scope."
+      },
+      {
+        "id": "P20-D028",
+        "severity": "S3",
+        "category": "S3 / optional outer-workflow execution",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Decisions12/13 command/resource consolidation and shipped reference/query functionality are delivered at their recorded boundaries; main/works/ChemData/MolProps are retired. Actual optional training/optimization/real-CCDC computation remains unverified. No duplicate chemistry owner or optional execution-capability claim is accepted.",
+        "owner": "Stage11 with Stage12 final review; assessed2026-11-04. Reopen before claiming actual optional research execution or changing a dependent mandatory path."
+      },
+      {
+        "id": "P20-D029",
+        "severity": "S3",
+        "category": "S3 / nondefault legacy property queries",
+        "status": "CLOSED",
+        "boundary": "The sole query operation documents actual medium clean/fill and solvent clean/total domains. Both nondefault CAS routes preserve values/order/duplicates; unavailable Cid KeyError, nonexistent solvent fill ValueError and missing-ID ValueError are preserved. No fabricated data/aliases/enrichment; table completeness is not claimed.",
+        "owner": "Stage11C Decision13 owner; closed2026-11-04 within affected CP311 source/installed scope."
+      },
+      {
+        "id": "P20-D030",
+        "severity": "S2",
+        "category": "S2 / checker portability",
+        "status": "CLOSED",
+        "boundary": "CP313/314 AST empty-field omission is normalized at checker serialization only. Existing30assertions and fingerprint maps remain; all other test AST nodes/product/science are unchanged. Original133CP313 failures remain historical failures.",
+        "owner": "Stage12 validation owner; closed2026-11-04 within tested five-version isolated source/checker scope. Installed and final-support obligations remain separate."
+      },
+      {
+        "id": "P20-D031",
+        "severity": "S1",
+        "category": "S1 / CP314 assembly evidence",
+        "status": "CLOSED",
+        "boundary": "Original four startup-window failures retained; corrected fixtures now separate remote-error transport from worker startup and exercise the unchanged1s timeout after actual payload/readiness observations.",
+        "owner": "Stage12 with Stage8E assembly owner; other ABI/installed/final-support obligations remain separate."
+      },
+      {
+        "id": "P20-D032",
+        "severity": "S0",
+        "category": "S0 / chemical result metadata",
+        "status": "CLOSED",
+        "boundary": "Shared SMILES MOL2 roundtrip lost neutral-acid H/charge; direct prepared-OBMol serialization repairs the cause. The original131source cases remain attributed to their checkpoint. Followup affected installed qualification passes997cases, including actual neutral-acid and opposite-enantiomer MCA metadata/Atom-site joins with original models. All917historical failures remain failures.",
+        "owner": "Stage12 with Stage7A conversion/MCA owners; closed2026-11-04 within affected CP311 source/installed/actual-model scope."
+      },
+      {
+        "id": "P20-D033",
+        "severity": "S0",
+        "category": "S0 / stereo conversion and geometry consumer",
+        "status": "CLOSED",
+        "boundary": "SharedOB/nativeprojection now delivers declaredstereo to directbuilder. OriginalO0rootseeds42/43/44and repairedinstalledEu/UFF/all6actualxTBstagecoordinates independently deriveR,R. Source266/1skip and fiveaffectedinstalledABIs266/1skipeach qualifythechangedboundary.",
+        "owner": "Stage12 with Stage6/7E/nativebuilder/conversionowners; closed2026-11-04 in affectedscopes."
+      },
+      {
+        "id": "P20-D034",
+        "severity": "S2",
+        "category": "S2 / MCA resource-policy boundary",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Final rolling4096 completes with admission peak8195against nominal8192, resident10241against configured32768, pending2of8and all final credits drained. Both B0/current test counts before admitting one whole molecule; nominal values are pre-admission thresholds, not strict post-admission caps. Historical Plan15hard-cap wording is stronger than demonstrated code.",
+        "owner": "Stage12 with MCA resource owner; assessed2026-11-04 within the tested finalCP311/fourGPU workload. Reopen for OOM, incomplete mandatory batches, growing retained state, changed policy or strict-cap/larger-system claims."
+      },
+      {
+        "id": "P20-D035",
+        "severity": "S1",
+        "category": "S1 / materialized-H stereo export",
+        "status": "CLOSED",
+        "boundary": "TemporaryRDKitcarrierbindingadds only the uniquelyremainingactualgraphH, preservingcanonicalcarrierorder/parityand heavy-neighbourrejection. Completeaffectedsource266/1skipand all5installedABIs266/1skipqualifythecorrection.",
+        "owner": "Stage12 with Stage7A/RDKit/stereo/Howners; closed2026-11-04."
+      },
+      {
+        "id": "P20-D036",
+        "severity": "S3",
+        "category": "S3 / private final-inventory checker",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Three bounded static-extractor rounds failed on historical count, wildcard scope and tuple/list export comparison; no product defect demonstrated. Actual business/installed tests, direct source/owner inspection and applicable contract records remain authoritative. No fourth retry.",
+        "owner": "Stage12 final review; consolidated tooling cleanup after mainline scope, reopen if this private tool becomes necessary."
+      },
+      {
+        "id": "P20-D037",
+        "severity": "S2",
+        "category": "S2 / bounded experimental cost",
+        "status": "ACCEPTED_LIMITATION",
+        "boundary": "Stage13B retains benzene1.0283x and nonaromatic1.2021x adverse medians with intervals spanning1; explicit/lazy complete20-molecule batches remain117.291/189.620ms. Small allocation increases and shared-host uncertainty remain. No parity/speedup/constant-space claim.",
+        "owner": "Stage13 aromatic owner; bounded root disposition2026-11-05, revisit at affected edits or overall Stage14/15 delivery."
+      },
+      {
+        "id": "P20-D038",
+        "severity": "S2",
+        "category": "S2 / periodic topology representation",
+        "status": "DEFERRED",
+        "boundary": "The sole Molecule graph rejects self/parallel Bonds. Stage15 explicitly supports only image-labelled quotients representable by that graph; an unrepresentable imported periodic network must retain its source and reject the requested full projection with CRYSTAL-UNSUPPORTED-PROJECTION. No edge collapse, synthetic atoms, automatic enlarged-cell repair or second chemistry graph.",
+        "owner": "Stage15A/C/E; exact symmetry and finite molecular crystals proceed independently. A general periodic-topology extension belongs to a separately bounded cross-stage change if required."
+      }
+    ]
+  },
+  "business_baseline_head": "8785a06fca063a179976ca74d6bc8cb14bcce640",
+  "historical_initial_D039_observation": {
+    "id": "P20-D039",
+    "status": "OPEN",
+    "severity": "S1",
+    "owner": "Root; Stage9/Stage12 API retirement",
+    "source": "Parent/root communication; local public function body inspected without dynamic probe",
+    "location": "hotpot/cheminfo/structure/molecule.py:328",
+    "contract": "Main plan sections9.4/9.6 generic mutation retirement",
+    "finding": "Public setattr(**attrs) remains, loops builtin setattr; absent bottom transaction wrappers according to root API review.",
+    "dynamic_chemical_failure_demonstrated": false,
+    "fixed": false,
+    "maintained_record_edited_by_this_task": false
+  },
+  "historical_conditional_D039_counts": {
+    "total": 39,
+    "status": {
+      "CLOSED": 18,
+      "ACCEPTED_LIMITATION": 19,
+      "DEFERRED": 1,
+      "OPEN": 1
+    },
+    "severity": {
+      "S0": 2,
+      "S1": 10,
+      "S2": 18,
+      "S3": 9
+    }
+  },
+  "current_issue_counts": {
+    "source": "E25",
+    "product_commit": "2c2ef889abb6adcceba043b606da2e718dbea109",
+    "total": 40,
+    "counts_by_status": {
+      "ACCEPTED_LIMITATION": 19,
+      "CLOSED": 20,
+      "DEFERRED": 1
+    },
+    "counts_by_severity": {
+      "S2": 19,
+      "S1": 10,
+      "S3": 9,
+      "S0": 2
+    },
+    "new_rows": [
+      {
+        "id": "P20-D039",
+        "severity": "S1",
+        "status": "CLOSED"
+      },
+      {
+        "id": "P20-D040",
+        "severity": "S2",
+        "status": "CLOSED"
+      }
+    ]
+  }
+}

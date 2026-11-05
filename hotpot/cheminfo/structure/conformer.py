@@ -550,9 +550,7 @@ def _assign_frame_value(mol, name, value):
             values = list(observations.values)
             selectors = list(observations.frame_indices[row])
             if previous.invalidated_by:
-                spin = selectors[_OBSERVATION_NAMES.index("spin_mult")]
                 selectors = [None] * 8
-                selectors[_OBSERVATION_NAMES.index("spin_mult")] = spin
             attribution = thaw(observations.provenance)["fields"]
         values[column] = freeze(value)
         selectors[column] = None if value is None else "whole"
@@ -568,7 +566,7 @@ def _assign_frame_value(mol, name, value):
 
 def _frame_spin(mol):
     attachment = mol._frame_result
-    if attachment is None:
+    if attachment is None or attachment.invalidated_by:
         return None
     observations, row = attachment.payload
     return _observation_value(observations, row, "spin_mult")

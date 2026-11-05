@@ -211,14 +211,26 @@ def test_openbabel_import_treats_order_zero_as_unknown_and_records_raw_flags():
     assert bond.bond_source_metadata["is_in_ring"] is False
 
 
-def test_openbabel_export_rejects_dative_bond_instead_of_writing_single():
+def test_openbabel_export_projects_metal_dative_without_rewriting_source():
     bond = _hotpot_bond(
         bond_kind=BondKind.DATIVE,
         bond_direction="atom1_to_atom2",
     )
 
+    projected, _ = mol2obmol(bond.mol)
+    assert projected.GetBond(0).GetBondOrder() == 1
+    assert bond.bond_kind is BondKind.DATIVE
+    assert bond.bond_direction == "atom1_to_atom2"
+
+
+def test_openbabel_export_still_rejects_unmapped_nonmetal_dative():
+    mol = Molecule()
+    mol.create_atom(atomic_number=7)
+    mol.create_atom(atomic_number=5)
+    mol.add_bond(0, 1, bond_kind=BondKind.DATIVE,
+                 bond_direction="atom1_to_atom2")
     with pytest.raises(ValueError, match="cannot represent dative bonds losslessly"):
-        mol2obmol(bond.mol)
+        mol2obmol(mol)
 
 
 def test_openbabel_export_preserves_explicit_aromatic_kind():

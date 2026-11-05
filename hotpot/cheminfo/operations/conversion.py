@@ -69,12 +69,16 @@ def _capture_ob_values(mol, bonds):
     bond_rows = []
     for bond in bonds:
         kind = bond._bond_kind.value
-        if kind == "dative":
+        if kind == "dative" and not bond.is_metal_ligand_bond:
             bond_rows.append((kind,))
             return atom_rows, tuple(bond_rows), None
         first, second = bond._atoms
-        bond_rows.append((kind, topology[id(first)][0], topology[id(second)][0],
-                          float(bond._attrs[0]), bond._is_aromatic))
+        # Registered OB projection: metal coordination is a numeric single link.
+        # The source Hotpot bond and its donor direction remain authoritative.
+        projected_kind = "single" if kind == "dative" else kind
+        bond_rows.append((projected_kind, topology[id(first)][0], topology[id(second)][0],
+                          1.0 if kind == "dative" else float(bond._attrs[0]),
+                          False if kind == "dative" else bond._is_aromatic))
     cell = None
     if mol.crystal:
         crystal = mol.crystal

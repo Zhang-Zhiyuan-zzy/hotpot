@@ -507,9 +507,9 @@ def test_documented_aminodiol_reference_matches_packaged_model(runtime):
                 if b.atom1.idx < 6 and b.atom2.idx < 6} == expected_edges
         metal = molecule.metals[0]
         assert sorted(a.idx for a in metal.neighbours) == sorted(result.donor_indices)
-        # The deployed CBond materializer uses ordinary numeric single links.
-        assert all(b.bond_order == 1 and b.bond_kind.value == "single"
-                   for b in metal.bonds)
+        # Numeric edges keep their deployed feature meaning; coordination is explicit.
+        assert all(b.bond_order == 1 and b.bond_kind.value == "dative"
+                   and b.bond_direction == "atom2_to_atom1" for b in metal.bonds)
 
         # Read literal encoded H/charge/tags independently. Sanitization would
         # impose RDKit valence semantics on the documented OB coordination map.

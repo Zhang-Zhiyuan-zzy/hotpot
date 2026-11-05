@@ -11586,3 +11586,29 @@ all other assertions remain intact. Evidence (argv/source/resource hashes,
 logs/JUnit): /tmp/hotpot_plan20/short/automatic-state-element-options-20261105/ownership_fixture_update_evidence.json.
 This checkpoint does not activate the automatic workflow or claim native
 execution, whole-periodic-table molecular spin, wheel or scientific acceptance.
+
+
+### 2026-11-05 — CBond composition and source-state correction
+
+New CBond predictions publish donor-to-metal DATIVE/order1 edges without
+changing model inputs, scores, endpoint choice or existing bonds. Adding a new
+metal clears inherited ligand-level charge/spin declarations through the
+existing transaction owner while retaining atom charges; existing-metal input
+keeps its declarations. Selected observations invalidated by changed chemistry
+can no longer supply current molecular spin or silently regain it after an
+unrelated energy assignment. Original source-frame history remains available.
+The registered Python/Open Babel map projects metal–nonmetal DATIVE to numeric
+SINGLE in the external temporary object and leaves Hotpot facts/direction
+unchanged. Unmapped nonmetal DATIVE and the strict native lossless-wrapper
+contract retain their explicit rejection.
+
+Actual packaged CBond model and mapped adapter/native boundary tests:61passed,
+1skip in2.32s; tests/cbond/test_apply.py retains exact original model numerical
+checks and updates the intentionally corrected bond-kind assertion. Later
+connected CBond/coordinate-frame/selected-result/backend projection regression:
+251passed in6.02s using hp-usage CP311. Exact argv/JUnit/log are in
+/tmp/hotpot_plan20/short/automatic-state-implementation-20261105/
+(corresponding cbond-conversion and connected-review-corrections records).
+The original selected-frame reproduction/failure is preserved separately.
+These local contracts do not establish profile activation or actual GFN run
+completion. Periodic-options checkpoint2c8af85c was committed before this entry.

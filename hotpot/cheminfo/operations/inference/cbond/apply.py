@@ -11,6 +11,9 @@ from typing import Any, Optional, Union
 import numpy as np
 
 from hotpot.cheminfo.structure.atom import Atom
+from hotpot.cheminfo.structure.bond_kind import BondKind
+from hotpot.cheminfo.structure._commit import _commit_molecular_declarations
+from hotpot.cheminfo.structure._identity import _capture_source
 from hotpot.cheminfo.structure.molecule import Molecule
 from .. import features as de
 from .constants import (
@@ -185,6 +188,12 @@ def init_metal_ligand_pair(
             )
         else:
             metal = mol.add_atom(metal)
+            # The newly assembled species has a different electron inventory.
+            # Input ligand atom charges remain; its molecular declarations do not.
+            _commit_molecular_declarations(
+                mol, _capture_source(mol),
+                charge=(False, 0, None), spin_mult=(False, None, None),
+            )
 
     return mol, metal
 
@@ -308,7 +317,8 @@ def _materialize_state(
 ) -> Molecule:
     molecule = context.molecule.copy()
     for atom_index in sorted(donor_indices - context.existing_donors):
-        molecule.add_bond(context.metal_index, atom_index)
+        molecule.add_bond(context.metal_index, atom_index, bond_kind=BondKind.DATIVE,
+                          bond_direction="atom2_to_atom1")
     return molecule
 
 
@@ -370,7 +380,8 @@ def auto_build_cbond(
         )
 
     for atom_index in sorted(donor_indices - context.existing_donors):
-        context.molecule.add_bond(context.metal_index, atom_index)
+        context.molecule.add_bond(context.metal_index, atom_index, bond_kind=BondKind.DATIVE,
+                          bond_direction="atom2_to_atom1")
 
     path_probability = float(np.exp(sum(_log_sigmoid(step.score) for step in steps)))
     result = CBondPathResult(
@@ -412,14 +423,16 @@ def build_one_cbond(
 
     if not get_all:
         atom_index, score = eligible[0]
-        context.molecule.add_bond(context.metal_index, atom_index)
+        context.molecule.add_bond(context.metal_index, atom_index, bond_kind=BondKind.DATIVE,
+                          bond_direction="atom2_to_atom1")
         return context.molecule, [score]
 
     molecules = []
     scores_by_molecule = []
     for atom_index, score in eligible:
         molecule = context.molecule.copy()
-        molecule.add_bond(context.metal_index, atom_index)
+        molecule.add_bond(context.metal_index, atom_index, bond_kind=BondKind.DATIVE,
+                          bond_direction="atom2_to_atom1")
         molecules.append(molecule)
         scores_by_molecule.append([score])
     return molecules, scores_by_molecule

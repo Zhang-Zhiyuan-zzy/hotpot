@@ -51,7 +51,7 @@ def test_gfnff_and_gfn2_declare_distinct_spin_transport(
     assert gfnff.projection_convention == "charge_only"
     assert gfn2.consumes_uhf is True
     assert gfn2.projection_convention == "pure_spin_highest_ms"
-    assert gfn2.electron_count_definition == "all_electron_atomic_number_sum"
+    assert gfn2.electron_count_definition == "xtb_gfn_valence_atomic_number_sum_v1"
 
 
 def test_xtb_context_requires_charge_but_allows_unresolved_scientific_spin(

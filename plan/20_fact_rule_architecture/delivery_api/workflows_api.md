@@ -2042,6 +2042,7 @@ XTBBackendContext(backend_info: XTBBackendInfo, method: XTBMethod)
 
 - `supports_atomic_number(self, atomic_number: int) -> bool`
 - `effective_nuclear_charge(self, atomic_number: int) -> int`
+- `project_scientific_spin(self, facts: MolecularFacts, two_s: Optional[int], multiplicity: Optional[int]) -> Optional[Tuple[int, int]]`
 - `identity` [只读]: `BackendIdentity`
 - `scientific_operation_requirements` [只读]: `ScientificOperationRequirements`
 - `projection_convention` [只读]: `str`
@@ -2050,6 +2051,11 @@ XTBBackendContext(backend_info: XTBBackendInfo, method: XTBMethod)
 - `method_supported` [只读]: `bool`
 - `backend_info: XTBBackendInfo` [只读值字段]
 - `method: XTBMethod` [只读值字段]
+
+普通 GFN0/1/2 的电子计数使用后端活电子约定；Ce–Lu 的 f-in-core 表示与全电子
+科学自旋不同。`project_scientific_spin` 在无法安全映射时返回 `None`，保留原科学
+自旋并让显式 UHF、精确上下文历史或最低合法活电子 UHF 规则决定执行参数。
+GFN-FF 仍只消耗电荷。后端不支持的元素保持具名局部失败。
 
 
 <a id="hotpot-plugins-xtb-state-resolution"></a>

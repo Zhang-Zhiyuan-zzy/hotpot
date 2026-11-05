@@ -333,25 +333,27 @@ def _projection_validation_findings(
             )
         )
 
-    electron_count = _effective_electron_count(
-        facts,
-        backend,
-        projection.charge,
-    )
-    if projection.effective_electron_count != electron_count:
-        findings.append(
-            BackendProjectionFinding(
-                "HARD-013.ELECTRON_COUNT_MISMATCH",
-                "Backend projection carries an inconsistent electron count.",
-            )
+    electron_count = None
+    if not unsupported_elements:
+        electron_count = _effective_electron_count(
+            facts,
+            backend,
+            projection.charge,
         )
-    if electron_count < 0:
-        findings.append(
-            BackendProjectionFinding(
-                "HARD-013.NEGATIVE_EFFECTIVE_ELECTRON_COUNT",
-                "The backend effective-electron count is negative.",
+        if projection.effective_electron_count != electron_count:
+            findings.append(
+                BackendProjectionFinding(
+                    "HARD-013.ELECTRON_COUNT_MISMATCH",
+                    "Backend projection carries an inconsistent electron count.",
+                )
             )
-        )
+        if electron_count < 0:
+            findings.append(
+                BackendProjectionFinding(
+                    "HARD-013.NEGATIVE_EFFECTIVE_ELECTRON_COUNT",
+                    "The backend effective-electron count is negative.",
+                )
+            )
     if backend.consumes_uhf:
         if projection.uhf is None:
             findings.append(
@@ -360,7 +362,7 @@ def _projection_validation_findings(
                     "The backend context requires a projected UHF value.",
                 )
             )
-        elif electron_count >= 0:
+        elif electron_count is not None and electron_count >= 0:
             legality_finding = _uhf_legality_finding(
                 electron_count,
                 projection.uhf,
@@ -499,6 +501,14 @@ def _selected_backend_state(
 ]:
     charge = path.net_charge.value
     scientific_spin = _selected_pure_spin(state, path)
+    project_scientific_spin = getattr(backend, "project_scientific_spin", None)
+    if project_scientific_spin is not None:
+        two_s, multiplicity = scientific_spin or (None, None)
+        scientific_spin = project_scientific_spin(
+            state.facts,
+            two_s,
+            multiplicity,
+        )
     scientific_uhf = scientific_spin[0] if scientific_spin is not None else None
     scientific_multiplicity = (
         scientific_spin[1] if scientific_spin is not None else None

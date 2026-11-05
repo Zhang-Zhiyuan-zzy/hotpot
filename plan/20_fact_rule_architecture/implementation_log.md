@@ -11612,3 +11612,28 @@ connected CBond/coordinate-frame/selected-result/backend projection regression:
 The original selected-frame reproduction/failure is preserved separately.
 These local contracts do not establish profile activation or actual GFN run
 completion. Periodic-options checkpoint2c8af85c was committed before this entry.
+
+
+### 2026-11-05 — xTB active-electron projection business checkpoint
+
+XTBBackendContext now implements the official ordinary GFN0/1/2 valence/core
+electron convention, including Ce–Lu active contribution3; backend identity
+binds its method, version and electron/spin conventions. The optional
+project_scientific_spin hook preserves generic-backend behavior while leaving
+f-in-core physical spin unmapped. Scientific EuIII2S6/M7 therefore stays in
+the immutable bundle while an ordinary closed-ligand GFN active space may use
+operationalUHF0. No local-spin subtraction or physical ground-state assertion
+is made. Explicit legal backend UHF precedes compatible exact-context history,
+safely projected science and the existing DEFAULT-004 active-parity choice.
+GFN-FF remains charge-only. Unsupported elements retain named findings without
+trying to evaluate an undefined effective-core entry.
+
+CP311 current-source/fake-backend focused and connected selection returned
+202passed in10.49s before the independent unsupported-element finding. After
+that correction and a real high-Z regression, the combined projection/CBond/
+frame/result selection returned251passed in6.02s. Exact logs/JUnit are in
+/tmp/hotpot_plan20/short/automatic-state-backend/attempt-02/manifest.json and
+/tmp/hotpot_plan20/short/automatic-state-implementation-20261105/connected-review-corrections.{log,xml}.
+These tests do not claim native GFN execution, installed-wheel support,
+scientific profile activation or performance parity. CBond checkpoint9757c374
+follows periodic checkpoint2c8af85c on the owner-authorized new branch.

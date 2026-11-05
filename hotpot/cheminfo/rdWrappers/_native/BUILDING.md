@@ -18,8 +18,12 @@ profile uses CMake, Ninja, and the `cc`/`c++` compiler commands on the current
 build `PATH`. Set `CC` and `CXX` to a command name or executable path to choose
 other compilers; shell command strings with flags are not accepted. The compiler
 must support C++20 and the build currently requires Linux x86-64.
-`CMAKE_BUILD_PARALLEL_LEVEL` sets the build concurrency when supplied; otherwise
-Ninja chooses its default.
+`CMAKE_BUILD_PARALLEL_LEVEL` sets the job count for both CMake and pybind11
+compilation during installation. Without it, Ninja uses its default and pybind11
+chooses the CPU count automatically. The six extensions build sequentially,
+with source files within each pybind11 extension compiled in parallel. This
+workflow uses that environment variable for concurrency; `build_ext -j` requests
+extension-level parallelism.
 
 For an ordinary editable install, run this from the repository root:
 
@@ -27,6 +31,9 @@ For an ordinary editable install, run this from the repository root:
 HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot_plan20/long/rdkit-source-cache \
   python -m pip install -e .
 ```
+
+Ordinary `.py` edits in an editable checkout need no reinstall; C++ or packaging
+metadata changes may require a rebuild.
 
 PEP 517 build isolation supplies CMake, Ninja, pybind11, and the other declared
 build dependencies. The setuptools build verifies or fetches all six pinned

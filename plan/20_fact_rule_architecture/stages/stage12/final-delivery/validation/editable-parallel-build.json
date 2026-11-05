@@ -1,0 +1,241 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_PARALLEL_EDITABLE_BUILD",
+  "date": "2026-11-05",
+  "base_commit": "b8da95a50ed934e5a6623867a0281af3e3878c7d",
+  "source_binding": "Base commit plus the three changed files below. Baseline/candidate tracked-source manifests, setup bytes and full dirty patch are archived separately; subsequent acceptance/log/debt records are not build inputs.",
+  "changed_files": {
+    "setup.py": {
+      "bytes": 10369,
+      "sha256": "325dc36abf4ecc02889dceeda6e2029a9cb12446eefac2f9cb607817ab71f934"
+    },
+    "hotpot/cheminfo/rdWrappers/_native/BUILDING.md": {
+      "bytes": 3985,
+      "sha256": "3791c63f29f1c8093d615a785bb94494b62b95f732bba6aa456a84cb7c0df7d2"
+    },
+    "third_party/rdkit/README.md": {
+      "bytes": 7602,
+      "sha256": "2cdaa921b18b9832d714be376a17879b7522f8f31dfdbd118e9ba2574365ab62"
+    }
+  },
+  "behavior": [
+    "Install the existing pybind11 ParallelCompile helper before setup. CMAKE_BUILD_PARALLEL_LEVEL controls both CMake and per-source pybind compilation; unset uses standard automatic scheduling.",
+    "Extensions compile and link sequentially. Source files within each pybind extension compile in parallel, and the default helper recompiles every requested source.",
+    "All setup classes/ext_modules AST, native/scientific sources, compiler flags, ABI macros, source locks and public chemical interfaces remain unchanged.",
+    "Editable ordinary Python edits need no reinstall. Repeated pip installs still perform a full native build; persistent compiler/object caching is outside this change."
+  ],
+  "packaging_checks": {
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/tmp/hotpot_plan20/medium/editable-parallel-20261105/implementation/pytest-tmp",
+      "tests/test_packaging/test_rdwrapper_build.py",
+      "tests/test_packaging/test_github_workflows.py",
+      "tests/test_packaging_metadata.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "returncode": 0,
+    "passed": 33,
+    "evidence": ".plan20-artifacts/20261105/packaging/editable-parallel/root-acceptance"
+  },
+  "paired_build_protocol": {
+    "runs": 1,
+    "order": [
+      "baseline",
+      "candidate"
+    ],
+    "platform": "Linux x86_64; chemlex-ai-2; CPython3.11.16; GCC/G++14.3.0",
+    "fresh_inputs": "Separate fresh 2488-file tracked-source copies and private hp-usage-derived venvs; normal PEP517 isolation; no prebuilt natives or compiler/object caches.",
+    "shared_inputs": "Same six verified source archives and offline build wheels: setuptools81.0.0, wheel0.48.0, pybind11 3.1.0, CMake4.4.3, Ninja1.13.2, OpenBabel3.2.1, packaging26.3.",
+    "jobs": 16,
+    "environment": {
+      "CC": "/tmp/hotpot-rdkit-toolchain/bin/x86_64-conda-linux-gnu-gcc",
+      "CXX": "/tmp/hotpot-rdkit-toolchain/bin/x86_64-conda-linux-gnu-g++",
+      "CMAKE_BUILD_PARALLEL_LEVEL": "16",
+      "HOTPOT_RDKIT_SOURCE_CACHE": "/tmp/hotpot-plan17-release-cache",
+      "HOTPOT_RDKIT_OFFLINE": "1",
+      "PIP_NO_INDEX": "1",
+      "PIP_FIND_LINKS": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/wheelhouse"
+    },
+    "explicitly_unset": [
+      "HOTPOT_RDWRAPPERS_BUILD_PROFILE",
+      "HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX",
+      "PYTHONPATH"
+    ],
+    "build_argv_and_cwd": {
+      "baseline": {
+        "argv": [
+          "/tmp/hotpot_plan20/medium/editable-parallel-20261105/baseline/venv/bin/python",
+          "-m",
+          "pip",
+          "install",
+          "--no-deps",
+          "-v",
+          "--log",
+          "/tmp/hotpot_plan20/medium/editable-parallel-20261105/baseline/pip-internal.log",
+          "-e",
+          "/tmp/hotpot_plan20/medium/editable-parallel-20261105/baseline/source-copy"
+        ],
+        "cwd": "/tmp/hotpot_plan20/medium/editable-parallel-20261105/baseline",
+        "returncode": 0,
+        "source_manifest_sha256": "e5b609907fba64ffde352439b308aa143dedd29cf30d3d832e1c1d0ca93278ae"
+      },
+      "candidate": {
+        "argv": [
+          "/tmp/hotpot_plan20/medium/editable-parallel-20261105/candidate/venv/bin/python",
+          "-m",
+          "pip",
+          "install",
+          "--no-deps",
+          "-v",
+          "--log",
+          "/tmp/hotpot_plan20/medium/editable-parallel-20261105/candidate/pip-internal.log",
+          "-e",
+          "/tmp/hotpot_plan20/medium/editable-parallel-20261105/candidate/source-copy"
+        ],
+        "cwd": "/tmp/hotpot_plan20/medium/editable-parallel-20261105/candidate",
+        "returncode": 0,
+        "source_manifest_sha256": "a7ec7f7486c153ccefd7a19a016e9f8d38455cc62bd50a4f24492ca42178c99d"
+      }
+    },
+    "timing_boundary": "pip install wall time; identical snapshot/venv preparation is outside the measured interval; filesystem/page caches were not flushed."
+  },
+  "observed_phase_seconds": {
+    "setup_and_dependencies": {
+      "baseline": 4.1135427467525005,
+      "candidate": 4.095864301547408
+    },
+    "locked_rdkit_extract_configure_compile": {
+      "baseline": 85.84776384569705,
+      "candidate": 85.85153925232589
+    },
+    "pybind_compile_and_link": {
+      "baseline": 159.6253989804536,
+      "candidate": 79.15288496762514
+    },
+    "editable_finalize": {
+      "baseline": 2.7613190598785877,
+      "candidate": 2.8073589522391558
+    }
+  },
+  "observed_total_seconds": {
+    "baseline": 252.34802463278174,
+    "candidate": 171.9076474737376
+  },
+  "observed_seconds_saved": 80.44037715904415,
+  "observed_percent_wall_reduction": 31.8767611817455,
+  "technical_checks": {
+    "pybind_compilation_commands_each": 65,
+    "link_commands_each": 5,
+    "per_extension_sources": [
+      1,
+      6,
+      12,
+      4,
+      42
+    ],
+    "normalized_compile_argv_differences": [],
+    "normalized_link_argv_differences": [],
+    "shared_sources_explicitly_recompiled_for_ob_abi0": 12,
+    "all_42_ob_translation_units_keep_abi0": true,
+    "source_freeze_mutations": {
+      "baseline": [],
+      "candidate": []
+    },
+    "six_fresh_native_origins_each": true,
+    "plain_native_tests_each": {
+      "passed": 151,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "core_and_actual_cbond_forcefield_smokes_each": "PASS",
+    "runtime_returncodes": {
+      "baseline": {
+        "native-origins": 0,
+        "installed-core": 0,
+        "native-tests": 0,
+        "installed-forcefield": 0
+      },
+      "candidate": {
+        "native-origins": 0,
+        "installed-core": 0,
+        "native-tests": 0,
+        "installed-forcefield": 0
+      }
+    },
+    "runtime_command_evidence": "evidence.tar.gz:{baseline,candidate}/runtime-results.json stores exact argv, cwd, environment and duration; native-tests.xml stores actual outcomes.",
+    "runtime_unset": [
+      "LD_LIBRARY_PATH",
+      "PYTHONPATH",
+      "HOTPOT_RDWRAPPERS_BUILD_PROFILE",
+      "HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX"
+    ],
+    "external_initialization_command": null,
+    "binary_byte_equality_required": false
+  },
+  "resources": {
+    "logical_cpu_count_and_affinity": 128,
+    "available_ram_gib_approximately": 446,
+    "loadavg_start": {
+      "baseline": [
+        0.87,
+        0.73,
+        0.83
+      ],
+      "candidate": [
+        1.18,
+        1.92,
+        1.43
+      ]
+    },
+    "loadavg_end": {
+      "baseline": [
+        1.64,
+        2.09,
+        1.46
+      ],
+      "candidate": [
+        7.29,
+        5.2,
+        2.84
+      ]
+    },
+    "child_cpu_seconds": {
+      "baseline": 747.847992,
+      "candidate": 749.6395080000001
+    },
+    "maxrss_kib_children": {
+      "baseline": 1863216,
+      "candidate": 1869752
+    },
+    "rss_limit": "Per-child rusage maximum, not simultaneous aggregate process-tree peak; full memory/disk/affinity snapshots are archived."
+  },
+  "root_disposition": "Accept the small scheduling change and documented use within the tested CP311 editable build boundary. All requested builds/checks passed; no further repeated build is justified by these results. Retain the single-pair limits and full-rebuild follow-up P20-D042.",
+  "coverage_limits": [
+    "One sequential fresh-build pair on a shared host is an observed wall-time reduction, not a statistically established or universal speedup; host cache/load effects remain.",
+    "Summed child CPU time is slightly higher; no aggregate peak-memory or reduced-total-CPU claim. Minor adverse RDKit/finalization observations are retained.",
+    "This is CP311 editable/native/runtime evidence, not a new regular-wheel, other-ABI, manylinux, standalone SDK or broad scientific-population qualification.",
+    "Setuptools deleted backend CMake temporary build trees. Full stdout, driver/compiler identities and rebuilt binaries remain, but CMakeCache/compile_commands.json are unavailable.",
+    "Shared hp-usage prefix and maintained checkout native binaries were not modified. A C++20 compiler remains a prerequisite; tested GCC14.3, host GCC9.4 is insufficient."
+  ],
+  "evidence_index": {
+    "artifact_root": ".plan20-artifacts/20261105/packaging/editable-parallel",
+    "archive": {
+      "path": "evidence.tar.gz",
+      "bytes": 8320151,
+      "sha256": "5f727226684e17335121037e8d57378cfa2e1c01315972a901a3e3a4d6acd8c3",
+      "members": 74,
+      "member_hashes_verified": 73
+    },
+    "pair_analysis": "pair-analysis.json",
+    "report": "report.md",
+    "archive_manifest": "archive-manifest.json",
+    "root_verification": "root-acceptance/root-verification.json",
+    "source_and_packaging_review": "root-acceptance/"
+  }
+}

@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 from setuptools import Extension, setup
-from pybind11.setup_helpers import Pybind11Extension, build_ext
+from pybind11.setup_helpers import ParallelCompile, Pybind11Extension, build_ext
 
 
 REPOSITORY_ROOT = Path(__file__).resolve().parent
@@ -225,6 +225,7 @@ ext_modules = [
 
 
 if __name__ == "__main__":
+    ParallelCompile("CMAKE_BUILD_PARALLEL_LEVEL").install()
     setup(
         ext_modules=ext_modules,
         cmdclass={"build_ext": HotpotBuildExt},

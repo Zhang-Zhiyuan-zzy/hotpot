@@ -62,8 +62,15 @@ and Python build dependencies. The local profile resolves those tools and the
 `cc`/`c++` compiler commands from the current build `PATH`; `CC` and `CXX` may
 select a command name or executable path, without embedded flags. Compilers
 must support C++20, and Linux x86-64 is required. Set
-`CMAKE_BUILD_PARALLEL_LEVEL` to limit build concurrency; without it Ninja uses
-its default.
+`CMAKE_BUILD_PARALLEL_LEVEL` to control the job count for both CMake and pybind11
+compilation during installation. Without it, Ninja uses its default and pybind11
+chooses the CPU count automatically. The six extensions build sequentially,
+with source files within each pybind11 extension compiled in parallel. This
+workflow uses that environment variable for concurrency; `build_ext -j` requests
+extension-level parallelism.
+
+Ordinary `.py` edits in an editable checkout need no reinstall; C++ or packaging
+metadata changes may require a rebuild.
 
 Setuptools fetches or verifies the same six locked archives before calling the
 offline build driver. For a direct source build, populate the cache with the

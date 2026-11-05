@@ -11102,3 +11102,70 @@ uses null for no pre-initialization. That checker failure is archived; the
 corrected check verifies actual plain-pytest argv, unset Python/library paths,
 all six changed input hashes and the4.15MB raw archive identity:PASS.
 No product test or build result changes.
+
+
+### 2026-11-05 — Bounded editable-build acceleration alignment
+
+Owner requests shorter compilation after the accepted b8da95a5 installation
+repair. Root continues Stage10 packaging/Stage12 delivery under the effective
+goal and existing native build contracts. Governance, stage and validation
+skills/references and current setup, driver, guide, tests and actual build
+logs are reviewed. No scientific/architecture/source-lock route changes.
+The prior252.085s build spends about162s on five serial pybind extensions;
+locked RDKit already uses16jobs and compiles its162-step closure in about62s.
+Source verification/extraction/configuration costs about24s. These are actual
+phase observations, not projected speedups.
+
+A local read-only review identifies shared geometry/graph source object paths
+and OB's distinct ABI=0 setting. Keep extensions sequential and parallelize
+sources only within each extension, using pybind11's existing ParallelCompile
+helper and the same CMAKE_BUILD_PARALLEL_LEVEL budget. Root inspects retained
+pybind11 3.1.0 helper bytes: source preparation precedes thread dispatch, the
+pool joins before return, and default no_recompile always recompiles. Retain
+that default; no unsafe timestamp cache, native algorithms/flags/ABI or skipped
+components. Without an explicit worker count use the helper's standard CPU
+autodetection; the existing environment variable remains the resource control.
+
+Freeze a fresh current baseline copy before writer edits, then run baseline
+and candidate sequentially on the same host with16jobs, CP311/GCC14.3, same
+cached dependency wheels/six sources, separate fresh builds and resource
+snapshots. Verify actual phase times, all six fresh native origins, core and
+151affected native checks, plus actual public forcefield smoke. One pair is a
+bounded wall-clock observation under shared-host conditions, not statistical
+performance parity. Keep all failed runs. A medium local writer owns only
+setup and two build guides; root owns acceptance/records/Git. Temporary work
+uses /tmp/hotpot_plan20/medium/editable-parallel-20261105. Shared hp-usage,
+maintained native binaries, source locks and unrelated owner work stay outside
+the modification scope. No new cache architecture or full-plan redesign.
+
+
+### 2026-11-05 — Parallel editable compilation accepted in bounded scope
+
+At b8da95a5 plus frozen setup325dc36a/two guide changes, one sequential
+fresh-build pair uses CP311.16/GCC14.3/jobs16, identical offline dependencies
+and six original source archives. Both ordinary PEP517 editable builds return0:
+252.348025s baseline →171.907647s candidate, saving80.440377s/31.876761%.
+Pybind compilation/link drops159.625399s→79.152885s; locked RDKit remains
+85.847764s→85.851539s. This is one shared-host observation, not statistical
+speedup/parity; page caches were not flushed and load snapshots are retained.
+Summed child CPU time is slightly higher,747.847992s→749.639508s; rusage
+child-RSS maxima are1863216→1869752KiB, not aggregate process-tree peaks.
+
+Each build explicitly executes65compile/five link commands with identical
+normalized arguments. All42OB units retain ABI0, including explicit recompiles
+of12shared geometry/graph source object paths. All setup classes/ext_modules
+AST and scientific/native sources remain unchanged; each2488-file copied
+snapshot has0tracked-byte mutations. Each run passes six fresh native origins,
+core smoke,151plain native tests/0fail/error/skip and actual public CBond→FF
+smoke; no external initialization command or runtime LD_LIBRARY_PATH is used.
+Packaging33checks, setup syntax and scoped whitespace checks pass. No tests
+were repeated after passing unchanged inputs.
+
+Root verifies the sealed8,320,151-byte/74-member archive, all73manifested
+member hashes, actual JUnit counts, source identity and compile/link evidence.
+The scheduling change is accepted in this CP311 editable boundary. Shared
+hp-usage/check-out binaries are unchanged; no new regular-wheel/other-ABI/SDK
+or scientific-population acceptance is claimed. Repeated native rebuild/cache
+work remains P20-D042 and does not block this delivery. Exact commands,
+observations and root decision: [editable parallel build](stages/stage12/final-delivery/validation/editable-parallel-build.json).
+Raw archive/index: `.plan20-artifacts/20261105/packaging/editable-parallel/`.

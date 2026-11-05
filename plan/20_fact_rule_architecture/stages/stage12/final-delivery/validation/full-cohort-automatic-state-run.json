@@ -1,12 +1,15 @@
 {
-  "status": "FULL_COHORT_ATTEMPT_COMPLETE_AUTOMATIC_SCIENTIFIC_STATE_BLOCKED",
+  "status": "AUTOMATIC_FULL187_EXECUTED_WITH_RETAINED_LOCAL_FAILURES",
   "date": "2026-11-05",
-  "source_commit": "18d308e19079123fef2b150d5e6ecc39169e8fb1",
+  "source_commit": "7a90f331e4aaea9a344d7d1811c012f9cd707160",
   "source_version": "0.5.5.0",
+  "final_business_commit": "e338d42729aa9e07dd350d8f711a4ada3b994df2",
+  "historical_attempt01": "full-cohort-automatic-state-attempt01.json",
+  "historical_attempt01_bytes_unchanged": true,
   "requested_output": "/home/zhangzhiyuan/hp_test",
   "requested_output_written": false,
-  "output_access_reason": "Read-only file system; actual touch probe failed",
-  "actual_output": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01",
+  "output_access_reason": "Destination is read-only under this session; no workaround attempted.",
+  "actual_output": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02",
   "route": [
     "Hotpot CBond Eu",
     "Hotpot complete-complex UFF",
@@ -17,147 +20,305 @@
   "historical_eligible_count_is_not_forced": true,
   "actual_stage_counts": {
     "cbond": {
-      "succeeded": 182,
-      "failed": 5
+      "returned": 182,
+      "failed": 5,
+      "not_attempted": 0
     },
     "ff": {
-      "succeeded": 182,
+      "returned": 182,
+      "failed": 0,
       "not_attempted": 5
     },
     "gfnff": {
-      "failed": 182,
+      "returned": 182,
+      "failed": 0,
       "not_attempted": 5
     },
     "xtb": {
-      "not_attempted": 187
+      "returned": 165,
+      "failed": 17,
+      "not_attempted": 5
     }
   },
-  "complete_four_stage_successes": 0,
+  "complete_four_stage_returned": 165,
+  "returned_semantics": "A finite attributed result returned under default control; this does not assert optimizer convergence or experimental correctness.",
   "scientific_state_request": {
     "resolver": "Hotpot resolve_xtb_state",
-    "policy": "coordination-screening-v1",
     "charge": null,
     "uhf": null,
-    "manual_state_assignment": false
+    "manual_state_assignment": false,
+    "automatic_state_blocked": 0,
+    "eligible_count": 182,
+    "active_profile": "coordination-screening-v1 / 1.1.0"
   },
-  "blocker_findings": {
-    "PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE": 182,
-    "PROFILE.REQUIRED_PROVIDER_MISSING": 182,
-    "PROFILE.RULE_SET_MISMATCH": 182,
-    "PROFILE.COORDINATION_BOUNDARY_REQUIRED": 182
+  "automatic_state_observations": {
+    "charge": {
+      "3": 178,
+      "5": 3,
+      "-1": 1
+    },
+    "physical_two_s": {
+      "6": 182
+    },
+    "physical_multiplicity": {
+      "7": 182
+    },
+    "gfnff_backend_uhf": null,
+    "gfn2_backend_uhf": {
+      "0": 182
+    },
+    "meaning": "Physical molecular spin remains separate from the ordinary-GFN active-electron UHF convention."
   },
-  "scientific_profile_activation_status": "planned; individual approval and held-out validation retained",
-  "native_xtb_version": "6.7.1/edcfbbe",
-  "native_xtb_engine_calls": 0,
-  "ff_trajectory": {
-    "archives": 182,
-    "branches": 370,
-    "frames": 13826,
-    "cadence": "all recorded executed epochs and build branches; no fabricated hidden optimizer substeps",
-    "all_archives_unmodified": true,
-    "selected_terminal_coordinate_differences": 0
-  },
-  "ff_standard_report": {
-    "passed": 181,
-    "flagged_finite_observations": 1,
-    "flagged_case": 61,
-    "findings": [
-      "forcefield_convergence",
-      "short_bond",
-      "bond_length_ratio"
+  "failures": {
+    "cbond_threshold": [
+      139,
+      182,
+      185,
+      186,
+      187
     ],
-    "short_eu_ligand_distances_angstrom": [
-      1.5145090895771958,
-      1.53291879498943
-    ]
+    "gfn2_native_scc_nonconvergence": [
+      5,
+      27,
+      34,
+      37,
+      54,
+      61,
+      73,
+      76,
+      81,
+      91,
+      125,
+      133,
+      136,
+      152,
+      181,
+      183,
+      184
+    ],
+    "retries": 0
+  },
+  "nonhard_geometry_flagged_case_counts": {
+    "ff": 11,
+    "gfnff": 9,
+    "xtb": 21
+  },
+  "ff_selected_frame_nonconvergence": {
+    "count": 37,
+    "terminal_budget_exhausted": 34,
+    "terminal_converged_with_earlier_equal_energy_selected_frame": 3,
+    "equal_energy_selected_cases": [
+      55,
+      123,
+      145
+    ],
+    "disposition": "Selected-frame convergence and terminal-run termination intentionally describe different frames; source report contract and exact actual tied frames agree."
+  },
+  "native_convergence_metadata_correction": {
+    "status": "FIXED_AND_REPLAYED",
+    "commit": "e338d42729aa9e07dd350d8f711a4ada3b994df2",
+    "affected": [
+      {
+        "stage": "gfnff",
+        "index": 59
+      },
+      {
+        "stage": "gfnff",
+        "index": 74
+      },
+      {
+        "stage": "gfnff",
+        "index": 135
+      },
+      {
+        "stage": "gfnff",
+        "index": 136
+      },
+      {
+        "stage": "xtb",
+        "index": 23
+      }
+    ],
+    "original_falsely_true_flags": 5,
+    "corrected_converged": false,
+    "numerical_results_exactly_unchanged": true,
+    "native_reruns": 0,
+    "original_reports_unchanged": true,
+    "replay": "/tmp/hotpot_plan20/short/automatic-native-convergence-20261105/actual-green-01",
+    "meaning": "All five remain finite nonconverged observations; no forced success or replacement calculation."
+  },
+  "trajectory": {
+    "ff": {
+      "status_counts": {
+        "exported_verified": 182,
+        "unavailable": 5
+      },
+      "total_exported_frames": 13840,
+      "total_exported_branches": 370,
+      "all_original_archives_unmodified": true,
+      "main_selected_differs_from_terminal_coordinates_count": 0
+    },
+    "native": {
+      "native_optimizer_complete_frames": 29467,
+      "all_original_native_xyz_bytes_unchanged": true,
+      "failed_finite_observation_count": 9,
+      "files_with_partial_or_parse_error": []
+    }
   },
   "galleries": {
     "cbond": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/cbond/final.png",
       "rendered": 182,
       "placeholders": 5,
-      "png_sha256": "86f8deb44fde14c19be0dc4d684b4ac228be6340af6813bbfe5edffbf7523376",
-      "png_size": [
+      "roles": {
+        "final": 182
+      },
+      "bytes": 7117035,
+      "sha256": "86f8deb44fde14c19be0dc4d684b4ac228be6340af6813bbfe5edffbf7523376",
+      "size": [
         6000,
         6204
       ]
     },
     "ff": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/ff/final.png",
       "rendered": 182,
       "placeholders": 5,
-      "png_sha256": "a8b4e04d6f4b4c7ec02131ccbb3b639ce89b9330647da1a3d63ed2c089a4a005",
-      "png_size": [
+      "roles": {
+        "final": 182
+      },
+      "bytes": 9110984,
+      "sha256": "9d13a6e58b035c32c132430f10a0fedf3fd43d4586e7d2540def4a78aec70cda",
+      "size": [
         6000,
         6204
       ]
     },
     "gfnff": {
-      "rendered": 0,
-      "placeholders": 187,
-      "png_sha256": "f95613f4e4911403467cfbc5fd9c93b0f801af937bd229658c8ab7870101a100",
-      "png_size": [
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/gfnff/final.png",
+      "rendered": 182,
+      "placeholders": 5,
+      "roles": {
+        "final": 182
+      },
+      "bytes": 9058243,
+      "sha256": "f9f25a44fe5f128330f2247cf95925930699b0625af1af4b59c2261e54473c95",
+      "size": [
         6000,
         6204
       ]
     },
     "xtb": {
-      "rendered": 0,
-      "placeholders": 187,
-      "png_sha256": "34dcbfff47b68c4df62ca31906382df7ab9d3d3ace03b342986a4da91a0b94fa",
-      "png_size": [
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/xtb/final.png",
+      "rendered": 174,
+      "placeholders": 13,
+      "roles": {
+        "final": 165,
+        "failed_last_finite_observation": 9
+      },
+      "bytes": 8997930,
+      "sha256": "bb2d523e8eee63bca8d6cb3fb161014160b9ad660012a590ccf2cc3917ebc2e8",
+      "size": [
         6000,
         6204
       ]
     }
   },
-  "artifact_integrity": {
-    "checks": 2033,
+  "artifact_verification": {
+    "corrected_checks": 16782,
     "failed_checks": 0,
-    "scope": "output completeness, actual source/native identity, mapping/coordinate and PNG integrity; not scientific correctness or four-stage acceptance"
+    "original_failed_verifier_retained": true,
+    "original_checks": 16787,
+    "original_failed_checks": 5,
+    "correction": "Trajectory log terminal frame need not equal authoritative final output on native iteration exhaustion. Exact final-file/committed-coordinate checks are preserved; no numerical tolerance changed."
   },
-  "production_code_changed": false,
-  "open_issue": "P20-D044",
-  "evidence": {
-    "run-contract.json": {
-      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/run-contract.json",
-      "sha256": "0265827b14d20586b6f471e3e9606e6c3638be84caa9bff190ff167245255942"
-    },
-    "manifest.json": {
-      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/manifest.json",
-      "sha256": "d4bb9b4c699bd34f32757e47a070ff0b2541a65407e7352b6061ec7027173d3a"
-    },
-    "root-verification.json": {
-      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/root-verification.json",
-      "sha256": "3f230f276a8fefd0d83842c6160ac9c058b7092d20c196d4b1e37d474a293918"
-    },
-    "blockers.json": {
-      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/blockers.json",
-      "sha256": "45267060b74489e163205b37a29c2ce9d0aee73588ef991e4c331fec308fddc8"
-    },
-    "RESULT.md": {
-      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/RESULT.md",
-      "sha256": "c8346983a9eee2b0efe626e6f1e31e081368b2bcae88f234499b9d09ff87e0a5"
-    },
-    "ff/xyz-export.json": {
-      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt01/ff/xyz-export.json",
-      "sha256": "e1bc9777702aa0745d6d4e3414490ecc7164dbb77293a0b94bbcb361d33f67b2"
+  "timing_seconds": {
+    "preflight_runner": 66.01351204700768,
+    "full_resume_runner": 601.400122942403,
+    "combined_runner_invocations": 667.4136349894106
+  },
+  "resources": {
+    "cbond_workers": 1,
+    "tail_workers": 8,
+    "process_start_method": "spawn",
+    "thread_environment": {
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "BLIS_NUM_THREADS": "1"
     }
   },
-  "required_next_work": [
-    "Reconcile CBond coordination bond semantics and selected-profile provider/rule wiring.",
-    "Complete applicability/held-out evidence and explicit optional profile activation review before enabling.",
-    "Execute actual GFN-FF/GFN2 with automatically inferred state; retain this failed original run.",
-    "Make hp_test writable in session or copy artifacts outside sandbox."
-  ],
-  "limits": [
-    "Supported Eu route; not an Am xTB run.",
-    "GFN-FF/xTB final.png files are explicit unavailable placeholders, without optimized molecules or trajectories.",
-    "No comparative performance/global chemistry acceptance claim."
-  ],
   "archive": {
-    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/workflows/full-cohort-automatic-state/evidence.tar.gz",
-    "bytes": 103054583,
-    "sha256": "35745e5bbc35d2a780712609eff146644cb82d1fa788b5f2ff784b573d9c13bc",
-    "members": 9171,
-    "required_members_present": true
+    "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/workflows/full-cohort-automatic-state/attempt02-evidence.tar.gz",
+    "bytes": 310370346,
+    "sha256": "e78f18be498071f90e60f74e9171a4931288da8e0d9b0bac8213eff3d47fe491",
+    "members": 15529,
+    "required_members_present": true,
+    "missing": [],
+    "source": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02",
+    "source_commit": "7a90f331e4aaea9a344d7d1811c012f9cd707160",
+    "seconds": 17.80053448304534,
+    "scope": "complete original frozen cohort attempt; no later source correction or scientific truth claim"
+  },
+  "installed_public_entry": {
+    "source_commit": "e338d42729aa9e07dd350d8f711a4ada3b994df2",
+    "record": "../../../stage08/scientific-state/automatic-workflow/completion_20261105.json",
+    "actual_case": 1,
+    "user_charge_uhf_policy_absent": true,
+    "source_facts_retained": true,
+    "dative_fast_preflight_then_full_workflow": true,
+    "gfnff_and_gfn2_completed": true
+  },
+  "closed_issue": "P20-D044",
+  "remaining_limitations": [
+    "P20-D045: bounded multicenter search may abstain.",
+    "P20-D046: 17 actual GFN2 SCC failures retained, without numerical retry.",
+    "Current actual Eu cohort is not unsupported-Am or universal-element evidence.",
+    "Representative installed CP311 uses six existing natives; no fresh native/ABI/other-Python claim.",
+    "Shared-host timings have no matched comparative-performance interpretation."
+  ],
+  "evidence": {
+    "final-results.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/final-results.json",
+      "bytes": 271641,
+      "sha256": "948861d8ee466600c415eecce35e1730e6136b577709edeb6ec8d63a45c37162"
+    },
+    "DELIVERY.md": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/DELIVERY.md",
+      "bytes": 2482,
+      "sha256": "aecede870015ccc7e0ca8bbe80822ababf28cc295521e3fef43361ff206f79b5"
+    },
+    "manifest.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/manifest.json",
+      "bytes": 117763,
+      "sha256": "93b63c2b00ed9db564b5a1a52b9a187fe826b2d0ae718f2fd19e3ffa7f8cd3dc"
+    },
+    "current-verification.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/current-verification.json",
+      "bytes": 3361137,
+      "sha256": "b7e423944cb9091c340f30cc17a3ed4f1be662ba17fa8b5f41e8454a8b1e3f6b"
+    },
+    "current-verification-corrected.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/current-verification-corrected.json",
+      "bytes": 3362401,
+      "sha256": "d111a0ece9db5981a3adb5c09b20b2f189f9eafeaa4890ccf0c41b0e91c06879"
+    },
+    "native-logger-diagnosis-corrected.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/native-logger-diagnosis-corrected.json",
+      "bytes": 5842,
+      "sha256": "a1c76fb13a3f188f6b6f5176771210fe3f390c2fb656e794f56889a252e44059"
+    },
+    "native-trajectories.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/native-trajectories.json",
+      "bytes": 457770,
+      "sha256": "623449b7646ff53990db79a47e14abf7137d8b37b4f1ba320e0d707df746f940"
+    },
+    "ff/xyz-export.json": {
+      "path": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02/ff/xyz-export.json",
+      "bytes": 5332031,
+      "sha256": "d08b2d35c73680b5ac2dbba8083a94d2a090df9a6e96821ea1df41092d662a0f"
+    }
   }
 }

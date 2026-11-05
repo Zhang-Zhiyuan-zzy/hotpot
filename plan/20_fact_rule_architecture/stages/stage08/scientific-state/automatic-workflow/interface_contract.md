@@ -1,6 +1,6 @@
 # Automatic coordination-state integration contract
 
-Status: bounded owner-authorized design, 2026-11-05; profile1.1.0 activated by [root decision](activation_decision.json), with actual/runtime delivery evidence pending. Base a2799dba45790a4385fc4d30f8a99cbb869c33a4, branch feat/automatic-coordination-state-workflow.
+Status: bounded owner-authorized design, 2026-11-05; profile1.1.0 activated by [root decision](activation_decision.json), with [bounded actual/installed CP311 delivery accepted](completion_20261105.json). Base a2799dba45790a4385fc4d30f8a99cbb869c33a4, branch feat/automatic-coordination-state-workflow.
 
 This maintained contract unblocks parallel implementation. Method/activation detail follows in the adjacent method companion.
 
@@ -89,3 +89,16 @@ Retain the original five reports unchanged and reparse their actual native
 outputs under the corrected code. Logger/final-coordinate differences are
 separate observations; authoritative final files must still exactly match the
 coordinates committed by the workflow.
+
+
+## Final public-entry delivery
+
+At business checkpoint `e338d427`, registered metal–nonmetal DATIVE is an explicit
+unsupported-lossless FAST representation. The existing preliminary BUILD_FAILED
+attempt then selects the complete complex workflow from pristine source. Mixed
+or unmapped DATIVE and unknown exceptions retain their failures. Original bond
+kind, order, donor direction, source metadata and atom/declaration facts survive.
+The final installed actual public `Molecule.optimize()` case verifies that route
+before automatic GFN-FF/GFN2, without charge/UHF/policy input. Complete affected
+source and installed results, original failed attempts and bounded remaining
+limits are joined in [the delivery record](completion_20261105.json).

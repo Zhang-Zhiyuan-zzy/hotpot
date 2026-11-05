@@ -5,6 +5,15 @@ with a complete [ten-section final report](report.md). Its coherent normal Git
 delivery supplies validated `B_exp`; Stage13–15 and overall completion remain
 open. The historical checkpoints below retain their original bounds.
 
+The owner-directed [automatic coordination-state correction](../../stage08/scientific-state/automatic-workflow/completion_20261105.json)
+is delivered on `feat/automatic-coordination-state-workflow` at `e338d427`.
+The [current actual187 record](validation/full-cohort-automatic-state-run.json)
+retains182CBond/182FF/182GFN-FF/165GFN2 returns with5CBond and17SCC failures;
+the [original blocked attempt](validation/full-cohort-automatic-state-attempt01.json)
+remains unchanged. Final installed192files:4516passed/41skipped, actual public FF
+then automatic GFN-FF/GFN2 pass. P20-D044closes; P20-D045/D046retain multicenter
+and native numerical limits. No broader support or whole-plan closure follows.
+
 This record joins current source,
 installed/native/version, actual workflow/GPU, scientific, performance and
 reporting evidence without substituting a bounded checkpoint for the goal.

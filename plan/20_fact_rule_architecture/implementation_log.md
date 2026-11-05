@@ -11773,3 +11773,58 @@ CP311 run and actual public-entry case1 are prepared but unexecuted at this
 checkpoint. Original187 numerical artifacts remain bound to7a90f331, with the
 five convergence-report replays separate. The next business commit freezes all
 these source/test bytes before that final installed gate.
+
+
+### 2026-11-05 — Bounded automatic four-stage delivery accepted
+
+Business checkpoint e338d42729aa9e07dd350d8f711a4ada3b994df2 is pushed on
+feat/automatic-coordination-state-workflow. Root accepts the owner-requested
+single automatic source/default/profile-to-backend route within recorded CP311
+boundaries. Original187 numerical execution stays bound to7a90f331; no native
+calculation is retried after the two report/dispatch fixes. Returned counts are
+182CBond/182FF/182GFN-FF/165GFN2, retaining5CBond threshold failures and17native
+SCC failures. All182eligible states resolve without manual charge/UHF, using
+Q3x178/Q5x3/Q-1x1, physical2S6/M7 and ordinary-GFN2activeUHF0. This is not a
+physical ground-state or universal convergence assertion.
+
+Final installed attempt03/run01 builds current Python/resources into a fresh
+CP311venv using six attributed existing natives. Exact192-file command collects
+4557nodes:4516passed/41skipped/0failed/0errors,171.63s wrapper. Skips are9model,
+10external,22Torch-missing. Actual public Molecule.optimize follows recorded
+DATIVE BUILD_FAILED→complete-complex ACCEPTED, preserves original source facts,
+then automatic GFN-FF/GFN2 complete with Q3/physical2S6/UHF0 and same carried
+bundle. Both native geometries commit; actual warnings remain. Main invoked
+processes load380affected/284actual Hotpot modules from the fresh installedsite,
+zero origin leaks. Spawned workers are not exhaustively independently enumerated.
+Exact commands/env/dependency/backend/model/wheel identities, raw outputs and
+JUnit: /tmp/hotpot_plan20/medium/automatic-state-installed-20261105/attempt03/run01/.
+No fresh native/ABI/SDK/sdist/manylinux/other-interpreter support claim.
+
+Root independently verifies1595source/support files, every569wheel Python/stub/
+JSON member (including543selected Python/JSON), six native members and4557unique
+collected nodes, plus actual public facts/state and origins. Its initial private
+checker incorrectly equated all569members to selected543; the26extra stubs/other
+JSON resources are now also compared exactly to source. Initial checker failure
+and script remain preserved; no product defect or tolerance change. Command:
+python /tmp/hotpot_plan20/short/automatic-delivery-review-20261105/verify_final_delivery.py.
+Root verification PASSED. Original default8442passed/1failed/163skipped/3xfailed/
+49passedsubtests is not renamed a clean pass: the actual mapped-N–Cu fixture
+cause closes by complete-module40passes and final installed affected execution;
+FF/xTB source changes separately have344passes and514passes/10skips.
+
+Original cohort durable archive310370346bytes/SHA256e78f18be...47fe491 contains
+15529members. Finished source/failure/default/final-installed evidence, the final
+wheel and actual case1 are archived/readback-verified as218members/10168907bytes,
+SHA256c8a3231977b891226cd82371175fa63d80a8efb5d03bf4d5a48733608e8242fe.
+Both exact receipts are linked in automatic-workflow/completion_20261105.json.
+The original blocked cohort record is copied byte-exact to its attempt01 record;
+current record joins later actual/replay evidence without erasing any failure.
+
+P20-D044 closes only the demonstrated automatic-state/handoff defect. New
+P20-D045 retains bounded two-/three-Eu abstention; P20-D046 retains native SCC
+investigation without forced convergence or altered denominators. Unrelated
+P20-D043live-HF and whole-Plan20 obligations are unchanged. Destination ~/hp_test
+remains read-only under this session; actual /tmp output and repository-local
+archives are retained without a filesystem workaround. Maintained method,
+activation, current cohort, issue index and final report now agree. No chemical
+business bytes changed during this final records update.

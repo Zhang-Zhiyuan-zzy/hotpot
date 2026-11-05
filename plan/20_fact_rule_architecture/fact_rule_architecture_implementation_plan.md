@@ -2184,6 +2184,13 @@ requires the recorded independent held-out/stress evidence and root disposition;
 the actual original187 run retains every outcome without a182 success target.
 No trained model, fresh native kernel, generic pipeline or bond algebra change
 is included. Physical molecular spin and backend active UHF remain distinct.
+The [bounded2026-11-05 delivery](stages/stage08/scientific-state/automatic-workflow/completion_20261105.json)
+now activates profile1.1.0 after12/12preregistered positives, executes the original187
+route with165four-stage returned results and17retained native SCC failures, and
+qualifies the public automatic FF entry plus GFN-FF/GFN2 in a final installed
+CP311192-file selection (4516passed/41skipped). P20-D044closes within that scope;
+multicenter search and native convergence limits remain P20-D045/P20-D046. This
+adds no whole-Plan20 acceptance or new native/other-interpreter claim.
 
 #### Stage 8B — Force fields
 

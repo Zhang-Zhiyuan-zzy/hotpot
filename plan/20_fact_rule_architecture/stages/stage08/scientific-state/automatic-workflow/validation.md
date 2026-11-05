@@ -1,4 +1,16 @@
-# Automatic scientific-state core validation
+# Automatic scientific-state validation
+
+Current bounded CP311 delivery is [root accepted](completion_20261105.json).
+Final installed192files return4516passed/41skipped/0failures; actual public FF
+and GFN-FF/GFN2 case1 completes with automaticQ3/physical2S6/backendUHF0 and
+preserved source facts. The original187 route returns182CBond/182FF/182GFN-FF/
+165GFN2, retaining5CBond and17native SCC failures. Five convergence-metadata
+corrections have exact unchanged-number replay evidence. Default/affected
+original failures and composed qualification remain explicit in that record.
+No whole-default rerun, universal spin/OS correctness or new native-build claim
+is implied.
+
+## Historical core partition handoff
 
 Date: 2026-11-05. Core handoff status: ready for root integration/activation review; no production activation, native/model execution, install, commit or push was performed by this partition. Working checkout base at final core handoff: `8715c9b3fdfb960a4068e671c04956617c9d43ee`. Root/other workers own periodic data, CBond/OB/stale-frame projection, backend active spin, stream codec, payload identity, final profile activation and actual/delivery work. This record qualifies the core source evidence only.
 
@@ -55,9 +67,9 @@ The retained [measurement](core_measurement.json) and [harness](measure_core.py)
 
 Observed total range6.657–60.103ms. The two-Eu single stress observation took359.07ms, three-Eu2950.68ms, both abstaining. These are explicit current coverage/cost limits. There is no before/after or dedicated-resource comparator, throughput claim or speedup claim. Root's actual187 and installed/delivery resource observations remain separate.
 
-## Remaining owning gates
+## Core handoff gates (historical)
 
-Root must disposition/activate profile1.1.0, update only qualified current-profile/constructor frozen fixtures, then run integrated source and representative installed-CP311/default delivery checks and the actual original187 route. Existing old broad failures are not waived by the143-case connected pass. No other interpreter, wheel/native artifact or scientific energy result is established here. Full arbitrary saved-bundle/session replay remains outside scope.
+At core handoff, the following gates were pending; their current bounded disposition is in [the delivery record](completion_20261105.json). Root had to disposition/activate profile1.1.0, update only qualified current-profile/constructor frozen fixtures, then run integrated source and representative installed-CP311/default delivery checks and the actual original187 route. Existing old broad failures are not waived by the143-case connected pass. No other interpreter, wheel/native artifact or scientific energy result is established here. Full arbitrary saved-bundle/session replay remains outside scope.
 
 Carried binding includes the profile artifact digest but no independent aggregate of every periodic/prior data file. Root accepted the2026-11-05 maintenance contract that any periodic/prior/default data change used by this profile MUST accompany a profile artifact/version revision; data are fixed within an invocation/install. The changed-profile regression proves carried state rebinds under that revision. No hot-edit API or broad aggregate hashing is introduced. Data-only manual edits without the required profile revision violate this contract. Multi-center truncation and the intra-component radical highest-spin assumption remain documented scientific/coverage limits.
 
@@ -92,4 +104,5 @@ This is composed affected evidence, not a relabeled all-green initial run.
 Exact argv/environment/source hashes, JUnit and original logs are under
 `/tmp/hotpot_plan20/short/automatic-state-integration-20261105/attempt-01/`
 and `fixture-correction-01/`. Default-suite, installed-package and original187
-actual native gates remain pending; this source checkpoint closes none of them.
+actual native gates were pending at this source checkpoint; the later delivery
+record above supplies their current bounded disposition.

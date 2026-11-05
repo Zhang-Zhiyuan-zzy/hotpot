@@ -1,6 +1,6 @@
 # Automatic coordination state: method and activation
 
-Date: 2026-11-05. Status: owner-authorized bounded implementation; [root activated profile1.1.0](activation_decision.json) after the preregistered source gates. Actual/runtime delivery evidence remains separate. This companion specifies the implemented source-to-state method and the predeclared activation boundary. The adjacent [contract](interface_contract.md), [frozen protocol](activation_protocol.json) and [validation record](validation.md) own integration, expectations and evidence respectively.
+Date: 2026-11-05. Status: owner-authorized bounded implementation; [root activated profile1.1.0](activation_decision.json) after the preregistered source gates. [Bounded actual/runtime and installed CP311 delivery](completion_20261105.json) is now accepted; retained failures and limits remain separate from method activation. This companion specifies the implemented source-to-state method and the predeclared activation boundary. The adjacent [contract](interface_contract.md), [frozen protocol](activation_protocol.json) and [validation record](validation.md) own integration, expectations and evidence respectively.
 
 ## Scientific quantities and priority
 
@@ -49,3 +49,22 @@ After activation, root retains every original187 index/outcome in actual CBondâ†
 - Official xTB6.7.1 `src/prog/main.F90`, pinned local source SHA256 `ace2d95b6cda0494ae1174daba2ddd96af97c4a40f7b503df3bb036c60342041`, and its `src/pqn.f90` core table, under `/tmp/hotpot_plan20/short/solver-backend-convention-20261105/xtb-6.7.1`. Upstream version source `https://github.com/grimme-lab/xtb/tree/v6.7.1`.
 - Official xTB spin-polarization documentation `https://xtb-docs.readthedocs.io/en/latest/spgfn.html` and command-line documentation for `--uhf`. Backend convention is pinned to executable/version context; current web documentation is explanatory attribution, not proof of another executable's behavior.
 - Current source periodic JSON SHA256 `004d4d4c8e6afbb8d777bd2f0af398821ef4b2c514bebbb277242c6c761eb31c`; isolated neutral-atom reference SHA256 `ef504d3d5e2429623484a0b8935c46698d72a78a2f6a2b82e08afa5d44c4a3cf`; unchanged ionic registry SHA256 `908ccd570ec41a8f84794800a733a628a5382a5c55500d187722b57e903c9062`. Source snapshots and modeled choices are distinguished above.
+
+
+## Delivered route and convergence semantics
+
+The final public automatic FF route handles the observed registered DATIVE FAST
+representation limitation with the existing recorded preliminary BUILD_FAILED
+and complete-complex fallback. It preserves original Hotpot facts and propagates
+unmapped/unknown failures. No native representation contract is weakened.
+
+For xTB optimization, the last explicit native geometry decision governs the
+convergence flag; required artifacts alone cannot override nonconvergence.
+Complete finite zero-exit output remains available with `converged=False` and
+existing `XTB:convergence` control. SCC/nonzero execution, missing artifacts,
+nonfinite values and broken atom mapping remain local failures. The five actual
+false-positive flags were reparsed without changing numbers or rerunning the
+native engine. Final installed case1 validates the public entry and automatic
+state handoffs. [Delivery evidence](completion_20261105.json) retains all187
+outcomes and explains the17SCC failures and multicenter search limitation;
+activation is not a ground-state or universal-convergence assertion.

@@ -1,0 +1,211 @@
+{
+  "status": "BOUNDED_AUTOMATIC_WORKFLOW_CP311_DELIVERED",
+  "date": "2026-11-05",
+  "owner": "root",
+  "branch": "feat/automatic-coordination-state-workflow",
+  "version": "0.5.5.0",
+  "business_commit": "e338d42729aa9e07dd350d8f711a4ada3b994df2",
+  "business_checkpoints": [
+    "2c8af85c",
+    "9757c374",
+    "8715c9b3",
+    "93a5b948",
+    "7a90f331",
+    "e338d427"
+  ],
+  "scope": "Automatic source-aware charge/oxidation/local and coupled spin selection, ordinary-GFN active UHF projection and connected CBond/FF/stream/pipeline delivery. No manual state assignment or universal convergence guarantee.",
+  "default_priority": [
+    "Explicit invocation state and actual source facts",
+    "Applicable specific rules",
+    "Named periodic/component/ionic/coupled-spin screening defaults"
+  ],
+  "periodic_registry": {
+    "elements": 118,
+    "possible_state_entries": 636,
+    "source_common_state_rows": 100,
+    "source_missing_common_state_rows": 18,
+    "missing_common_default": "Explicitly modeled elemental0 reference, not an observed common compound oxidation state.",
+    "Nh_possible_domain_empty": true,
+    "source_and_model_basis_recorded": true,
+    "neutral_atomic_spin_references": 104,
+    "ionic_configurations": 25,
+    "ionic_elements": 19,
+    "molecular_spin": "Derived from actual source/radicals and ionic/component candidate coupling, never a fixed per-element molecular-spin lookup."
+  },
+  "profile_activation": {
+    "record": "activation_decision.json",
+    "profile_version": "1.1.0",
+    "active_artifact_sha256": "dfba1eb6f19c5ccd868c462bb3276ed6cbf417e71b3f114254be166ecdc687ff",
+    "preregistered_holdouts": {
+      "selected_expected_legal": 12,
+      "denominator": 12
+    },
+    "stress": "Two/three Eu center fixtures abstain under unchanged64/4096/1024 bounds; P20-D045 remains."
+  },
+  "source_validation": {
+    "initial_affected": {
+      "files": 182,
+      "tests": 4244,
+      "passed": 4196,
+      "failed": 7,
+      "skipped": 41,
+      "seconds": 136.2255654335022
+    },
+    "fixture_qualification": {
+      "passed": 84,
+      "failed": 0,
+      "original_failures_retained": true,
+      "production_unchanged": true
+    },
+    "public_forcefield_route": {
+      "passed": 344,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 19.55
+    },
+    "native_convergence_connected": {
+      "passed": 514,
+      "failed": 0,
+      "skipped": 10,
+      "seconds": 20.87
+    },
+    "mca_serialization": {
+      "passed": 40,
+      "failed": 0,
+      "seconds": 1.11
+    },
+    "actual_convergence_replay": {
+      "red_failed": 5,
+      "green_passed": 5,
+      "native_reruns": 0,
+      "parsed_numbers_unchanged": true
+    },
+    "evidence_root": "/tmp/hotpot_plan20/short/"
+  },
+  "default_suite": {
+    "source_commit": "7a90f331e4aaea9a344d7d1811c012f9cd707160",
+    "passed": 8442,
+    "failed": 1,
+    "skipped": 163,
+    "xfailed": 3,
+    "passed_subtests": 49,
+    "pytest_seconds": 422.03,
+    "wrapper_seconds": 424.4728317260742,
+    "scope": "Original full invocation remains failed. Its sole historical mapped-N–Cu rejection is corrected to an unmapped N–B boundary plus mapped transport test; entire module40passes and final affected installed selection cover the cause. Later FF/xTB edits have full affected source and final installed evidence. No fresh all-green whole-default invocation is claimed."
+  },
+  "installed_cp311": {
+    "source_commit": "e338d42729aa9e07dd350d8f711a4ada3b994df2",
+    "files": 192,
+    "collected_nodes": 4557,
+    "passed": 4516,
+    "skipped": 41,
+    "failed": 0,
+    "errors": 0,
+    "seconds": 171.625723361969,
+    "skip_reasons": {
+      "model_tier": 9,
+      "external_tier": 10,
+      "torch_unavailable": 22
+    },
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/medium/automatic-state-installed-20261105/attempt03/run01/wheels/hotpot_zzy-0.5.5.0-cp311-cp311-linux_x86_64.whl",
+      "sha256": "b320ba565cae1f76759d31b4c1d12d28e7928f66009704a35331ad4196ca8cd7",
+      "bytes": 6687354
+    },
+    "native_rebuilt": false,
+    "reused_native_count": 6,
+    "selected_python_json_members": 543,
+    "root_verified_all_python_stub_json_members": 569,
+    "affected_module_origins": 380,
+    "actual_module_origins": 284,
+    "origin_leaks": 0,
+    "actual_case": 1,
+    "public_ff_dative_routing_verified": true,
+    "original_source_facts_preserved": true,
+    "same_scientific_bundle_carried": true,
+    "charge": 3,
+    "physical_two_s": 6,
+    "physical_multiplicity": 7,
+    "gfnff_uhf": null,
+    "gfn2_uhf": 0,
+    "gfnff_converged": true,
+    "gfn2_converged": true,
+    "gfnff_energy_hartree": -2.103109157421508,
+    "gfn2_energy_hartree": -55.70751523,
+    "warnings": [
+      "Metal placement found only a partially acceptable position.",
+      "A coordination-bond and ring relation could not be determined mathematically."
+    ],
+    "evidence": {
+      "path": "/tmp/hotpot_plan20/medium/automatic-state-installed-20261105/attempt03/run01/summary.json",
+      "bytes": 18067,
+      "sha256": "7fa29ea40840d5038e846b562c982889a87576940b810081a49826c2f74cdfa0"
+    }
+  },
+  "full_cohort": "../../../stage12/final-delivery/validation/full-cohort-automatic-state-run.json",
+  "root_verification": {
+    "status": "PASSED",
+    "scope": "Independent root delivery artifact/source/origin consistency; no new native calculation or performance claim",
+    "source_commit": "e338d42729aa9e07dd350d8f711a4ada3b994df2",
+    "command": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "/tmp/hotpot_plan20/short/automatic-delivery-review-20261105/verify_final_delivery.py"
+    ],
+    "script_sha256": "67e6d9af840d257a2eff3cc537322f8c67bf633b597e0571f5d57d68f0d8a564",
+    "source_files_verified": 1595,
+    "wheel_python_json_members_verified": 569,
+    "native_members_verified": 6,
+    "origin_modules_verified": {
+      "affected-origins.json": 380,
+      "actual-public-attempt01-origins.json": 284
+    },
+    "collected_nodes_verified": 4557,
+    "tests": {
+      "passed": 4516,
+      "skipped": 41,
+      "failed": 0
+    },
+    "summary_sha256": "7fa29ea40840d5038e846b562c982889a87576940b810081a49826c2f74cdfa0",
+    "wheel_sha256": "b320ba565cae1f76759d31b4c1d12d28e7928f66009704a35331ad4196ca8cd7",
+    "actual_observations_sha256": "32d5d3e6da8b3aeea7f583bcfea721ca0ba530c3834456f7b6a25665bd763e68",
+    "actual_public_route_and_state_verified": true,
+    "cohort_archive_sha256": "e78f18be498071f90e60f74e9171a4931288da8e0d9b0bac8213eff3d47fe491"
+  },
+  "evidence_archives": {
+    "source_and_final_installed": {
+      "status": "ARCHIVED_AND_READBACK_VERIFIED",
+      "source_commit": "e338d42729aa9e07dd350d8f711a4ada3b994df2",
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/workflows/automatic-coordination-state-delivery/validation-evidence.tar.gz",
+      "bytes": 10168907,
+      "sha256": "c8a3231977b891226cd82371175fa63d80a8efb5d03bf4d5a48733608e8242fe",
+      "members": 218,
+      "member_manifest": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/workflows/automatic-coordination-state-delivery/validation-members.json",
+      "member_manifest_sha256": "a42157c4e151af084dd89ad316b06f668994d32526155a5c481ac42ca6069d06",
+      "elapsed_seconds": 1.8295429833233356,
+      "scope": "Finished affected/default/source-failure evidence, final installed wheel/receipts and actual case1; original full187 has separate immutable archive. No temporary venv, duplicate checkout or generated pytest cache."
+    },
+    "original_full187": {
+      "path": "/home/zhangzhiyuan/hotpot/.plan20-artifacts/20261105/workflows/full-cohort-automatic-state/attempt02-evidence.tar.gz",
+      "bytes": 310370346,
+      "sha256": "e78f18be498071f90e60f74e9171a4931288da8e0d9b0bac8213eff3d47fe491",
+      "members": 15529,
+      "required_members_present": true,
+      "missing": [],
+      "source": "/tmp/hotpot_plan20/long/full-workflow-187-20261105/attempt02",
+      "source_commit": "7a90f331e4aaea9a344d7d1811c012f9cd707160",
+      "seconds": 17.80053448304534,
+      "scope": "complete original frozen cohort attempt; no later source correction or scientific truth claim"
+    }
+  },
+  "remaining_bounded_delivery_gates": [],
+  "remaining_limitations": [
+    "P20-D045 multicenter bounded search can abstain; no unconditional universal automatic state claim.",
+    "P20-D046 retains17native SCC failures; finite geometry nonconvergence and nonhard geometry findings remain observations.",
+    "18periodic source-missing common-state rows have modeled reference defaults, not experimental common states.",
+    "Registered ionic/radical/parity conventions and lowest-coupled-spin preference do not prove physical ground states.",
+    "Final installed scope is CP311 with inherited dependencies and six reused natives, no new clean-native/ABI/SDK/sdist/manylinux/other-Python qualification.",
+    "Shared-host actual timings do not establish parity or speedup.",
+    "Destination ~/hp_test remains read-only; outputs are retained under the recorded /tmp path and durable repository-local archives.",
+    "This closes the bounded owner request/P20-D044, not whole Plan20 or unrelated P20-D043 live-HF delivery."
+  ]
+}

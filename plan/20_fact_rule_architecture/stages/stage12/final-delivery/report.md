@@ -1,5 +1,8 @@
 # Stage0–12 main-scope implementation report
 
+This report preserves its historical main-scope checkpoint. Later owner-directed
+corrections are indexed below without rewriting its original outcomes.
+
 Product checkpoint: `5239b61122b7c56e61058ea4e7ac06bb29749481`, based on
 `ed7a64d463945360e669e858591d5ed399eb4535` native-stereo delivery. Root accepts Stage0–12 main-scope
 delivery under the recorded fifteen criteria. The coherent normal Git commit
@@ -12,6 +15,32 @@ Historical failures, tier exclusions, finite unsuccessful observations and
 numerical/stochastic differences retain their original meaning. Evidence is
 composed by affected source/owner/consumer and installation, without inventing
 a full final run at every commit or a historical scientific-equality requirement.
+
+## Owner-directed automatic-state delivery — 2026-11-05
+
+Branch `feat/automatic-coordination-state-workflow`, business checkpoint `e338d427`,
+connects canonical CBond DATIVE, automatic source-aware state selection, periodic
+defaults and method-specific active UHF through public FF, GFN-FF and GFN2.
+The oxidation registry covers118elements/636possible entries;100rows have source
+common states and18retain explicit modeled elemental0 reference defaults.
+Neutral-atom/ionic spin references support molecular coupling, never a universal
+per-element molecular-spin table. Explicit inputs precede applicable specific
+rules and named defaults; physical spin stays separate from backend active UHF.
+
+The original187 run returns182CBond/182FF/182GFN-FF/165GFN2, retaining5CBond
+threshold failures,17native SCC failures, complete recorded trajectories and
+four exhaustive PNG galleries. Five actual convergence flags are corrected by
+unchanged-number replay; finite nonconvergence remains reportable. Final installed
+CP311192files pass4516cases/41skips, with an actual public `Molecule.optimize()`
+case then both automatic native stages. Original default8442passes/1failure and
+its whole-module40pass qualification are composed with affected/current installed
+evidence; no fresh all-green full-default claim. Six natives are reused.
+
+[The bounded delivery record](../../stage08/scientific-state/automatic-workflow/completion_20261105.json)
+and [actual cohort](validation/full-cohort-automatic-state-run.json) retain exact
+commands, sources, origins, failures and archives. P20-D044closes; D045multicenter
+abstention and D046SCC remediation remain. Shared-host runtimes are observations,
+not speedup evidence; no new native-build or other-Python qualification follows.
 
 ## 1. Route and delivered commits
 

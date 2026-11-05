@@ -325,24 +325,6 @@ class Molecule:
         return _create_crystal(self, (a, b, c, alpha, beta, gamma),
                                space_group, site_relations, bond_images)
 
-    def setattr(self, **attrs):
-        """
-        Assigns multiple attributes to an instance from provided keyword arguments.
-
-        Each keyword argument represents an attribute name and its corresponding
-        value to be set on the instance's namespace.
-
-        Parameters:
-            **attrs: dict
-                The keyword arguments where each key is the attribute name and the
-                associated value is the value to be assigned to that attribute.
-
-        Returns:
-            None
-        """
-        for name, value in attrs.items():
-            setattr(self, name, value)
-
     @staticmethod
     def read_one(src, fmt=None, **kwargs):
         """ Just read the first Molecule instance in the src """

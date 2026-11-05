@@ -10792,3 +10792,127 @@ The coherent containing merge commit with business code/seam tests/records and
 successful normal push completes Git delivery; obtain its actual identity from
 Git and local GIT_DELIVERY receipt rather than a fabricated self-hash or an
 extra bookkeeping-only commit. Unrelated owner work remains excluded.
+
+
+### 2026-11-05 — Whole-Plan20 delivery report preparation
+
+Owner requests a detailed whole-plan delivery report covering philosophy,
+architecture, preservation/tradeoffs, additions, performance, scientific
+validation, current complete API and known issues/future work. Business delivery
+remains accepted/pushed8785a06fca063a179976ca74d6bc8cb14bcce640 on
+experiment/plan20-kekulize-aromatic-protocol. This is report preparation, not a
+new stage, implementation route, scientific calculation or acceptance gate.
+
+Root retains effective goal/governance/validation alignment and reads current
+main-plan architecture/retirement sections, Stage0–12 delivery, Stage13–15
+owning/current combined records and unified issues. Two bounded local Sol/high
+read-only tasks extract a current static API inventory and evidence tables to
+/tmp/hotpot_plan20/medium/whole-delivery-report-20261105; root authors and reviews
+the maintained report. External helper remains terminated. Reuse actual
+scoped source/installed/native/scientific/cost evidence without relabeling
+historical runs as fresh final measurements. The descriptive current API
+inventory neither repairs nor retries P20-D036's retired private checker.
+No new tests/builds/models/backend workflows are needed for unchanged business.
+Preserve the unrelated untracked owner file without reading/staging it.
+One coherent user-requested report/navigation/log commit follows the business
+merge, with explicit-path staging and normal push.
+
+
+### 2026-11-05 — Report-discovered D039 bounded retirement alignment
+
+Owner explicitly authorizes direct treatment of design defects found while
+preparing the delivery report. Direct AST/source inspection at8785a06f finds
+Molecule.setattr(self,**attrs),lines328–344, still loops over builtinsetattr;
+class has no custom__setattr__, and module tail does not transaction-wrap it.
+`git grep -n -E '\.setattr\(' HEAD -- hotpot` finds one production caller,
+GaussOut.update_mol at gaussian/gauss.py:1223. Main-plan9.4/9.6 require retirement
+of this generic mutation route. Register P20-D039 S1 OPEN; historical acceptance
+and actual chemistry/package evidence keep their executed scope. No runtime
+chemical failure was inferred from the static observation.
+
+Governance/validation alignment is retained and hotpot-stage is read for this
+local implementation of the already approved retirement. Bounded ownership:
+remove the carrier generic method, migrate the identified Gaussian consumer and
+necessary affected tests/documentation; do not introduce a moved generic setter,
+new compatibility route, invented result/charge/spin or scientific properties
+write. Explicit spin_mult and frame/charge facts already use their designated
+owners. Parsed extra Gaussian values remain available from the source report's
+parse API; classify actual downstream readers before selecting their migration.
+Use one local Sol/medium worker, exclusive business/test files; root owns final
+semantic choice/review, current API refresh, records and Git. Qualify affected
+carrier permissions, Gaussian bridge, frame/result/rollback and real supported
+imports; no model/backend/native algorithm has changed. Report actual scopes
+and preserve optional-execution limits instead of requiring a new full science
+campaign for this local interface cleanup.
+
+
+### 2026-11-05 — D040 missingness and current MCA guide clarification
+
+Connected Gaussian inspection finds parse() manufactures0eV for absent cclib
+freeenergy/zpve through getattr(...,0). Register D040 S2 OPEN and extend the same
+local worker's already exclusive Gaussian/test slice: absent optional results
+remainNone, explicit0 and existing Hartree→eV conversion remain; downstream
+observation imports already support missing values. Use actual parser-output
+fixtures, not a claim of real Gaussian execution. No new chemistry algorithm,
+result owner or speculative exception fallback.
+
+Root also corrects the MCA guide's stale broad TH/CT inversion/loss wording to
+the actual registered nativeOB TH/CT/SP and RDKitTH/CT support, retaining explicit
+SP→RDKit/unregistered rejection. Replace uncalibrated high-confidence wording
+with the actual site-filter domain. Existing source/installed/case54coordinate
+evidence supports that documentation clarification; no model/feature change.
+
+
+### 2026-11-05 — D039/D040 affected implementation and root acceptance
+
+One local Sol/medium worker removes Molecule.setattr and its sole Gaussian
+residual-attribute writer. Parsed spin/orbital energies stay at GaussOut.parse;
+tracked production has no dependent carrier reader. update_mol preserves the
+parsed dictionary and existing None return; its designated transaction body
+is AST-identical. Missing cclib freeenergy/zpve now remainNone, while explicit0
+and the same Hartree→eV factor remain. Root's MCA guide clarification changes
+no model/feature input or inference path.
+
+Actual final source command:
+`/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/setattr/run_validation.py green02`.
+Eleven affected modules:308passed/1opt-in Gaussian skip/0fail/error,18.4754s,
+CPython3.11.16. Gaussian/frame/carrier/permission/lifecycle/result/partial-charge/
+atomicity/import boundaries include real historical-log parsing and synthetic
+missing/zero/finite conversions; no Gaussian process ran. Both publication
+boundaries restore original facts/identities on RuntimeError/KeyboardInterrupt.
+Original red regressions, metadata-spelling preflight and premature rollback
+fixture snapshot failures remain attributed; no production rollback change.
+
+A separate local Sol/medium verifier creates a RECORD-verified private CP311
+repack, exactly molecule.py,gauss.py,MCA README plus RECORD changed. All six
+accepted native payloads are reused. Outside-checkout11modules first return
+304pass/4missing-support-fixture failures/1skip,27.206s. Copying unchanged
+test_constraints into a new support02 permits only those4nodes to rerun:4pass,
+1.211s. Aggregate308unique passing nodes/1same skip/0unresolved; no fictional
+single all-green full invocation. Exact setup/run commands, interpreter,
+environments, hashes and original failed ZIP setup remain in the checkpoint
+archive. Candidate wheel SHA256
+2b8ab58834260d45be8ec1117bea21761c128403018c43e16012b27d05e9ba54.
+
+Root reviews ownership/consumers/source diff and independently verifies final
+four source/test/document hashes, three JUnit results and the exact wheel
+payload delta. Source/site/support/native/interpreter identities stay stable;
+224/176main-origin observations and retained child origin records show no
+violations in the instrumented scope. Root closes D039/D040 in these tested
+source/CP311installed domains. No other-Python/fullsuite/nativebuild/model/
+engine/scientific-population/performance rerun is claimed. Historical8785a06f
+complete delivery evidence keeps its scope; current affected evidence is
+[postdelivery-interface-cleanup.json](stages/stage12/final-delivery/validation/postdelivery-interface-cleanup.json).
+Current API/report refresh follows this coherent business commit and normal
+push. Unrelated owner file remains unread and excluded.
+
+The bounded evidence archive is sealed at
+`.plan20-artifacts/20261105/overall/postdelivery-interface-cleanup/evidence.tar.gz`:
+8,911,129bytes,236members,SHA256
+94cb3a3ca4b08223787b191394ea12754e0fdf94b3ede9805c8d31b25c1f343a.
+Root independently verifies all236member sizes/hashes after creation. Original
+failed source/installed attempts, runners, exact intents, JUnit, source/native
+freeze records, child origins and the CP311candidate wheel are retained.
+Disposable sites/support copies/caches and nonevidence scratch are excluded
+with exact selection in the manifest; these exclusions make no extra business
+pass or scientific claim.

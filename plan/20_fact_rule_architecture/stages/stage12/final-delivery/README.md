@@ -238,3 +238,19 @@ qualification, comparable costs and final acceptance remain open.
 - [Final interface/owner review and deferred private checker](validation/final-interface-reconciliation.json)
 - [Main-scope fifteen-criterion acceptance](validation/main-scope-acceptance.json)
 - [Final implementation report](report.md)
+
+
+## Post-delivery interface and observation repair — 2026-11-05
+
+The [bounded followup](validation/postdelivery-interface-cleanup.json) closes
+D039/D040 found while preparing the whole-plan report. Molecule's generic
+mutation helper is retired with its Gaussian consumer; parser values retain
+their proper owner, and absent thermochemistry remains distinct from explicit
+zero. Current-source affected checks pass308with1opt-in Gaussian skip.
+CP311 installed qualification has308unique passing nodes and the same skip
+across two attributed attempts: the original four missing-support failures
+remain recorded and only those four reran after copying the unchanged fixture.
+The wheel changes three product payloads plus RECORD and reuses six accepted
+native payloads. No full-suite/matrix, Gaussian/model execution, benchmark or
+fresh native-build claim is added; preceding acceptance keeps its original
+source and support boundaries.

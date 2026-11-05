@@ -118,7 +118,8 @@ Site classification uses the ligand-skeleton SMARTS profile. Metal centres and
 atoms directly bonded to a metal are excluded from `Molecule.mca_sites`, because
 the exported MCA model was not validated for coordinated reaction sites. The
 per-atom inference result remains available through `Atom.mca`; this filter only
-controls the smaller, high-confidence site mapping.
+controls the smaller site mapping within that model-validation boundary; it is
+not a calibrated confidence score.
 
 ## Input normalization
 
@@ -136,10 +137,13 @@ charges, non-graph hydrogen counts and isotopes without a MOL2 intermediate.
 This does not change the separate limitations of explicit MOL2 I/O.
 
 Hotpot's stereo ledger retains explicit atom and bond stereochemical records,
-including records imported from RDKit. Open Babel import and projection do not
-fully transport those records. Public SMILES can lose alkene E/Z information
-or invert tetrahedral configuration;
-it should not be used as a complete stereochemical round-trip representation.
+including records imported from RDKit. Registered native Open Babel transport
+preserves the supported tetrahedral, cis/trans and square-planar declarations;
+registered RDKit projection preserves the supported tetrahedral and cis/trans
+declarations. Native square-planar-to-RDKit projection and unregistered
+families/groups reject explicitly. SMILES remains a graph presentation and is
+not a complete transport for the ledger, source history or unsupported stereo
+families; use the documented structural transport for those facts.
 RDKit is used for Uni-Mol feature generation and conformer construction. For
 an RDKit input, the original RDKit stereochemical representation is retained at
 that model feature boundary. Site detection uses Hotpot's substructure search.

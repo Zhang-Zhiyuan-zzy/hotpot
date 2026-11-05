@@ -1163,10 +1163,13 @@ class GaussOut:
             raise ValueError(f'The unit {unit} is not supported.')
 
     def parse(self):
+        """Return Gaussian values, keeping uncomputed thermochemistry absent."""
         string_buffer = io.StringIO(self.stdout)
         data = cclib.ccopen(string_buffer).parse()
 
         thermo, capacity = _extract_g16_thermo(self.stdout.splitlines())
+        gibbs = getattr(data, 'freeenergy', None)
+        zero_point = getattr(data, 'zpve', None)
         return {
             'atomic_number': data.atomnos,
             'partial_charge': data.atomcharges['mulliken'],
@@ -1175,8 +1178,8 @@ class GaussOut:
             'charge': data.charge,
             'mol_orbital_energies': np.array(data.moenergies),  # eV,
             'coordinates': data.atomcoords[-1],
-            'gibbs': getattr(data, 'freeenergy', 0) * 27.211386245988,
-            'zero_point': getattr(data, 'zpve', 0) * 27.211386245988,
+            'gibbs': None if gibbs is None else gibbs * 27.211386245988,
+            'zero_point': None if zero_point is None else zero_point * 27.211386245988,
             'spin_mult': getattr(data, 'mult', None),
             'thermo': thermo,
             'capacity': capacity,
@@ -1184,8 +1187,13 @@ class GaussOut:
         }
 
     def update_mol(self, mol):
+        """Import declared facts and scoped observations into ``mol``.
+
+        Gaussian report values such as orbital energies and the ``spin`` alias
+        remain available through :meth:`parse`.
+        """
         attrs = self.parse()
-        atomic_numbers = attrs.pop('atomic_number')
+        atomic_numbers = attrs['atomic_number']
         if (len(mol.atoms) != len(atomic_numbers)
                 or any(a.atomic_number != a_nos for a, a_nos in zip(mol.atoms, atomic_numbers))):
             raise AttributeError("The molecule calculated by Gaussian is inconsistent with what needs to be updated.")
@@ -1197,9 +1205,9 @@ class GaussOut:
 
         names = ("energy", "partial_charge", "gibbs", "force", "zero_point",
                  "spin_mult", "thermo", "capacity")
-        observations = tuple(attrs.pop(name, None) for name in names)
-        coordinates = attrs.pop("coordinates")
-        charge = attrs.pop("charge")
+        observations = tuple(attrs.get(name) for name in names)
+        coordinates = attrs["coordinates"]
+        charge = attrs["charge"]
         with _FactTransaction(mol, producer=ATOM_SOURCE_CODES["cclib"]):
             mol.coordinates = coordinates
             mol.charge = charge
@@ -1220,7 +1228,6 @@ class GaussOut:
                     mol, values[-1] if values.ndim == 2 else values,
                     producer=ATOM_SOURCE_CODES["cclib"], method="mulliken",
                 )
-        mol.setattr(**attrs)
 
     def export_mol(self):
         return next(MolReader(self.stdout, 'g16log'))

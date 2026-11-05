@@ -1,0 +1,308 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_POSTDELIVERY_REPAIR",
+  "date": "2026-11-05",
+  "defects": [
+    "P20-D039",
+    "P20-D040"
+  ],
+  "base_commit": "8785a06fca063a179976ca74d6bc8cb14bcce640",
+  "source_binding": "Base commit plus the four exact changed source/test/document identities below. The containing business commit is recorded by the subsequent delivery report; no self-referential commit hash.",
+  "changed_files": {
+    "hotpot/cheminfo/structure/molecule.py": {
+      "sha256": "d6df0cb50fb9018b152005e08193dacb9d09c88926717ba6ab441268ca318536",
+      "bytes": 90115
+    },
+    "hotpot/plugins/qm/gaussian/gauss.py": {
+      "sha256": "92d8d6c7d7506ac62c8f0ed9ecb856c3d7ba4b99de4f39b13f926005abb9c7ea",
+      "bytes": 46533
+    },
+    "tests/test_plugin/test_gaussian.py": {
+      "sha256": "7c00b4ee2e05cdd395931e9f0a380f4e6273ff4af0217c3dda2a20f5a084f327",
+      "bytes": 12529
+    },
+    "hotpot/cheminfo/operations/inference/mca/README.md": {
+      "sha256": "9827f433d11b3f268c5e3f088c8cb3d40a40adb10fcd0e78f6b1cf84925cf47f"
+    }
+  },
+  "authorization": "Owner explicitly permits direct treatment of design defects found during whole-Plan20 delivery review. This implements existing main-plan sections9.4/9.6 retirement and existing nullable-observation semantics.",
+  "expected_business_facts": [
+    "Molecule and Atom expose no generic setattr method; approved named facts and operations remain the write routes.",
+    "Gaussian coordinates, charge/spin declarations, scoped frame observations and complete Mulliken charges retain their sole owners and ordered transaction.",
+    "GaussOut.parse retains original keys, order, spin alias and orbital-energy arrays. update_mol neither consumes that dictionary nor attaches residual values to arbitrary carrier attributes or scientific properties.",
+    "Absent cclib freeenergy/zpve stay None; explicit0 remains0 and supplied Hartree values use the unchanged27.211386245988eV/Hartree conversion.",
+    "Both observation and partial-charge publication failures restore prior identities/facts/results and propagate the original RuntimeError/KeyboardInterrupt."
+  ],
+  "allowed_differences": [
+    "Approved removal of Molecule.setattr; orbital energies are queried through GaussOut.parse rather than Molecule.mol_orbital_energies. No tracked production reader requires that arbitrary attachment.",
+    "Absent thermochemistry is None in parse/frame results and the ordinary missing value in the Pandas projection, instead of an invented measured zero.",
+    "MCA guide reflects registered nativeOB TH/CT/SP and RDKitTH/CT support, explicit unsupported boundaries and model-domain site filtering; no features/model algorithm change."
+  ],
+  "rejection_conditions": [
+    "Loss/reordering of parsed values or atom mapping",
+    "Invented charge/spin/thermochemistry",
+    "Changed designated transaction body or broken rollback",
+    "Unexpected wheel member/native delta",
+    "Affected business failure or origin/source drift"
+  ],
+  "source_validation": {
+    "command": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/setattr/run_validation.py green02",
+    "pytest_argv": [
+      "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "--import-mode=importlib",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/setattr/green02/pytest-tmp",
+      "--junitxml",
+      "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/setattr/green02/junit.xml",
+      "tests/test_plugin/test_gaussian.py",
+      "tests/test_cheminfo/test_coordinate_frame_producers.py",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "tests/test_cheminfo/structure/test_interface_permissions.py",
+      "tests/test_cheminfo/structure/test_stage9_carrier_owners.py",
+      "tests/test_cheminfo/structure/test_coordinate_frames.py",
+      "tests/test_cheminfo/structure/test_coordinate_frame_lifecycle.py",
+      "tests/test_cheminfo/structure/test_selected_results.py",
+      "tests/test_cheminfo/structure/test_partial_charge_results.py",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "tests/test_cheminfo/test_import_safety.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1"
+    },
+    "interpreter": {
+      "executable": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python",
+      "resolved": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python3.11",
+      "version": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]"
+    },
+    "packages": {
+      "pytest": "9.1.1",
+      "numpy": "2.4.6",
+      "cclib": "1.8.1",
+      "rdkit": "2026.9.1",
+      "openbabel": "3.2.1"
+    },
+    "modules": [
+      "tests/test_plugin/test_gaussian.py",
+      "tests/test_cheminfo/test_coordinate_frame_producers.py",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+      "tests/test_cheminfo/structure/test_interface_permissions.py",
+      "tests/test_cheminfo/structure/test_stage9_carrier_owners.py",
+      "tests/test_cheminfo/structure/test_coordinate_frames.py",
+      "tests/test_cheminfo/structure/test_coordinate_frame_lifecycle.py",
+      "tests/test_cheminfo/structure/test_selected_results.py",
+      "tests/test_cheminfo/structure/test_partial_charge_results.py",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py",
+      "tests/test_cheminfo/test_import_safety.py"
+    ],
+    "result": {
+      "passed": 308,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 1
+    },
+    "elapsed_seconds": 18.475408820435405,
+    "changed_during_run": [],
+    "evidence_members": [
+      "setattr/green02/run.json",
+      "setattr/green02/junit.xml",
+      "setattr/static_review.json",
+      "setattr/conclusion.json"
+    ]
+  },
+  "installed_validation": {
+    "qualification": "Verified-RECORD private extraction of attributed CP311 Python/document repack outside checkout; six prior accepted CP311 native payloads reused. No fresh native-build/clean-ABI claim.",
+    "candidate_wheel": {
+      "path": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/wheels/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "2b8ab58834260d45be8ec1117bea21761c128403018c43e16012b27d05e9ba54",
+      "bytes": 7488648
+    },
+    "base_wheel": {
+      "path": "/tmp/hotpot_plan20/medium/overall-integration-20261105/installed01/wheels/cp311/hotpot_zzy-0.5.4.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl",
+      "sha256": "1ff63c3e999f98b5fecb3840f2a11c518328787a37084efb94be5eaea7b320b6",
+      "bytes": 7488548
+    },
+    "commands": {
+      "setup": "python /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/qualify.py setup",
+      "test01": "/tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -s -B /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/qualify.py run test01",
+      "test02": "HOTPOT_INSTALLED_SUPPORT=support02 HOTPOT_INSTALLED_SELECTION=failed-only-selection.json /tmp/hotpot_plan20/medium/stage9b-pyg-environment-20261104/venv/bin/python -s -B /tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/qualify.py run test02"
+    },
+    "installation": {
+      "site": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/site",
+      "method": "Verified complete RECORD then extracted to new private site and compared every extracted member byte; no shared environment/site/dependency modification",
+      "support01": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/support",
+      "support02": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/support02"
+    },
+    "result": {
+      "unique_nodes": 309,
+      "passed": 308,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 1,
+      "deselected": 0,
+      "aggregation": "304 passed in test01 plus only its 4 fixture-import failures rerun successfully in test02; no single all-green complete-suite run claimed.",
+      "attempts": {
+        "test01": {
+          "cwd": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/support",
+          "returncode": 1,
+          "elapsed_seconds": 27.20622550137341,
+          "counts": {
+            "passed": 304,
+            "failure": 4,
+            "error": 0,
+            "skipped": 1
+          }
+        },
+        "test02": {
+          "cwd": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/support02",
+          "returncode": 0,
+          "elapsed_seconds": 1.2113490402698517,
+          "counts": {
+            "passed": 4,
+            "failure": 0,
+            "error": 0,
+            "skipped": 0
+          }
+        }
+      },
+      "skip": [
+        {
+          "classname": "tests.test_plugin.test_gaussian",
+          "name": "test_official_gaussian_single_point_uses_dynamic_files",
+          "outcome": "skipped",
+          "message": "requires --run-external"
+        }
+      ]
+    },
+    "origins": {
+      "main_observations": {
+        "test01": 224,
+        "test02": 176
+      },
+      "violations": 0,
+      "evidence_member": "installed/origins-index.json"
+    },
+    "wheel_delta": "Exactly the three assigned current-source product payloads and .dist-info/RECORD; all other archive member bytes unchanged.",
+    "six_native_payloads": {
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": {
+        "base_sha256": "ac4e807e0d20548cfdc77f084169b34af40bfd4ce497e12485f1317d381f4c6b",
+        "candidate_sha256": "ac4e807e0d20548cfdc77f084169b34af40bfd4ce497e12485f1317d381f4c6b"
+      },
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": {
+        "base_sha256": "0bc48a54af619f31e12bae16b10d95cdb5abf690670fb791ce92d20af6e15848",
+        "candidate_sha256": "0bc48a54af619f31e12bae16b10d95cdb5abf690670fb791ce92d20af6e15848"
+      },
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": {
+        "base_sha256": "e65cf8de14b1c08ab66576c11b9375ae097af10c3fdb3fb5dffebce67d1d8685",
+        "candidate_sha256": "e65cf8de14b1c08ab66576c11b9375ae097af10c3fdb3fb5dffebce67d1d8685"
+      },
+      "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": {
+        "base_sha256": "ac64084c071c59aae14ecf12bcc697cd966eecdff1211f85e62fafb2249ccccd",
+        "candidate_sha256": "ac64084c071c59aae14ecf12bcc697cd966eecdff1211f85e62fafb2249ccccd"
+      },
+      "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": {
+        "base_sha256": "e1b65924a2baf862144c9e06f0bf14b9dd5ee96890a0c04fa80bbea827ce2fc6",
+        "candidate_sha256": "e1b65924a2baf862144c9e06f0bf14b9dd5ee96890a0c04fa80bbea827ce2fc6"
+      },
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": {
+        "base_sha256": "386e743c129f75e89d662fdce34b751d3eee5da205ad9c42a062e42b95b0ca16",
+        "candidate_sha256": "386e743c129f75e89d662fdce34b751d3eee5da205ad9c42a062e42b95b0ca16"
+      }
+    },
+    "freeze": "Source, installed/support/wheel/native/interpreter hashes unchanged through both attempts; no single all-green complete installed run claimed.",
+    "evidence_members": [
+      "installed/SUMMARY.json",
+      "installed/repack.json",
+      "installed/test01/intent.json",
+      "installed/test01/run.json",
+      "installed/test01/junit.xml",
+      "installed/test02/intent.json",
+      "installed/test02/run.json",
+      "installed/test02/junit.xml",
+      "installed/support02-change.json"
+    ]
+  },
+  "skip": "tests/test_plugin/test_gaussian.py::test_official_gaussian_single_point_uses_dynamic_files — requires --run-external",
+  "scientific_observations": {
+    "scope": "Parsing/import of one attributed historical Gaussian output plus synthetic cclib data; no claim of independent chemical accuracy, new calculation or universal scientific truth.",
+    "input": {
+      "source": {
+        "path": "/home/zhangzhiyuan/hotpot/tests/input/Am_BuPh-BPPhen.log",
+        "sha256": "5bbdf3c5d3d661e5633643de3ba75332bb1c6aa64969e991357574c8290a1472",
+        "bytes": 4757474
+      },
+      "copy": {
+        "path": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/support/tests/input/Am_BuPh-BPPhen.log",
+        "sha256": "5bbdf3c5d3d661e5633643de3ba75332bb1c6aa64969e991357574c8290a1472",
+        "bytes": 4757474
+      }
+    },
+    "fixture_checks": "73 atoms; force array (54,73,3); finite coordinates/forces/orbital energies; energy -60574.40216122108 eV (abs1e-8), Gibbs -60560.09243823103 eV (abs1e-8), ZPE16.2662864132 eV (abs1e-9), capacity0.00616935257 (rel1e-8). Actual parser plus import/update checks passed; existing test values/tolerances retained.",
+    "history": "Unequal coordinate/observation histories retained raw with explicit frame_observation_unmapped findings; no invented mapping.",
+    "presence": "Synthetic absent freeenergy/zpve stay None; supplied zero stays0; -.25/.125 Hartree conversion uses27.211386245988 eV/Hartree. Actual parser->series->update and frame producer boundaries passed."
+  },
+  "original_failures": {
+    "source": [
+      {
+        "path": "red/preflight_failure.txt",
+        "classification": "Harness metadata distribution spelling, before pytest; existing Conda distribution openbabel corrected; no environment change."
+      },
+      {
+        "path": "red01/run.json",
+        "result": "2 failed, 1 passed",
+        "classification": "Expected baseline regression: original generic Molecule.setattr remains and update_mol consumes the parsed dictionary."
+      },
+      {
+        "path": "green01/run.json",
+        "result": "4 failed, 301 passed, 1 skipped",
+        "classification": "New rollback fixture read atom_matrix after freezing attachments; it materialized implicit H before Gaussian execution. Separate probe reproduced frame invalidation without update_mol. Fix prepares representation before attachments; no rollback production change."
+      },
+      {
+        "path": "thermo-red01/run.json",
+        "result": "1 failed, 2 passed",
+        "classification": "Expected D040 baseline: missing freeenergy/zpve returned invented (0,0); explicit zero and finite conversions passed."
+      }
+    ],
+    "installed": [
+      {
+        "record": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/setup-failed01/failure.json",
+        "result": "Initial setup failed after candidate RECORD verification when shared mutable ZipInfo offsets invalidated original archive comparison; no tests executed. Entire original attempt retained; harness copied ZipInfo on fresh setup."
+      },
+      {
+        "record": "/tmp/hotpot_plan20/medium/whole-delivery-report-20261105/installed/test01/run.json",
+        "result": "4 failed/304 passed/1 skip: four test_commit_atomicity cases could not import unchanged test_constraints fixture from incomplete support copy. Original support and outputs retained; fixture copied verbatim to support02 and only those four cases rerun; all4passed."
+      }
+    ]
+  },
+  "root_review": {
+    "decision": "CLOSE_D039_D040_IN_TESTED_SOURCE_AND_CP311_INSTALLED_SCOPE",
+    "inspection": "Root reviewed connected producer/reader ownership, minimal source diff and tests, independently verified current four hashes, three JUnit outcomes, exact wheel member delta and candidate payloads. Complete designated transaction body remains AST-identical.",
+    "evidence_member": "root-review.json",
+    "wider_evidence": "8785a06f complete default/matrix/science evidence remains attributed to its original bytes; unchanged business scope is reused. These focused followups are the current changed-boundary evidence."
+  },
+  "coverage_limits": [
+    "CP311 only; no new other-Python matrix, full/default suite, independent benchmark/performance claim or full-science campaign.",
+    "No Gaussian executable launched; the only external test requires --run-external and stayed skipped. No model or calculation engine run.",
+    "No native rebuild, clean SDK/standalone or new full ABI qualification. Reused six native payload hashes and affected installed execution only.",
+    "README payload identity/retired canonical_set wording checked; no MCA model inference repeated.",
+    "No required affected business nodes deselected; single historical log and synthetic boundaries do not establish population chemistry behavior."
+  ],
+  "archive": {
+    "directory": ".plan20-artifacts/20261105/overall/postdelivery-interface-cleanup",
+    "manifest": "manifest.json",
+    "archive": "evidence.tar.gz",
+    "bytes": 8911129,
+    "sha256": "94cb3a3ca4b08223787b191394ea12754e0fdf94b3ede9805c8d31b25c1f343a",
+    "members": 236,
+    "status": "SEALED_MEMBER_HASH_VERIFIED",
+    "exclusions": "Disposable sites/support copies, caches and non-evidence pytest scratch; evidence records and subprocess origin results are retained. See manifest for exact selection."
+  },
+  "delivery": "Normal coherent business commit/push; full report and current API refresh follow separately without new business changes."
+}

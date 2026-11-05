@@ -47,6 +47,41 @@ HOTPOT_RDKIT_OFFLINE=1 \
 A fully offline build requires all six archives to be present in that cache.
 The archives are intentionally not committed to Git.
 
+## Local source and editable builds
+
+Ordinary source and editable builds select the `local` profile by default. From
+the repository root, an editable install is:
+
+```bash
+HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot_plan20/long/rdkit-source-cache \
+  python -m pip install -e .
+```
+
+The PEP 517 build environment supplies the declared CMake (`==4.4.3`), Ninja,
+and Python build dependencies. The local profile resolves those tools and the
+`cc`/`c++` compiler commands from the current build `PATH`; `CC` and `CXX` may
+select a command name or executable path, without embedded flags. Compilers
+must support C++20, and Linux x86-64 is required. Set
+`CMAKE_BUILD_PARALLEL_LEVEL` to limit build concurrency; without it Ninja uses
+its default.
+
+Setuptools fetches or verifies the same six locked archives before calling the
+offline build driver. For a direct source build, populate the cache with the
+fetcher above, then run:
+
+```bash
+hotpot/cheminfo/rdWrappers/build_locked.sh \
+  /tmp/hotpot_plan20/long/rdkit-source-cache \
+  /tmp/hotpot_plan20/medium/rdwrapper-local-work \
+  python3
+```
+
+`HOTPOT_RDKIT_OFFLINE=1` also makes the initial setuptools fetch verification-only
+when the cache is already populated. Local artifacts belong to the selected
+local environment and do not establish release wheel or standalone SDK
+qualification. Selecting `probe` or `manylinux_2_28_x86_64` explicitly retains
+its strict toolchain checks; a failed explicit profile does not select `local`.
+
 ## Reproduce the Phase-1 closure probe
 
 The checked-in explicit Conda specification is for this Linux x86_64 probe,
@@ -54,16 +89,16 @@ not for release wheels. The chosen prefix is disposable and is not an ABI or
 path contract. The same locked build driver uses the strict `probe` profile:
 
 ```bash
-conda create --prefix /tmp/hotpot-rdkit-toolchain \
+conda create --prefix /tmp/hotpot_plan20/long/rdkit-toolchain \
   --file third_party/rdkit/probe-toolchain-linux-64.explicit.txt
 
 HOTPOT_RDWRAPPERS_BUILD_PROFILE=probe \
-HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX=/tmp/hotpot-rdkit-toolchain \
+HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX=/tmp/hotpot_plan20/long/rdkit-toolchain \
 HOTPOT_RDKIT_OFFLINE=1 \
   third_party/rdkit/run_distgeom_probe.sh \
   /path/to/rdkit-source-cache \
-  /tmp/hotpot-rdkit-probe-work \
-  /tmp/hotpot-rdkit-toolchain
+  /tmp/hotpot_plan20/medium/rdkit-probe-work \
+  /tmp/hotpot_plan20/long/rdkit-toolchain
 ```
 
 The work directory must be absent or empty. The script validates GCC 14.3.0,
@@ -87,10 +122,10 @@ To build rdWrapper itself with that probe toolchain, use:
 
 ```bash
 HOTPOT_RDWRAPPERS_BUILD_PROFILE=probe \
-HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX=/tmp/hotpot-rdkit-toolchain \
+HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX=/tmp/hotpot_plan20/long/rdkit-toolchain \
   hotpot/cheminfo/rdWrappers/build_locked.sh \
   /path/to/rdkit-source-cache \
-  /tmp/hotpot-rdwrapper-work \
+  /tmp/hotpot_plan20/medium/rdwrapper-probe-work \
   python3
 ```
 
@@ -126,7 +161,7 @@ profile can be invoked only from that image:
 HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64 \
   hotpot/cheminfo/rdWrappers/build_locked.sh \
   /path/to/rdkit-source-cache \
-  /tmp/hotpot-rdwrapper-release-work \
+  /tmp/hotpot_plan20/medium/rdwrapper-release-work \
   /opt/python/cp311-cp311/bin/python
 ```
 

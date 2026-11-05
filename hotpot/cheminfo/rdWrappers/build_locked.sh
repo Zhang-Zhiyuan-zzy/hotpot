@@ -9,7 +9,7 @@ fi
 source_cache=$(realpath -m "$1")
 work_dir=$(realpath -m "$2")
 python_command=${3:-python3}
-build_profile=${HOTPOT_RDWRAPPERS_BUILD_PROFILE:-probe}
+build_profile=${HOTPOT_RDWRAPPERS_BUILD_PROFILE:-local}
 script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 repository_root=$(realpath "$script_dir/../../..")
 lock_dir="$repository_root/third_party/rdkit"
@@ -34,16 +34,24 @@ require_equal() {
 
 require_command() {
     local name=$1
+    local label=${2:-required command}
     local resolved
     resolved=$(command -v "$name" || true)
     if [[ -z "$resolved" ]]; then
-        echo "required command is unavailable: $name" >&2
+        echo "$label is unavailable: $name" >&2
         exit 1
     fi
     realpath "$resolved"
 }
 
 case "$build_profile" in
+    local)
+        cmake=$(require_command cmake "local CMake command")
+        ninja=$(require_command ninja "local Ninja command")
+        cc=$(require_command "${CC:-cc}" "local C compiler")
+        cxx=$(require_command "${CXX:-c++}" "local C++ compiler")
+        sanitized_path="$PATH"
+        ;;
     probe)
         if [[ -z ${HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX:-} ]]; then
             echo \
@@ -114,7 +122,7 @@ case "$build_profile" in
     *)
         echo \
             "unsupported rdWrappers build profile: $build_profile " \
-            "(expected probe or manylinux_2_28_x86_64)" >&2
+            "(expected local, probe or manylinux_2_28_x86_64)" >&2
         exit 1
         ;;
 esac
@@ -266,7 +274,7 @@ else
 fi
 
 export PATH="$sanitized_path"
-unset CONDA_PREFIX CONDA_DEFAULT_ENV PYTHONPATH CMAKE_PREFIX_PATH LD_LIBRARY_PATH
+unset CONDA_PREFIX CONDA_DEFAULT_ENV CMAKE_PREFIX_PATH LD_LIBRARY_PATH
 
 "$cmake" "${configure_args[@]}" 2>&1 | tee "$work_dir/build/configure-output.txt"
 if grep -E '^Downloading ' "$work_dir/build/configure-output.txt"; then
@@ -285,7 +293,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     echo "at least one rdWrappers artifact must be enabled" >&2
     exit 1
 fi
-"$cmake" --build "$work_dir/build" --target "${targets[@]}" --parallel
+"$cmake" --build "$work_dir/build" --target "${targets[@]}"
 
 if [[ -n "$install_component" ]]; then
     "$cmake" \

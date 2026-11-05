@@ -1,0 +1,271 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_LOCAL_EDITABLE_REPAIR",
+  "date": "2026-11-05",
+  "issue": "P20-D041",
+  "base_commit": "9aa89be895e05e15f8123e30f8f2d11745eac422",
+  "source_binding": "Base commit plus changed file identities. Native build binds the frozen tracked-source copy; final Open Babel test binds its separate corrected fixture. Maintained logs and issue dispositions are subsequent records, not compiled inputs.",
+  "changed_files": {
+    "hotpot/cheminfo/rdWrappers/build_locked.sh": {
+      "sha256": "79c42cbec35df90979f4174e3caaf569e97f915649b9b1e6f37c31db4c86c5e5",
+      "bytes": 10257
+    },
+    "pyproject.toml": {
+      "sha256": "b59c9097caf8aa93566fa6d924f504f64af65dccd8e40f0fa17198228ee98ebf",
+      "bytes": 5498
+    },
+    "tests/test_packaging/test_rdwrapper_build.py": {
+      "sha256": "92325b992e4531970ed69fed7318f6be45e107744d69bc3c181fe0c78315686e",
+      "bytes": 11717
+    },
+    "tests/test_cheminfo/obWrappers/test_native_engine_contract.py": {
+      "sha256": "1cf1832048c687a92be1f6df200400d0cfd836f2ed9545eb2a1cf7a3add7e6d2",
+      "bytes": 7776
+    },
+    "hotpot/cheminfo/rdWrappers/_native/BUILDING.md": {
+      "sha256": "b0703c40399f0d5734bcc8f51b524233dee621bbd45bac530a37105499dfeee6",
+      "bytes": 3552
+    },
+    "third_party/rdkit/README.md": {
+      "sha256": "595db355af9490f6a88d907adc6238de75aa3f2b810a72ee17f208b83839671c",
+      "bytes": 7147
+    }
+  },
+  "behavior": [
+    "Ordinary source/editable builds default to the local toolchain profile and honor CC/CXX executable selections without requiring HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX.",
+    "PEP517 declares CMake4.4.3 and retains its isolated Python import path for CMake/Ninja launchers.",
+    "CMAKE_BUILD_PARALLEL_LEVEL controls requested concurrency; no permanent resource cap is introduced.",
+    "Explicit probe/release exact version checks and all six locked source archives remain. Native algorithms, source lock, model encoding and public chemical APIs are unchanged.",
+    "The low-level Open Babel test initializes its actual-use dependency through the existing production loader; all assertions and parameters are retained."
+  ],
+  "profile_and_packaging_checks": {
+    "command": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/implementation-attempt2/after-fix-pytest-tmp",
+      "tests/test_packaging/test_rdwrapper_build.py",
+      "tests/test_packaging/test_github_workflows.py",
+      "tests/test_packaging_metadata.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "passed": 33,
+    "returncode": 0,
+    "shell_syntax_returncode": 0,
+    "evidence": ".plan20-artifacts/20261105/packaging/editable-install/root-acceptance/implementation-attempt2"
+  },
+  "retained_failures": [
+    {
+      "kind": "editable_attempt01",
+      "returncode": 1,
+      "elapsed_seconds": 374.681752,
+      "cause": "Cleared PYTHONPATH prevents pip-isolated CMake launcher from importing cmake",
+      "evidence": ".plan20-artifacts/20261105/packaging/editable-install/attempt-01"
+    },
+    {
+      "kind": "new_operational_regression_before_fix",
+      "cause": "Same isolated launcher import failure; corrected driver passes configure/build calls",
+      "evidence": ".plan20-artifacts/20261105/packaging/editable-install/root-acceptance/implementation-attempt2/before-fix-check.json"
+    },
+    {
+      "kind": "attempt02_bare_test_collection",
+      "returncode": 2,
+      "executed_tests": 0,
+      "cause": "Test bypasses existing Open Babel initialization and directly imports private extension in editable layout",
+      "evidence": "attempt-02/evidence.tar.gz: editable-native-tests.log/xml"
+    }
+  ],
+  "actual_editable_build": {
+    "argv": [
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/venv/bin/python",
+      "-m",
+      "pip",
+      "install",
+      "--no-deps",
+      "-v",
+      "--log",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/pip-internal.log",
+      "-e",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy"
+    ],
+    "cwd": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02",
+    "returncode": 0,
+    "elapsed_seconds": 252.08453329652548,
+    "interpreter": "CPython3.11.16; private venv from /home/zhangzhiyuan/usr/conda3/envs/hp-usage",
+    "normal_pep517_isolation": true,
+    "environment": {
+      "CC": "/tmp/hotpot-rdkit-toolchain/bin/x86_64-conda-linux-gnu-gcc",
+      "CXX": "/tmp/hotpot-rdkit-toolchain/bin/x86_64-conda-linux-gnu-g++",
+      "CMAKE_BUILD_PARALLEL_LEVEL": "16",
+      "HOTPOT_RDKIT_SOURCE_CACHE": "/tmp/hotpot-plan17-release-cache",
+      "HOTPOT_RDKIT_OFFLINE": "1",
+      "PIP_NO_INDEX": "1",
+      "PIP_FIND_LINKS": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/wheelhouse"
+    },
+    "explicitly_unset": [
+      "HOTPOT_RDWRAPPERS_BUILD_PROFILE",
+      "HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX",
+      "PYTHONPATH"
+    ],
+    "build_dependencies": [
+      "setuptools81.0.0",
+      "wheel0.48.0",
+      "pybind11 3.1.0",
+      "CMake4.4.3",
+      "Ninja1.13.2",
+      "OpenBabel3.2.1",
+      "packaging26.3"
+    ],
+    "source_manifest_sha256": "2d6ecc901b9cfeddd173167b78bb3ba22a7dabd5d9944b251c6469d1585626c1",
+    "tracked_files": 2487,
+    "prebuilt_native_inputs": 0,
+    "copied_tracked_source_mutations": 0,
+    "editable_wheel": {
+      "path": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/tmp/pip-ephem-wheel-cache-4_srae9h/wheels/dc/2b/fd/03e0da2500b552ccfa062ea8f9a21c4d4b90229114ef4e6222/hotpot_zzy-0.5.4.5-0.editable-cp311-cp311-linux_x86_64.whl",
+      "sha256": "bb6d91e481870a9822358298076bc801d6d728e7cde3b9da8f24374393eba0cc",
+      "size": 14889
+    }
+  },
+  "runtime": {
+    "core_smoke": {
+      "name": "installed-core",
+      "argv": [
+        "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/venv/bin/python",
+        "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_packaging/installed_package_smoke.py",
+        "core"
+      ],
+      "cwd": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02",
+      "returncode": 0,
+      "elapsed_seconds": 3.0089062191545963,
+      "unset": [
+        "LD_LIBRARY_PATH",
+        "PYTHONPATH",
+        "HOTPOT_RDWRAPPERS_BUILD_PROFILE",
+        "HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX"
+      ]
+    },
+    "six_rebuilt_native_origins": {
+      "hotpot.cheminfo.rdWrappers._rd_native": {
+        "path": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "4f1117c88c9a1e40f2b76496c3686d48a8fc0335ef030dd082215831d435d653",
+        "size": 5499840
+      },
+      "hotpot.cheminfo.structure._fact_native": {
+        "path": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "6c8da7470f6740303cd6f1d7723a1e3ea6c2f17611c53c6033eef57aa9fc2b73",
+        "size": 415384
+      },
+      "hotpot.cheminfo.adapters.native.substructure._search_native": {
+        "path": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "777f464c7ea144bf1239c91ea12217055b06b8b0edff300f9298d60ac64a592c",
+        "size": 518168
+      },
+      "hotpot.cheminfo.rules.mathematics.geometry._geometry_native": {
+        "path": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "172c039328c606d023c59122086be93c78a757cba6475667211617942aa7abc3",
+        "size": 1255368
+      },
+      "hotpot.cheminfo.rules.mathematics.graph._graph_native": {
+        "path": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "ec96c9fa967ae26ed5f91b4a374e3c6931c7172b98a545e984921ed20d34b9a8",
+        "size": 357720
+      },
+      "hotpot.cheminfo.obWrappers._ob_native": {
+        "path": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "fc6bcc80f8b87b89d4ef78831c31d4bbbae119b4ff373a14473a8fdb5577e7db",
+        "size": 2936832
+      }
+    },
+    "runtime_info": {
+      "hotpot_version": "0.5.4.5",
+      "rdkit_version": "2026.09.1",
+      "native": true
+    },
+    "ld_library_path_unset": true,
+    "libraries": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/libgcc_s.so.1",
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/libstdc++.so.6.0.34",
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib/libopenbabel.so.8"
+    ],
+    "hp_usage_runtime_dependencies": {
+      "declared": 21,
+      "missing": 0,
+      "out_of_declared_range": 0
+    }
+  },
+  "final_plain_pytest": {
+    "argv": [
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/venv/bin/python",
+      "-m",
+      "pytest",
+      "--basetemp",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/fixture-validation/pytest-tmp",
+      "-q",
+      "--import-mode=importlib",
+      "-p",
+      "no:cacheprovider",
+      "--junitxml=/tmp/hotpot_plan20/medium/editable-build-fix-20261105/fixture-validation/fixture-native-tests.xml",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/rdWrappers/test_native_binding.py",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/graph/test_native_interface.py",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/graph/test_native_cycle_basis.py",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/geometry/test_native_primitives.py",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/fixture-validation/test_native_engine_contract.py",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/structure/test_fact_native.py::test_standalone_uses_same_native_post_store_restorer",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/structure/test_fact_native.py::test_public_native_post_store_failure_restores_every_owner",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/structure/test_fact_native.py::test_raw_float64_bits_survive_native_scalar_and_bulk",
+      "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/source-copy/tests/test_cheminfo/structure/test_fact_native.py::test_compiled_assignment_descriptor_binds_self"
+    ],
+    "cwd": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/fixture-validation",
+    "unset": [
+      "LD_LIBRARY_PATH",
+      "PYTHONPATH",
+      "HOTPOT_RDWRAPPERS_BUILD_PROFILE",
+      "HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX"
+    ],
+    "pre_initialization": null,
+    "returncode": 0,
+    "elapsed_seconds": 1.7891425136476755,
+    "junit_totals": {
+      "tests": 151,
+      "errors": 0,
+      "failures": 0,
+      "skipped": 0
+    },
+    "counts_by_classname": {
+      "tests.test_cheminfo.rdWrappers.test_native_binding": 17,
+      "tests.test_cheminfo.graph.test_native_interface": 1,
+      "tests.test_cheminfo.graph.test_native_cycle_basis": 60,
+      "tests.test_cheminfo.geometry.test_native_primitives": 17,
+      "": 18,
+      "tests.test_cheminfo.structure.test_fact_native": 38
+    },
+    "six_native_modules_unchanged": true,
+    "corrected_test_sha256": "1cf1832048c687a92be1f6df200400d0cfd836f2ed9545eb2a1cf7a3add7e6d2",
+    "evidence": ".plan20-artifacts/20261105/packaging/editable-install/root-acceptance/fixture-validation"
+  },
+  "compiler_prerequisite": {
+    "observed_host_gcc": "9.4.0; rejects -std=c++20",
+    "tested_compiler": "GCC/G++14.3.0; accepts actual std::map::contains C++20 preflight",
+    "evidence": ".plan20-artifacts/20261105/packaging/editable-install/root-acceptance/compiler-preflight/result.json",
+    "shared_environment_action": "Provide a C++20 compiler through the hp-usage environment or CC/CXX before running the original command. Shared environment install was not executed: its prefix is outside the writable sandbox."
+  },
+  "coverage_limits": [
+    "CP311 Linux x86_64 local editable evidence, with GCC14.3 and current hp-usage runtime. It is not a new regular-wheel, sdist, manylinux, other-Python-ABI or standalone SDK qualification.",
+    "No scientific-population or comparative-performance claim; 252.085s is one observed build duration.",
+    "Original failed build/collection are retained; final fixture uses plain python -m pytest without external pre-initialization.",
+    "Setuptools deleted temporary backend CMake trees; build stdout, input identities and six rebuilt binaries remain in the artifact archive.",
+    "The shared hp-usage environment and maintained checkout native binaries were not modified."
+  ],
+  "evidence_index": {
+    "artifact_root": ".plan20-artifacts/20261105/packaging/editable-install",
+    "attempt02_archive": {
+      "path": "attempt-02/evidence.tar.gz",
+      "bytes": 4149932,
+      "sha256": "931910c8e7c31673fbb4ac75966fcfdfceb285604d805d06e158f90bd31ee6bd"
+    },
+    "root_acceptance_manifest": ".plan20-artifacts/20261105/packaging/editable-install/root-acceptance/manifest.json"
+  }
+}

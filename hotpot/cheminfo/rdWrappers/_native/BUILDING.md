@@ -13,10 +13,31 @@ hotpot/cheminfo/rdWrappers/build_locked.sh \
   /path/to/python
 ```
 
-The source cache and new empty work directory are required. Python is required
-unless `HOTPOT_RDWRAPPERS_BUILD_PYTHON=OFF`; it must be CPython 3.10-3.14 with
+The source cache and new empty work directory are required. The default `local`
+profile uses CMake, Ninja, and the `cc`/`c++` compiler commands on the current
+build `PATH`. Set `CC` and `CXX` to a command name or executable path to choose
+other compilers; shell command strings with flags are not accepted. The compiler
+must support C++20 and the build currently requires Linux x86-64.
+`CMAKE_BUILD_PARALLEL_LEVEL` sets the build concurrency when supplied; otherwise
+Ninja chooses its default.
+
+For an ordinary editable install, run this from the repository root:
+
+```bash
+HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot_plan20/long/rdkit-source-cache \
+  python -m pip install -e .
+```
+
+PEP 517 build isolation supplies CMake, Ninja, pybind11, and the other declared
+build dependencies. The setuptools build verifies or fetches all six pinned
+archives into the cache before invoking the same offline driver. To build
+without network access, populate the cache first and add `HOTPOT_RDKIT_OFFLINE=1`
+to the install command. Local artifacts reflect the selected environment; they
+do not establish the strict probe, release wheel, or standalone SDK qualification.
+
+Python is required unless `HOTPOT_RDWRAPPERS_BUILD_PYTHON=OFF`; it must be CPython 3.10-3.14 with
 pybind11 3 installed. The driver never resolves Python for an SDK-only build.
-The strict local probe selects its pinned toolchain through
+The strict closure probe selects its pinned toolchain through
 `HOTPOT_RDWRAPPERS_BUILD_PROFILE=probe` and
 `HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX`; the exact invocation is documented in
 `third_party/rdkit/README.md`. Release wheels use the separately pinned

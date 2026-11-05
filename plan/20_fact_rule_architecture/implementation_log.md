@@ -10981,3 +10981,124 @@ signature, source or chemistry changes. Repeated affected static API link/
 anchor/source inspection remains1353links/526modules/0errors/mismatches.
 The original formatting result is retained in the delivery-report archive;
 final staging verifies whitespace separately before the normal commit.
+
+
+### 2026-11-05 — Ordinary editable-install profile repair alignment
+
+Owner reports actual hp-usage CP311 command `cd ~; pip install -e hotpot`
+fails with probe profile requires HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX. At
+9aa89be895e05e15f8123e30f8f2d11745eac422, setup.py calls build_locked.sh
+without a profile override; the driver defaults to the historical strictprobe
+that demands a separately provisioned GCC14.3/CMake3.31.8/Ninja1.12.1 prefix.
+PEP517 build requirements supply Ninja but not CMake. No environment profile
+override is set in the active hp-usage shell. This is a demonstrated ordinary
+installation defect, not a chemistry/runtime finding.
+
+Root retains effective-goal and main-plan Stage10/packaging direction, reads
+governance/stage/validation skills and both governance references, and inspects
+setup, pyproject, locked-source driver/fetcher, wrapper build guide, exact
+source/toolchain contracts and existing packaging tests. No RDKit/source-lock
+or release-container/version change is authorized or needed. Bounded route:
+ordinary builds explicitly default to a local host-toolchain profile; explicit
+probe and manylinux release profiles keep exact checks. Build isolation must
+provide CMake as a declared tool dependency. Retain one source-locked CMake
+implementation, Python/native outputs and all chemistry/model behavior.
+Honor normal CMake parallel-level control rather than an unbounded bare
+parallel override. No silent fallback when an explicit profile/tool is wrong.
+
+Expected: default editable build needs no HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX,
+uses declared build tools plus local CC/CXX, and preserves six locked archives,
+source features and explicit release/probe gates. Validate meaningful profile
+regressions plus an actual isolated CP311 PEP517 editable build and native
+smokes outside the maintained checkout. Preserve failed attempts and original
+source/native/shared-environment bytes. Source cache, build dependencies and
+actual hardware/resources are attributed; no private-prefix installation into
+shared hp-usage or overwritten checkout binaries is needed for evidence.
+A local Sol/medium writer owns the bounded driver/build metadata/tests/guides;
+root owns design acceptance, validation, records, commit and normal push.
+The unrelated owner file remains unread and excluded.
+
+
+### 2026-11-05 — Actual isolated editable failure and environment correction
+
+The first CP311 PEP517 editable attempt uses an isolated tracked-source copy,
+a private hp-usage-derived venv, the six verified cached archives, GCC14.3,
+default local profile and 16 compile jobs. Build dependency resolution succeeds
+including CMake4.4.3. The actual configured CMake console launcher then fails
+with ModuleNotFoundError: cmake: build_locked.sh removes PYTHONPATH, which pip
+uses to supply isolated build dependencies. Original attempt and source hashes
+remain at /tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation/.
+No native compilation or installation succeeded in that attempt.
+
+Root corrects that demonstrated environment defect by preserving PYTHONPATH
+for build-tool launchers, with the remaining environment filtering, explicit
+probe/release version checks and source closure intact. This is required for
+Python-distributed CMake under declared build isolation, not a dependency
+fallback. A medium local writer owns only driver and focused regression test;
+real editable validation waits for frozen corrected bytes. Host GCC9.4 also
+rejects actual C++20 std::map::contains preflight; selected GCC14.3 passes.
+All21 declared runtime dependencies already satisfy project ranges in shared
+hp-usage, which remains untouched. Compiler prerequisite and actual tested
+scope must remain explicit in delivery.
+
+
+### 2026-11-05 — Editable build passes; native-test startup alignment
+
+Corrected bytes complete the actual isolated editable installation in252.085s
+with normal PEP517 isolation, a recorded offline dependency wheelhouse, the
+same six locked sources, default local profile and GCC14.3. All six newly
+compiled module origins and the packaging core smoke pass without private
+LD_LIBRARY_PATH; selected libstdc++/libgcc/OpenBabel libraries belong to the
+existing hp-usage runtime. No shared environment was installed or changed.
+
+The initial native selection stops during collection: test_native_engine_contract
+imports _ob_native directly before initializing OpenBabel, so source/editable
+layout cannot find libopenbabel.so.8 via the wheel-relative RPATH. Root inspects
+the existing native._native_module loader, which already initializes the
+selected toolkit at actual native use. All151 checks pass after invoking this
+existing boundary. Both original failure and that passing observation remain.
+Root chooses a small test-only startup correction to use that owning loader,
+retaining all18 low-level assertions and avoiding production/RPATH changes.
+A fresh process must run the same151 checks without external pre-initialization
+or library-path overrides. Production/native bytes stay frozen; the updated
+test gets a separate explicit evidence binding. This is part of P20-D041's
+bounded installation validation, not new chemistry or release qualification.
+
+
+### 2026-11-05 — P20-D041 bounded repair acceptance and Git checkpoint
+
+Root reviews the driver/metadata/guides, actual build failure and correction,
+new operational regression, six native origins/runtime libraries, final test
+startup correction and unchanged assertions. Final normal python -m pytest
+runs the same151 selected cases without external pre-initialization or
+LD_LIBRARY_PATH:151passed/0failed/errors/skips. It includes17RDKit,61graph,
+17geometry,18OBengine and38selected native-fact atomicity/representation cases.
+The six rebuilt module identities remain unchanged. Actual PEP517 editable
+build succeeds in252.085s; core smoke passes outside the checkout. The33
+packaging/profile/workflow checks and shell syntax pass. No broad repeat of
+unchanged chemistry/version/release evidence is claimed.
+
+P20-D041 closes for this scoped packaging defect. The original374.682s failed
+build, failed bare collection, initialized passing run and corrected plain
+run remain distinct. The ordinary compiler prerequisite is explicit: host
+GCC9.4 rejects C++20; tested GCC14.3 works against existing hp-usage runtime
+libraries. Shared hp-usage and main-checkout native binaries were not modified;
+the sandbox cannot write the shared environment prefix. All21 runtime
+dependencies already satisfy declared ranges. A user-provisioned C++20
+compiler or explicit CC/CXX selection is required for the original command.
+
+Exact argv/environment/source/native/wheel identities, coverage limits and
+artifact index are in stages/stage12/final-delivery/validation/
+editable-install-profile-repair.json. Compact raw evidence stays under ignored
+.plan20-artifacts/20261105/packaging/editable-install; all new temporary work
+uses /tmp/hotpot_plan20/medium. No native scientific source, source lock,
+model encoding, public chemical API or release-version condition changed.
+No new release/SDK/other-ABI/performance acceptance is granted. Root now
+stages only the coherent repair and its records, checks whitespace and sends
+the small fix commit by normal push; its final SHA is resolved from Git.
+
+A private root receipt check initially expects booleanFalse where the receipt
+uses null for no pre-initialization. That checker failure is archived; the
+corrected check verifies actual plain-pytest argv, unset Python/library paths,
+all six changed input hashes and the4.15MB raw archive identity:PASS.
+No product test or build result changes.

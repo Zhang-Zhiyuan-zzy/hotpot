@@ -3,16 +3,16 @@
 from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
-from importlib import import_module
 
 import numpy as np
 import pytest
 
 from hotpot import read_mol
+from hotpot.cheminfo.obWrappers.native import _native_module
 from hotpot.cheminfo.obWrappers.packing import _pack_molecule
 
 
-native = import_module("hotpot.cheminfo.obWrappers._ob_native")
+native = _native_module()
 
 
 def _native_molecule(smiles: str = "CC"):

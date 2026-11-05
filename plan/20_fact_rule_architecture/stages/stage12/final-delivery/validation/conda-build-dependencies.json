@@ -1,0 +1,225 @@
+{
+  "status": "ROOT_ACCEPTED_BOUNDED_CONDA_SOURCE_BUILD_DEPENDENCIES",
+  "date": "2026-11-05",
+  "issue": "P20-D041",
+  "base_commit": "f56b621bb624dae0cb98b1044fbd7f8fcbe8d112",
+  "scope": "Linux x86-64 CP311 source/editable installation; packaging declarations and guides only.",
+  "changed_input_sha256": {
+    "environment.yml": "29bb18eb23e6a9a960ceb96bba10d5111bffc6ebb07c59fbf416ec65f1404cfd",
+    "requirements.txt": "e575cb0bdeb16342caf34cda2a9cf7e5e856c5d19e815b419042e92b4cadeb78",
+    "README.md": "d75f9e2499f67925e7c0b79d3d3926798a70022cace3205693132a4d119e9967",
+    "MANIFEST.in": "ed478a94735e13ca1db50ea5f958c103661d8e3171d9b7bf3e68407d02913606",
+    "tests/test_packaging_metadata.py": "1b751b797d21af3bffff1b0bda9e8bcee06ecd92bd6f7d39bdb1c939c3d578c8",
+    "hotpot/cheminfo/rdWrappers/_native/BUILDING.md": "390a057759a391074fe851ff5cb4d6de1f3356cda35657d11a337e22316a764d",
+    "third_party/rdkit/README.md": "cdab66739674c160695aef1ddcba553bee379b7ea56f83d426fcc65298f05535"
+  },
+  "dependency_contract": {
+    "conda": [
+      "gcc_linux-64=14.3",
+      "gxx_linux-64=14.3"
+    ],
+    "channels": [
+      "conda-forge",
+      "nodefaults"
+    ],
+    "activation": "Conda activates target CC/CXX before the environment.yml pip phase; no manual compiler paths or probe prefix.",
+    "python_runtime_dependencies": "Unchanged; pyproject.toml and requirements.txt remain aligned.",
+    "sdist": "Includes environment.yml, requirements.txt, requirements-dev.txt and requirements-all.txt."
+  },
+  "shared_hp_usage": {
+    "status": "BLOCKED_NOT_INSTALLED",
+    "prefix": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage",
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/bin/conda",
+      "install",
+      "--yes",
+      "--prefix",
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage",
+      "-c",
+      "conda-forge",
+      "gcc_linux-64=14.3",
+      "gxx_linux-64=14.3"
+    ],
+    "environment": {
+      "XDG_CACHE_HOME": "/tmp/hotpot_plan20/medium/hp-usage-compilers-20261105/xdg-cache",
+      "CONDA_PKGS_DIRS": "/home/zhangzhiyuan/.cache/conda/pkgs"
+    },
+    "returncode": 1,
+    "cause": "EnvironmentNotWritableError; prefix is outside this session writable roots despite user ownership/mode775.",
+    "postcheck": "Neither compiler package exists in shared prefix conda-meta.",
+    "evidence": "shared-prefix-attempt/install.log",
+    "owner_terminal_action": "conda install -n hp-usage -c conda-forge -y 'gcc_linux-64=14.3' 'gxx_linux-64=14.3'; conda deactivate; conda activate hp-usage"
+  },
+  "fresh_isolated_installation": {
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/bin/conda",
+      "env",
+      "create",
+      "--yes",
+      "--prefix",
+      "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/env",
+      "--file",
+      "environment.yml"
+    ],
+    "cwd": "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/checkout",
+    "environment_overrides": {
+      "XDG_CACHE_HOME": "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/xdg-cache",
+      "CONDA_PKGS_DIRS": "/home/zhangzhiyuan/.cache/conda/pkgs",
+      "CONDA_ENVS_PATH": "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/envs",
+      "CONDA_CHANNEL_PRIORITY": "strict",
+      "CMAKE_BUILD_PARALLEL_LEVEL": "16",
+      "HOTPOT_RDKIT_SOURCE_CACHE": "/tmp/hotpot-plan17-release-cache",
+      "HOTPOT_RDKIT_OFFLINE": "1",
+      "PIP_FIND_LINKS": "/tmp/hotpot_plan20/medium/editable-build-fix-20261105/native-validation-attempt02/wheelhouse",
+      "TMPDIR": "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/tmp",
+      "PYTHONUNBUFFERED": "1"
+    },
+    "returncode": 0,
+    "elapsed_seconds": 2651.200145959854,
+    "python": "3.11.18",
+    "compiler": "GCC/G++14.3.0",
+    "source_files": 2490,
+    "prebuilt_native_inputs": 0,
+    "freshly_compiled_extensions": 6,
+    "configuration": "CMAKE_CXX_STANDARD20; release -O3 -DNDEBUG -march=x86-64 -mtune=generic retained.",
+    "cache_scope": "Verified six-source download cache and build-tool wheelhouse reused; no native object cache. Fresh PyPI downloads dominated wall time; no compilation-speed claim.",
+    "outer_unset": [
+      "CC",
+      "CXX",
+      "CFLAGS",
+      "CXXFLAGS",
+      "LD_LIBRARY_PATH",
+      "HOTPOT_RDWRAPPERS_BUILD_PROFILE",
+      "HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX"
+    ],
+    "inputs": "Frozen tracked-source snapshot; later redundant metadata-test removal explicitly recorded for sdist only.",
+    "source_manifest": "source-manifest.json",
+    "runtime_commands": "verification/results.json",
+    "native_identities": "verification/native-origins.log",
+    "captured_cmake": "verification/captured-build/"
+  },
+  "cxx20_probe": {
+    "python": "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/env/bin/python",
+    "compiler": "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/env/bin/x86_64-conda-linux-gnu-c++",
+    "compiler_version": "14.3.0",
+    "CC": "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/env/bin/x86_64-conda-linux-gnu-cc",
+    "argv": [
+      "/tmp/hotpot_plan20/medium/conda-build-dependencies-20261105/attempt01/env/bin/x86_64-conda-linux-gnu-c++",
+      "-std=c++20",
+      "-O2",
+      "/tmp/hotpot_plan20/medium/hp-usage-compilers-20261105/cxx20-probe.cpp",
+      "-o",
+      "/tmp/hotpot_plan20/medium/hp-usage-compilers-20261105/cxx20-probe"
+    ],
+    "compile_and_run_exit": 0,
+    "features": [
+      "concepts",
+      "ranges",
+      "span",
+      "map.contains"
+    ],
+    "target_environment": "isolated fresh environment; NOT hp-usage"
+  },
+  "packaging_checks": {
+    "argv": [
+      "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "--basetemp",
+      "/tmp/hotpot_plan20/short/conda-dependencies-packaging-final-20261105",
+      "tests/test_packaging/test_rdwrapper_build.py",
+      "tests/test_packaging/test_github_workflows.py",
+      "tests/test_packaging/test_audit_rdwrapper_wheel.py",
+      "tests/test_packaging_metadata.py"
+    ],
+    "cwd": "/home/zhangzhiyuan/hotpot",
+    "passed": 45,
+    "failures": 0,
+    "skipped": 0,
+    "returncode": 0,
+    "elapsed_seconds": 0.8,
+    "scope": "Final root bytes; earlier46 included one subsequently removed redundant manifest-string assertion."
+  },
+  "runtime": {
+    "six_native_imports": "PASS; six binaries independently rebound to archive; GCC14.3.0 readelf comments and prefix-local libgcc/libstdc++/OpenBabel.",
+    "core": "PASS",
+    "actual_cbond_to_forcefield": "PASS using identified existing local model; not a new model download.",
+    "native_tests": {
+      "tests": 151,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native_test_returncode": 0,
+    "native_test_seconds": 1.44,
+    "native_test_evidence": "verification/native-tests-after-networkx-result.json and native-tests-after-networkx.xml",
+    "no_manual_runtime_ld_library_path": true,
+    "note": "Python sys.version compiler describes the interpreter, not these extension compilers."
+  },
+  "sdist": {
+    "returncode": 0,
+    "path": "verification/dist/hotpot_zzy-0.5.4.5.tar.gz",
+    "bytes": 2974214,
+    "sha256": "0ef6922b7b60f0c0dccf6fca892541424c884c06674394456f5db44affdaedf0",
+    "dependency_files_match_final_source": 4,
+    "controlled_test_difference": "verification/sdist-controlled-test-difference.json"
+  },
+  "retained_failures": [
+    {
+      "kind": "shared_prefix_install",
+      "returncode": 1,
+      "cause": "Current session cannot write prefix; unresolved."
+    },
+    {
+      "kind": "native_test_collection",
+      "returncode": 2,
+      "executed_tests": 0,
+      "cause": "NetworkX absent; installed only NetworkX3.6.1 matching tests/requirements-inference.txt networkx>=3,<4 in private environment. No runtime dependency added.",
+      "evidence": "verification/native-tests.log and networkx-environment-diff.json"
+    },
+    {
+      "kind": "followup_wrapper",
+      "executed_tests": 0,
+      "cause": "Sliced python off argv; assertion before pytest. Corrected direct original argv passes151.",
+      "evidence": "verification/networkx-followup.log"
+    }
+  ],
+  "root_verification": {
+    "native_counts": {
+      "tests": 151,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0
+    },
+    "native_binary_hashes": 6,
+    "all_native_comments_GCC14_3": true,
+    "sdist_dependency_files_match_final_source": 4,
+    "unchanged_build_owners": [
+      "setup.py",
+      "pyproject.toml",
+      "hotpot/cheminfo/rdWrappers/build_locked.sh",
+      "third_party/rdkit/rdkit.lock.json"
+    ],
+    "business_code_changes": []
+  },
+  "evidence": {
+    "artifact_root": ".plan20-artifacts/20261105/packaging/conda-build-dependencies",
+    "archive": ".plan20-artifacts/20261105/packaging/conda-build-dependencies/evidence.tar.gz",
+    "bytes": 7327129,
+    "sha256": "4c1534d3c8bfc9f4fc9e7b673d14406651464bf7abad3bc9ab83efbfdfe146f5",
+    "manifested_files": 74,
+    "manifest": ".plan20-artifacts/20261105/packaging/conda-build-dependencies/manifest.json",
+    "root_receipt": ".plan20-artifacts/20261105/packaging/conda-build-dependencies/root-verification.json",
+    "summary": "verification/final-summary.json",
+    "report": "verification/report.md"
+  },
+  "coverage_limits": [
+    "Shared hp-usage installation remains blocked; private installation is not shared-prefix repair.",
+    "No chemical/business Python or C++ edits, source-lock/optimization/ABI changes, or shared checkout binary replacement.",
+    "This is CP311 editable and sdist evidence, not a new regular-wheel, other-ABI, standalone SDK, scientific-population or global-release qualification.",
+    "No comparative-performance claim; one fresh install includes network downloads."
+  ]
+}

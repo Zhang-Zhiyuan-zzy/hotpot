@@ -242,21 +242,32 @@ $ python -m pip install hotpot-zzy
 
 ### Install the current source
 
-The current source build compiles all native extensions, including a locked
-RDKit ETKDG closure. The supported developer build target is Linux x86-64 with
-the pinned toolchain below:
+The source build requires Linux x86-64. The environment file installs Python
+3.11, GCC/G++ 14.3 with automatic compiler activation, and editable Hotpot with
+development dependencies:
 
 ```bash
 $ git clone https://github.com/Zhang-Zhiyuan-zzy/hotpot.git
 $ cd hotpot
-$ conda create -n hp python=3.11 pip -y
+$ conda env create -f environment.yml
 $ conda activate hp
-$ python -m pip install --upgrade pip
-$ conda create --prefix /tmp/hotpot-rdkit-toolchain \
-    --file third_party/rdkit/probe-toolchain-linux-64.explicit.txt
-$ HOTPOT_RDWRAPPERS_BUILD_PROFILE=probe \
-    HOTPOT_RDWRAPPERS_TOOLCHAIN_PREFIX=/tmp/hotpot-rdkit-toolchain \
-    python -m pip install -e .
+```
+
+Conda installs and activates the compiler before the environment's pip step
+builds Hotpot. No separate toolchain prefix or manual `CC`/`CXX` setting is
+needed. CMake, Ninja, and Python build tools come from the PEP 517 build
+dependencies. `requirements.txt` contains Python runtime dependencies;
+`environment.yml` also supplies the native build prerequisites.
+
+For an existing environment, install the same compiler packages and reactivate
+it before building:
+
+```bash
+$ conda activate hp-usage  # Replace with your environment name.
+$ conda install -c conda-forge 'gcc_linux-64=14.3' 'gxx_linux-64=14.3'
+$ conda deactivate
+$ conda activate hp-usage  # Replace with your environment name.
+$ python -m pip install -e .
 ```
 
 The build downloads six checksum-locked source archives unless

@@ -88,6 +88,9 @@ def test_conda_environment_uses_one_openbabel_distribution():
     assert "openbabel=" not in environment_text
     assert "python=3.11" in environment_text
     assert '"-e .[dev]"' in environment_text
+    assert "gcc_linux-64=14.3" in environment_text
+    assert "gxx_linux-64=14.3" in environment_text
+    assert "  - nodefaults" in environment_text
 
 
 def test_openbabel_dependency_tracks_supported_python_versions():

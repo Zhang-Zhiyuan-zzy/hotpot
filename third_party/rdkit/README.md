@@ -49,8 +49,13 @@ The archives are intentionally not committed to Git.
 
 ## Local source and editable builds
 
-Ordinary source and editable builds select the `local` profile by default. From
-the repository root, an editable install is:
+Ordinary source and editable builds select the `local` profile by default.
+From the repository root, `conda env create -f environment.yml` installs the
+Python 3.11 environment, GCC/G++ 14.3 compiler activation packages, and editable
+Hotpot. Then run `conda activate hp`. No probe prefix or explicit `CC`/`CXX` is
+needed. `requirements.txt` remains the Python runtime dependency list.
+
+For an editable reinstall in that active environment:
 
 ```bash
 HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot_plan20/long/rdkit-source-cache \

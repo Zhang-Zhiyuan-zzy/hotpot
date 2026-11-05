@@ -11219,3 +11219,83 @@ four changed file identities, both17-test JUnit outcomes, native origins/bytes
 and the5,461,341-byte/154-entry sealed archive. Exact evidence and scope:
 [first cold compilation](stages/stage12/final-delivery/validation/first-cold-unity-compile.json).
 Existing P20-D042 cache work remains separate; no further broad rebuild justified.
+
+
+### 2026-11-05 — Declare the ordinary Conda source-build toolchain
+
+Owner requests that required compilers be installed through the project
+dependency declarations. Continue the existing Stage10/12 packaging boundary
+at f56b621b, aligned with the effective goal, native ownership decision, affected
+verification map and previous editable-build evidence. Current environment.yml
+installs Python/pip/editable Hotpot but omits compilers; the shared hp-usage
+environment consequently chooses host GCC9.4 and fails in locked RDKit
+RDValue/type_traits compilation. GCC14.3 has actual successful build evidence;
+this does not establish a universal minimum compiler version.
+
+Bound this change to Conda/build dependency declarations, installation guides,
+source-distribution inclusion and focused packaging tests. Supply the verified
+GCC/G++14.3 compiler activation packages through environment.yml; retain one
+Python dependency owner in pyproject.toml and the existing local/strict build
+profiles. Installed Conda26.3.2 source confirms that the YAML pip phase activates
+the target prefix before running pip. Verify that behavior in a fresh writable
+prefix and private checkout with no explicit CC/CXX, then test actual installation
+and native imports/core behavior. Keep failures and unavailable evidence.
+
+No chemical/native source, algorithm, source lock, optimization/ABI flags,
+shared hp-usage installation or checkout binary may change. Temporary evidence
+belongs under /tmp/hotpot_plan20/medium; retain a compact maintained delivery
+record. Root owns acceptance and a coherent packaging commit/push; no global
+architecture or main-plan redesign and no new chemical-science claim.
+
+
+### 2026-11-05 — Shared environment installation blocked; C++20 packages verified
+
+Owner prioritizes adding the two compilers to existing hp-usage. The actual
+`conda install --yes --prefix /home/zhangzhiyuan/usr/conda3/envs/hp-usage
+-c conda-forge gcc_linux-64=14.3 gxx_linux-64=14.3` attempt exits1 with
+EnvironmentNotWritableError: this session's writable roots exclude that prefix.
+The directory is owned by zhangzhiyuan/mode775; changing ordinary chmod is not
+the remedy for this session restriction. No successful shared-prefix install is
+claimed. Owner receives the normal-terminal install/reactivation commands.
+
+The same declared packages in the isolated fresh prefix automatically activate
+CC/CXX as GNU14.3.0 with no manually supplied compiler paths. A real C++20
+program using concepts, ranges, span and map.contains compiles and executes
+with exit0. This verifies package/toolchain features, not hp-usage installation
+or complete Hotpot installation. Original failure, probe argv/source/result are
+retained under /tmp/hotpot_plan20/medium/hp-usage-compilers-20261105.
+
+Final affected packaging selection passes45tests/0fail/skip in0.80s. An earlier
+46-pass selection included a redundant manifest-string assertion removed before
+final validation; actual sdist membership will be checked against the archive.
+The same one fresh Conda environment build remains in progress downloading
+dependencies; no installation/native/scientific success is inferred from it.
+
+
+### 2026-11-05 — Conda toolchain dependency delivery verified
+
+The same fresh isolated `conda env create --yes --prefix <attempt01>/env
+--file environment.yml` now exits0 (2651.200s including substantial dependency
+downloads; not a compilation benchmark). Python3.11.18 receives GCC/G++14.3.0
+through automatic activation with outer CC/CXX unset. All six native extensions
+are freshly compiled from source, and actual origin/library checks, core smoke
+and the cached-model CBond→FF workflow pass without manual LD_LIBRARY_PATH.
+
+The first native selection collects zero tests because NetworkX is absent.
+Only the existing inference-test dependency NetworkX3.6.1 is then added to the
+private environment; a follow-up wrapper assertion runs no tests and is retained.
+Corrected original pytest arguments pass151tests/0fail/error/skip in1.44s.
+No runtime dependency or business/native source is changed. Final root packaging
+checks remain45passed/0fail/skip. Isolated PEP517 sdist creation passes and all
+four installation dependency files match final source; the redundant metadata
+test removal is an explicit controlled sdist-only difference after installation.
+
+Root independently verifies final input bindings, six archived binary hashes
+and GCC14.3 comments,151-test JUnit counts, sdist contents and every member of
+the74-file evidence archive. Accept this bounded CP311 Conda installation
+delivery; shared hp-usage still has neither compiler package and its write
+restriction remains unresolved. No regular-wheel/other-ABI/SDK, scientific
+population, performance or global-release acceptance follows. P20-D041 gains
+this dependency-declaration evidence; P20-D042 cache work remains separate.
+Exact commands, original failures, artifact identities and support boundaries:
+[Conda build dependencies](stages/stage12/final-delivery/validation/conda-build-dependencies.json).

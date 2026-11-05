@@ -1,9 +1,14 @@
+# Source-build environment for Linux x86-64.
 name: hp
 channels:
   - conda-forge
+  - nodefaults
 dependencies:
   - python=3.11
   - pip>=24
+  # Activation packages supply CC/CXX and their matching compiler/sysroot.
+  - gcc_linux-64=14.3
+  - gxx_linux-64=14.3
   - setuptools>=77
   - wheel>=0.43
   - cairo>=1.18

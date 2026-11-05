@@ -1,3 +1,4 @@
+# For source-build compilers, create the environment in environment.yml first.
 # Base runtime dependencies. Keep this list identical to
 # project.dependencies in pyproject.toml.
 numpy>=1.24,<3

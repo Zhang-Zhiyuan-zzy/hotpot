@@ -32,7 +32,14 @@ compilation. RDKit's target exclusions remain in effect; global
 `manylinux_2_28_x86_64` profiles retain unity builds disabled and their previous
 configuration.
 
-For an ordinary editable install, run this from the repository root:
+For a new source-build environment, run `conda env create -f environment.yml`
+from the repository root, then `conda activate hp`. The environment declares
+GCC/G++ 14.3 and their activation packages; its pip phase builds editable Hotpot
+with those compilers automatically. `requirements.txt` contains only Python
+runtime dependencies. An existing environment needs the same compiler packages
+and reactivation before installation; see the root README.
+
+For an ordinary editable reinstall in that active environment, run:
 
 ```bash
 HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot_plan20/long/rdkit-source-cache \

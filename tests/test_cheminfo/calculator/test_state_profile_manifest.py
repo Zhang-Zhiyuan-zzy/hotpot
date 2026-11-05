@@ -45,7 +45,7 @@ def test_manifest_builds_explicit_provider_rule_and_budget_sets() -> None:
     manifest = _coordination_screening_manifest()
 
     assert manifest.policy is StatePolicy.COORDINATION_SCREENING_V1
-    assert manifest.activation_status == "planned"
+    assert manifest.activation_status == "active"
     assert manifest.profile_content_digest == profile.content_digest
     assert manifest.candidate_budget == profile.candidate_budget
     assert tuple(
@@ -71,7 +71,7 @@ def test_manifest_builds_explicit_provider_rule_and_budget_sets() -> None:
     )
 
 
-def test_exact_manifest_dry_run_remains_blocked_only_by_activation() -> None:
+def test_exact_planned_manifest_remains_blocked_only_by_activation(planned_screening_profile) -> None:
     manifest = _coordination_screening_manifest()
     requirements = _effective_requirements(manifest.policy, None)
 
@@ -88,3 +88,16 @@ def test_exact_manifest_dry_run_remains_blocked_only_by_activation() -> None:
     assert tuple(finding.code for finding in eligibility.findings) == (
         "PROFILE.SCREENING_ARTIFACT_NOT_ACTIVE",
     )
+
+
+def test_active_manifest_is_statically_eligible_for_coordination() -> None:
+    manifest = _coordination_screening_manifest()
+    eligibility = _static_profile_eligibility(
+        _coordination_facts(), manifest.policy,
+        _effective_requirements(manifest.policy, None), manifest.provider_set,
+        manifest.rule_set, manifest.candidate_budget,
+    )
+
+    assert manifest.activation_status == "active"
+    assert eligibility.in_domain is True
+    assert eligibility.findings == ()

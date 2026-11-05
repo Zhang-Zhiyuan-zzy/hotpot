@@ -1,0 +1,133 @@
+........................................................................ [ 10%]
+........................................................................ [ 21%]
+........................................................................ [ 31%]
+........................................................................ [ 42%]
+........................................................................ [ 52%]
+........................................................................ [ 63%]
+.........................F.................................F............ [ 74%]
+......................................................F...F............. [ 84%]
+......................................................F................. [ 95%]
+................................                                         [100%]
+=================================== FAILURES ===================================
+_ test_relocated_class_has_one_owner_and_unchanged_contract[rules.providers.neutral_l_donors:NeutralLDonorRule-33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c] _
+
+key = 'rules.providers.neutral_l_donors:NeutralLDonorRule'
+expected = '33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c'
+relocated_definitions = {'_ShellDomain': [(PosixPath('/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/chemistry/scientific_state/providers/mai...erations/calculation/scientific_state/composition/decision_search.py'), <ast.ClassDef object at 0x7f669f5e10f0>)], ...}
+
+    @pytest.mark.parametrize(("key", "expected"), _CLASS_CONTRACTS.items())
+    def test_relocated_class_has_one_owner_and_unchanged_contract(
+        key, expected, relocated_definitions,
+    ):
+        owner, name = _owner(key)
+        definitions = relocated_definitions[name]
+        assert len(definitions) == 1, (key, [str(path) for path, _ in definitions])
+        path, node = definitions[0]
+        assert path == _source(owner)
+>       assert _contract_digest(_class_contract(node)) == expected, key
+E       AssertionError: rules.providers.neutral_l_donors:NeutralLDonorRule
+E       assert '1ea139550de5...4372113123971' == '33e02ef8c75f...165566ac5556c'
+E         
+E         - 33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c
+E         + 1ea139550de51c42d87ded0d20499456400367fbccf6390c51f4372113123971
+
+tests/test_cheminfo/calculator/test_scientific_state_ownership.py:286: AssertionError
+_ test_relocated_class_has_one_owner_and_unchanged_contract[rules.providers.anionic_x_ligands:AnionicXLigandRule-33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c] _
+
+key = 'rules.providers.anionic_x_ligands:AnionicXLigandRule'
+expected = '33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c'
+relocated_definitions = {'_ShellDomain': [(PosixPath('/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/chemistry/scientific_state/providers/mai...erations/calculation/scientific_state/composition/decision_search.py'), <ast.ClassDef object at 0x7f669f5e10f0>)], ...}
+
+    @pytest.mark.parametrize(("key", "expected"), _CLASS_CONTRACTS.items())
+    def test_relocated_class_has_one_owner_and_unchanged_contract(
+        key, expected, relocated_definitions,
+    ):
+        owner, name = _owner(key)
+        definitions = relocated_definitions[name]
+        assert len(definitions) == 1, (key, [str(path) for path, _ in definitions])
+        path, node = definitions[0]
+        assert path == _source(owner)
+>       assert _contract_digest(_class_contract(node)) == expected, key
+E       AssertionError: rules.providers.anionic_x_ligands:AnionicXLigandRule
+E       assert '1ea139550de5...4372113123971' == '33e02ef8c75f...165566ac5556c'
+E         
+E         - 33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c
+E         + 1ea139550de51c42d87ded0d20499456400367fbccf6390c51f4372113123971
+
+tests/test_cheminfo/calculator/test_scientific_state_ownership.py:286: AssertionError
+____________ test_all_twelve_resources_preserve_pre_migration_bytes ____________
+
+    def test_all_twelve_resources_preserve_pre_migration_bytes():
+        data = resources.files(_RULES).joinpath("data")
+        pending = [data]
+        actual = {}
+        while pending:
+            for child in pending.pop().iterdir():
+                if child.is_dir():
+                    pending.append(child)
+                elif child.name.endswith(".json"):
+                    assert child.name not in actual
+                    actual[child.name] = hashlib.sha256(child.read_bytes()).hexdigest()
+>       assert actual == _RESOURCE_DIGESTS
+E       AssertionError: assert {'neutral_ato...addb3eb', ...} == {'neutral_ato...b7e33bb', ...}
+E         
+E         Omitting 11 identical items, use -vv to show
+E         Differing items:
+E         {'coordination_screening_v1.json': 'afc2615f74ccf70c088b38e62785480f448a2f978d31e1c676d68bc3df6544be'} != {'coordination_screening_v1.json': '574ed32272b9af9ac3f1f2ff879082bd37ba78e4d67f3305a46bf8091bff8ab5'}
+E         Use -v to get more diff
+
+tests/test_cheminfo/calculator/test_scientific_state_ownership.py:388: AssertionError
+____________ test_optional_profile_is_still_planned_and_ineligible _____________
+
+methane_facts = MolecularFacts(identity=MolecularFactsIdentity(chemical_identity_digest='explicit-methane'), geometry_digest=None, ato...emanticBond(atom_indices=(0, 4), order=1.0, aromatic=False, kind='covalent')), coordinates=None, nuclear_charge_sum=10)
+
+    def test_optional_profile_is_still_planned_and_ineligible(methane_facts):
+        from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
+        from hotpot.cheminfo.operations.calculation.scientific_state.profiles import _coordination_screening_profile
+        from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import resolve_scientific_state
+    
+        profile = _coordination_screening_profile()
+        assert profile.activation_status == "planned"
+>       assert profile.content_digest == _RESOURCE_DIGESTS["coordination_screening_v1.json"]
+E       AssertionError: assert 'afc2615f74cc...68bc3df6544be' == '574ed32272b9...bf8091bff8ab5'
+E         
+E         - 574ed32272b9af9ac3f1f2ff879082bd37ba78e4d67f3305a46bf8091bff8ab5
+E         + afc2615f74ccf70c088b38e62785480f448a2f978d31e1c676d68bc3df6544be
+
+tests/test_cheminfo/calculator/test_scientific_state_ownership.py:493: AssertionError
+___________ test_screening_profile_artifact_freezes_decision_context ___________
+
+    def test_screening_profile_artifact_freezes_decision_context() -> None:
+        profile = _coordination_screening_profile()
+    
+        assert profile.profile_id == StatePolicy.COORDINATION_SCREENING_V1.value
+        assert profile.activation_status == "planned"
+        assert profile.required_quantities == frozenset(
+            {
+                ScientificQuantity.NET_CHARGE,
+                ScientificQuantity.OXIDATION_STATE,
+            }
+        )
+        assert profile.candidate_budget == DEFAULT_CANDIDATE_BUDGET
+        assert profile.frontier_schema_version == (
+            "scientific-state-frontier-v1"
+        )
+>       assert len(profile.required_rule_versions) == 10
+E       AssertionError: assert 12 == 10
+E        +  where 12 = len((('OPTIONAL-001', '1.0.0'), ('OPTIONAL-002', '1.1.0'), ('OPTIONAL-003', '1.1.0'), ('OPTIONAL-004', '1.1.0'), ('OPTIONAL-005', '1.0.0'), ('OPTIONAL-006', '1.0.0'), ...))
+E        +    where (('OPTIONAL-001', '1.0.0'), ('OPTIONAL-002', '1.1.0'), ('OPTIONAL-003', '1.1.0'), ('OPTIONAL-004', '1.1.0'), ('OPTIONAL-005', '1.0.0'), ('OPTIONAL-006', '1.0.0'), ...) = _ScientificStateProfileArtifact(profile_id='coordination_screening_v1', profile_version='1.1.0', activation_status='pl...entity_within_decision_equivalence', content_digest='afc2615f74ccf70c088b38e62785480f448a2f978d31e1c676d68bc3df6544be').required_rule_versions
+
+tests/test_cheminfo/calculator/test_state_profile_artifact.py:28: AssertionError
+=============================== warnings summary ===============================
+tests/test_cheminfo/calculator/test_scientific_state_facts.py::test_unresolved_raw_zero_is_not_promoted_to_a_known_zero
+  /home/zhangzhiyuan/hotpot/tests/test_cheminfo/calculator/test_scientific_state_facts.py:249: RuntimeWarning: HYDROGEN.MISSING_SITE_ELEMENT atom_index=0: This operation requires resolved implicit-H input; site element is missing
+    mol.calc_implicit_hydrogens()
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ============================
+FAILED tests/test_cheminfo/calculator/test_scientific_state_ownership.py::test_relocated_class_has_one_owner_and_unchanged_contract[rules.providers.neutral_l_donors:NeutralLDonorRule-33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c]
+FAILED tests/test_cheminfo/calculator/test_scientific_state_ownership.py::test_relocated_class_has_one_owner_and_unchanged_contract[rules.providers.anionic_x_ligands:AnionicXLigandRule-33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c]
+FAILED tests/test_cheminfo/calculator/test_scientific_state_ownership.py::test_all_twelve_resources_preserve_pre_migration_bytes
+FAILED tests/test_cheminfo/calculator/test_scientific_state_ownership.py::test_optional_profile_is_still_planned_and_ineligible
+FAILED tests/test_cheminfo/calculator/test_state_profile_artifact.py::test_screening_profile_artifact_freezes_decision_context
+5 failed, 675 passed, 1 warning in 6.94s

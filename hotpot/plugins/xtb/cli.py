@@ -36,7 +36,7 @@ from .stream import (
     read_sdf_records,
     write_sdf_records,
 )
-from .state_resolution import resolve_xtb_state
+from .state_resolution import resolve_xtb_state, XTBStateResolutionError
 from .stage import _XTB_FAILURE_CODES, _UNAVAILABLE_CHECK_NAMES
 from .workflow import run_gfn_xtb, run_gfnff
 
@@ -85,7 +85,7 @@ class _RunOptions:
     task: XTBTask
     charge: Optional[int]
     unpaired_electrons: Optional[int]
-    state_policy: StatePolicy
+    state_policy: Optional[StatePolicy]
     output_format: str
     executable: Optional[str]
     threads: Optional[int]
@@ -173,8 +173,8 @@ def add_arguments(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--state-policy",
         choices=("strict", "coordination-screening-v1"),
-        default="strict",
-        help="scientific-state decision policy (default: strict)",
+        default=None,
+        help="scientific-state policy (default: coordination screening for metal coordination, strict otherwise)",
     )
     parser.add_argument(
         "--input-format",
@@ -347,12 +347,10 @@ def _state_values(
         or metadata.provenance.facts_identity is None
     ):
         return None, options.unpaired_electrons
-    unpaired = (
-        options.unpaired_electrons
-        if options.unpaired_electrons is not None
-        else metadata.unpaired_electrons
-    )
-    return metadata.total_charge, unpaired
+    unpaired = options.unpaired_electrons
+    if unpaired is None and options.method is not XTBMethod.GFNFF:
+        unpaired = metadata.unpaired_electrons
+    return None, unpaired
 
 
 def _run_xtb_record(
@@ -370,17 +368,30 @@ def _run_xtb_record(
     expected_facts_identity = (
         metadata.provenance.facts_identity if use_stream_state else None
     )
-    resolved = resolve_xtb_state(
-        record.mol,
-        options.method,
-        executable=options.executable,
-        environment=_environment(options.threads),
-        charge=charge,
-        uhf=unpaired_electrons,
-        policy=options.state_policy,
-        expected_scientific_identity=expected_scientific_identity,
-        expected_facts_identity=expected_facts_identity,
-    )
+    def resolve(charge, expected_identity):
+        return resolve_xtb_state(
+            record.mol,
+            options.method,
+            executable=options.executable,
+            environment=_environment(options.threads),
+            charge=charge,
+            uhf=unpaired_electrons,
+            policy=options.state_policy,
+            expected_scientific_identity=expected_identity,
+            expected_facts_identity=expected_facts_identity,
+        )
+
+    # Factual transport preserves supplied authority. Replay that request first;
+    # only an exact identity match can establish a prior explicit CLI charge.
+    try:
+        resolved = resolve(charge, None)
+    except XTBStateResolutionError:
+        if expected_scientific_identity is None:
+            raise
+        resolved = resolve(metadata.total_charge, expected_scientific_identity)
+    if (expected_scientific_identity is not None
+            and resolved.projection.scientific_state_identity != expected_scientific_identity):
+        resolved = resolve(metadata.total_charge, expected_scientific_identity)
     common = {
         "task": options.task,
         "executable": options.executable,
@@ -587,7 +598,7 @@ def run(args: argparse.Namespace) -> int:
         task=_TASKS[args.task],
         charge=args.charge,
         unpaired_electrons=args.unpaired_electrons,
-        state_policy=StatePolicy(args.state_policy.replace("-", "_")),
+        state_policy=(None if args.state_policy is None else StatePolicy(args.state_policy.replace("-", "_"))),
         output_format=_normalized_format(args.output_format),
         executable=args.xtb_executable,
         threads=args.threads,

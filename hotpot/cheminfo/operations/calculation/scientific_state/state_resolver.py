@@ -17,6 +17,7 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
     ResolutionStatus,
     ScientificAdmissibility,
     ScientificOperationRequirements,
+    ScientificQuantity,
     StateValueAuthority,
 )
 from hotpot.cheminfo.structure.snapshots import MolecularFacts
@@ -26,6 +27,8 @@ from hotpot.cheminfo.operations.calculation.scientific_state.contracts import (
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.contracts import (
     ElectronicStateInferenceResult,
+    SpinContributionCandidate,
+    SpinContributionScope,
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.contracts import (
     CoordinationElectronCountingResult,
@@ -33,6 +36,12 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.oxidation_state.contracts 
 )
 from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     CandidateProposal,
+    CandidateDomainScope,
+    CandidateDomainSummary,
+    FactorKey,
+    MaterializationStatus,
+    ProposedCandidateFactor,
+    ProposedCandidateValue,
     ScientificResolutionResult,
     ScientificStateCandidateSpace,
 )
@@ -219,6 +228,44 @@ def _explicit_candidate_ids(
     )
 
 
+def _pending_molecular_spin_proposals(
+    facts: MolecularFacts,
+    request: StateRequest,
+    electronic_results: Tuple[ElectronicStateInferenceResult, ...],
+    budget: CandidateBudget,
+) -> Tuple[CandidateProposal, ...]:
+    """Keep supplied molecular spin while charge awaits factorized derivation."""
+    from hotpot.cheminfo.rules.chemistry.scientific_state.electronic_state.inference import (
+        _request_evidence, _digest,
+    )
+    from hotpot.cheminfo.rules.chemistry.scientific_state.identities import _molecular_subject_identity
+
+    if any(result.candidates for result in electronic_results):
+        return ()
+    evidence, findings = _request_evidence(facts, request)
+    if findings or not evidence:
+        return ()
+    subject = _molecular_subject_identity(facts)
+    candidates = tuple(SpinContributionCandidate(
+        item.provenance, SpinContributionScope.MOLECULAR, subject, (), item.two_s, item.pure_spin,
+    ) for item in evidence)
+    limit = budget.max_materialized_values_per_factor
+    omitted = len(candidates) - min(len(candidates), limit)
+    identity = _digest({"source": "StateRequest.pending-molecular-spin-v1",
+                        "facts": facts.identity.chemical_identity_digest,
+                        "evidence": tuple(item.provenance.identity for item in evidence)})
+    return (CandidateProposal(
+        identity,
+        (ProposedCandidateFactor(
+            FactorKey(ScientificQuantity.ELECTRONIC_STATE, subject), identity,
+            tuple(ProposedCandidateValue(candidate) for candidate in candidates[:limit]),
+            CandidateDomainScope.EXHAUSTIVE,
+            MaterializationStatus.RESOURCE_TRUNCATED if omitted else MaterializationStatus.COMPLETE,
+            CandidateDomainSummary(omitted, identity, None) if omitted else None,
+        ),), (),
+    ),)
+
+
 def resolve_scientific_state(
     facts: MolecularFacts,
     request: StateRequest = StateRequest(),
@@ -281,6 +328,8 @@ def resolve_scientific_state(
         tuple(
             lewis_result
             for charge_result in charge_results
+            if charge_result.admissibility is ScientificAdmissibility.ADMISSIBLE
+            and charge_result.candidates
             for lewis_result in solve_main_group_lewis(
                 facts,
                 charge_result,
@@ -307,6 +356,9 @@ def resolve_scientific_state(
         net_charge_results=charge_results,
         oxidation_state_results=oxidation_state_results,
         provided=provided_results.electronic_state_results,
+    )
+    pending_spin_proposals = _pending_molecular_spin_proposals(
+        facts, request, electronic_state_results, candidate_budget,
     )
     cross_result_constraints, cross_result_conflict = (
         _reconcile_authoritative_results(
@@ -337,7 +389,7 @@ def resolve_scientific_state(
             coordination_counting_results=counting_results,
             oxidation_state_results=oxidation_state_results,
             electronic_state_results=electronic_state_results,
-            candidate_proposals=candidate_proposals,
+            candidate_proposals=pending_spin_proposals + candidate_proposals,
             constraints=cross_result_constraints,
             candidate_budget=candidate_budget,
             decision_search=_decision_search_compiler(

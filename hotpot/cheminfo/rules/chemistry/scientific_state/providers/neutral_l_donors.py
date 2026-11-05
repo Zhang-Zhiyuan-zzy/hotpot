@@ -30,6 +30,9 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
 )
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.automatic_components import (
+    _source_counted_component_ids,
+)
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.base import (
     InferenceRule,
 )
@@ -51,7 +54,7 @@ __all__ = [
 
 
 _RULE_ID = "OPTIONAL-003"
-_RULE_VERSION = "1.0.0"
+_RULE_VERSION = "1.1.0"
 _REGISTRY_SCHEMA = "hotpot-neutral-l-donor-registry-v1"
 _REGISTRY_RESOURCE = "data/rules/neutral_l_donors_v1.json"
 _DOMAIN_DEFINITION = "fixed-protonation-neutral-l-donor-v1"
@@ -244,25 +247,40 @@ def _atom_signature_matches(
 
 def _matching_components(
     context: RuleContext,
+    source_atom_formal_charges=None,
 ) -> Tuple[Tuple[str, Tuple[int, ...]], ...]:
     donor_atoms = _coordinated_atoms(context)
     valences = _covalent_valences(context)
     matches = []
+    source_counted = _source_counted_component_ids(context)
+    neutral_valences = {1: 1, 5: 3, 6: 4, 7: 3, 8: 2, 9: 1, 14: 4,
+                        15: 3, 16: 2, 17: 1, 35: 1, 53: 1}
     for component in context.facts.covalent_components:
+        if component.identity in source_counted or (
+            source_atom_formal_charges is not None
+            and any(source_atom_formal_charges.charges[index] is not None
+                    for index in component.atom_indices)
+        ):
+            continue
         component_donors = tuple(
             index for index in component.atom_indices if index in donor_atoms
         )
         if not component_donors:
             continue
-        if all(
-            _atom_signature_matches(context, index, valences)
-            or _component_signature_matches(
-                context,
-                component.atom_indices,
-                index,
-            )
+        exact_component = all(
+            _component_signature_matches(context, component.atom_indices, index)
             for index in component_donors
-        ):
+        )
+        ordinary_neutral_component = all(
+            valences[index] is not None
+            and context.facts.atomic_numbers[index] in neutral_valences
+            and math.isclose(valences[index],
+                             neutral_valences[context.facts.atomic_numbers[index]],
+                             abs_tol=1.0e-8)
+            for index in component.atom_indices
+        ) and all(_atom_signature_matches(context, index, valences)
+                  for index in component_donors)
+        if exact_component or ordinary_neutral_component:
             matches.append((component.identity, component_donors))
     return tuple(matches)
 
@@ -304,8 +322,11 @@ class NeutralLDonorRule(InferenceRule):
         applicability_schema=_DOMAIN_DEFINITION,
     )
 
+    def __init__(self, source_atom_formal_charges=None):
+        self._source_atom_formal_charges = source_atom_formal_charges
+
     def applicable(self, context: RuleContext) -> RuleApplicability:
-        matches = _matching_components(context)
+        matches = _matching_components(context, self._source_atom_formal_charges)
         return RuleApplicability(
             bool(matches),
             () if matches else ("NO_SUPPORTED_NEUTRAL_L_DONOR",),
@@ -318,7 +339,7 @@ class NeutralLDonorRule(InferenceRule):
     ) -> RuleOutcome:
         registry = _donor_registry()
         conventions = _configured_conventions(configuration)
-        matches = _matching_components(context)
+        matches = _matching_components(context, self._source_atom_formal_charges)
         branch_group = (
             f"counting-convention:{context.facts.identity.chemical_identity_digest}"
         )

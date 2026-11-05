@@ -45,6 +45,20 @@ _BACKEND_ALLOWED_UNRESOLVED = frozenset(
 )
 
 
+def _effective_nuclear_charge(atomic_number: int, method: XTBMethod) -> int:
+    """Return the selected ordinary-GFN active-electron contribution."""
+    if method is XTBMethod.GFNFF:
+        return atomic_number
+    if 58 <= atomic_number <= 71:
+        return 3
+    core_electrons = next(
+        core
+        for limit, core in _GFN_CORE_BOUNDARIES
+        if atomic_number <= limit
+    )
+    return atomic_number - core_electrons
+
+
 def _identity_digest(backend_info: XTBBackendInfo, method: XTBMethod) -> str:
     payload = {
         "backend": "xtb",
@@ -139,16 +153,7 @@ class XTBBackendContext:
         return limit is not None and 0 < atomic_number <= limit
 
     def effective_nuclear_charge(self, atomic_number: int) -> int:
-        if self.method is XTBMethod.GFNFF:
-            return atomic_number
-        if 58 <= atomic_number <= 71:
-            return 3
-        core_electrons = next(
-            core
-            for limit, core in _GFN_CORE_BOUNDARIES
-            if atomic_number <= limit
-        )
-        return atomic_number - core_electrons
+        return _effective_nuclear_charge(atomic_number, self.method)
 
     def project_scientific_spin(
         self,

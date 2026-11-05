@@ -321,7 +321,7 @@ def test_ob_capture_uses_complete_public_graph_or_explicit_perception_rows(monke
 def test_ob_capture_first_dative_does_not_read_later_bond_or_cell(monkeypatch):
     mol = Molecule()
     mol.create_atom(atomic_number=7)
-    mol.create_atom(atomic_number=29)
+    mol.create_atom(atomic_number=6)
     dative = mol.add_bond(0, 1, bond_kind=BondKind.DATIVE, bond_direction='atom1_to_atom2')
     def unread_cell(owner):
         raise AssertionError('cell was read after first dative')

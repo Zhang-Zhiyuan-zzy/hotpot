@@ -213,15 +213,6 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
-        ScientificOperationRequirements,
-        ScientificQuantity,
-    )
-    from hotpot.cheminfo.rules.chemistry.scientific_state.request import StateRequest
-    from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
-    from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
-        resolve_scientific_state,
-    )
     from hotpot.cheminfo.operations.forcefields import acceptance
     from hotpot.pipeline.contracts import (
         MolecularPayload,
@@ -232,24 +223,10 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
     from hotpot.plugins.xtb import stage as xtb_stage
     from hotpot.plugins.xtb import state_resolution
     from hotpot.plugins.xtb import workflow
-    from hotpot.plugins.xtb.contracts import XTBBackendInfo
+    from hotpot.plugins.xtb.contracts import XTBBackendInfo, XTBMethod
     from hotpot.plugins._harness import NativeProcessResult
 
     mol = _water()
-    state = resolve_scientific_state(
-        extract_molecular_facts(mol),
-        StateRequest(net_charge=0, two_s=0),
-        requirements=ScientificOperationRequirements(
-            "xtb-stage-test",
-            frozenset(
-                {
-                    ScientificQuantity.NET_CHARGE,
-                    ScientificQuantity.ELECTRONIC_STATE,
-                }
-            ),
-            frozenset(),
-        ),
-    )
     calls: list[tuple[object, object]] = []
 
     def run_gfn_xtb(mol, **options):
@@ -295,6 +272,10 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
         "xtb",
         ("--method", "gfn2", "--task", "optimize", "--post-check", "off"),
     )
+    state = state_resolution.resolve_xtb_state(
+        mol, XTBMethod.GFN2_XTB, executable=None, environment={},
+        charge=None, uhf=None, policy=None,
+    ).scientific_state
     payload = MolecularPayload((MolecularRecord(mol, state),))
     prepared = xtb_stage.get_stage().prepare(spec)
 

@@ -2,7 +2,9 @@
 
 Contract fingerprints come from 989f27594ec08a4cd1b6f1266e565ba34cee62a1.
 A9 updates only the five accepted six-field result shapes and retires the confidence
-enum. All other fingerprints retain that baseline. Chemistry expectations below
+enum. The owner-authorized automatic-state correction also adds periodic metadata
+and optional source-evidence constructor arguments to L/X rules, and revises the
+profile resource. All other fingerprints retain that baseline. Chemistry expectations below
 use explicit methane atoms and independent charge/electron/spin accounting.
 """
 
@@ -83,7 +85,7 @@ _CLASS_CONTRACTS = {'rules.charge.contracts:NetChargeCandidateEvidence': 'c8e60f
  'rules.providers.neutral_l_donors:_AtomSignature': 'fe3f6071f56e2b5c99e0472b6d1c3a32188e0876d8fb110eee35fba33381b7d7',
  'rules.providers.neutral_l_donors:_ComponentSignature': '9d5090b091df9b75b0f3b6225d5fc4d94f8cef3e5029b07386c10ade989bf277',
  'rules.providers.neutral_l_donors:_DonorRegistry': '8d6c9aeb56a90c4bcf7a61cea74d1af54586dad73887e37217c3ce21ba8b9d51',
- 'rules.providers.neutral_l_donors:NeutralLDonorRule': '33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c',
+ 'rules.providers.neutral_l_donors:NeutralLDonorRule': '1ea139550de51c42d87ded0d20499456400367fbccf6390c51f4372113123971',
  'rules.providers.ionic_configuration_spin:_IonicConfiguration': '3716ab296c49c0010f2f3d3ba763cb39cb6deb16e532393b93f905cf25058c08',
  'rules.providers.ionic_configuration_spin:_IonicConfigurationRegistry': '98005146259721331069f6b6862c1f09e635cd018a1e620aff1bce4f95e64a71',
  'rules.providers.ionic_configuration_spin:IonicConfigurationSpinRule': '7f7356a2582a96505a776557b786349446b8ad6d50c50d881dc5603245247901',
@@ -117,7 +119,7 @@ _CLASS_CONTRACTS = {'rules.charge.contracts:NetChargeCandidateEvidence': 'c8e60f
  'rules.providers.oxidation_priors:_OxidationPriorArtifact': '0dec6ea05cba7bf0c27a9d9af16da6cc7d95c3de505fcdc3141a2b574bd70ef1',
  'rules.providers.oxidation_priors:_OxidationStatePriorRule': 'cd31380dbd499341d01e5ee9223c36b78c129b06145009f446e12377a1681895',
  'rules.providers.anionic_x_ligands:_XLigandRegistry': '31c11cfafb64282f207c276a86bf1057a15191e8689b2ee66712c059a788fbd7',
- 'rules.providers.anionic_x_ligands:AnionicXLigandRule': '33e02ef8c75f6322a5531f52672728217cfbec6bf87ca0f3925165566ac5556c',
+ 'rules.providers.anionic_x_ligands:AnionicXLigandRule': '1ea139550de51c42d87ded0d20499456400367fbccf6390c51f4372113123971',
  'operations.rule_registry:InferenceRuleRegistry': 'e370a2adb34f4df514e8b03a9d7f80ef7cccc1d2c43eb4c0caec38f6e7d23ee0',
  'operations.manifest:_ScientificStateRuntimeManifest': '5e6d639f3cbbf6501e136b8682865e3f0a2e0cd8dd3c7e8346113228d836685e',
  'rules.providers.trusted_history:TrustedScientificStateRecord': '58697fd7f0b75a42a56950526c11b9440f80fca55624ebbda6260bf97eea69f8',
@@ -183,7 +185,7 @@ _FUNCTION_CONTRACTS = {'rules.charge.lewis:solve_main_group_lewis': '3ca2eae9372
 
 _RESOURCE_DIGESTS = {'neutral_atom_references.json': 'ef504d3d5e2429623484a0b8935c46698d72a78a2f6a2b82e08afa5d44c4a3cf',
  'element_oxidation_states.json': '004d4d4c8e6afbb8d777bd2f0af398821ef4b2c514bebbb277242c6c761eb31c',
- 'coordination_screening_v1.json': '574ed32272b9af9ac3f1f2ff879082bd37ba78e4d67f3305a46bf8091bff8ab5',
+ 'coordination_screening_v1.json': 'dfba1eb6f19c5ccd868c462bb3276ed6cbf417e71b3f114254be166ecdc687ff',
  'lanthanide_iii_prior_v1.json': '4acdc05ddc3ed9742b84abf25674c9db659302d14640f1608df49a80ab7e33bb',
  'americium_curium_iii_prior_v1.json': 'e9a6574effd8b371c08a8d9397d85e47e4919a6056fddbe575dcddde7addb3eb',
  'main_group_closed_shell_v1.json': 'e16c36833aec45c88c0e40f202ed62e2ad6c9972d9570c7ebd9992a2c2645280',
@@ -374,7 +376,7 @@ def test_default_candidate_budget_remains_the_approved_bounded_work():
     ) == (64, 4096, 1024)
 
 
-def test_all_twelve_resources_preserve_pre_migration_bytes():
+def test_all_twelve_resources_match_qualified_versions():
     data = resources.files(_RULES).joinpath("data")
     pending = [data]
     actual = {}
@@ -483,14 +485,14 @@ def test_odd_spin_for_even_electron_methane_never_gets_projected(methane_facts):
     )
 
 
-def test_optional_profile_is_still_planned_and_ineligible(methane_facts):
+def test_planned_profile_is_ineligible(methane_facts, planned_screening_profile):
     from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
     from hotpot.cheminfo.operations.calculation.scientific_state.profiles import _coordination_screening_profile
     from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import resolve_scientific_state
 
     profile = _coordination_screening_profile()
     assert profile.activation_status == "planned"
-    assert profile.content_digest == _RESOURCE_DIGESTS["coordination_screening_v1.json"]
+    assert profile.profile_version == "1.1.0"
     bundle = resolve_scientific_state(methane_facts, policy=StatePolicy.COORDINATION_SCREENING_V1)
     eligibility = bundle.execution_decision.static_profile_eligibility
     assert eligibility.in_domain is False

@@ -1341,6 +1341,7 @@ Nh 的可能态域仍为空。实际求解先应用用户输入和适用的专�
 
 定义 owner `hotpot.cheminfo.rules.chemistry.scientific_state.providers.anionic_x_ligands.AnionicXLigandRule`；基类 `InferenceRule`。
 
+- `__init__(self, source_atom_formal_charges=None)`；可选绑定已有不可变来源电荷证据，无参数调用保留。完整或部分来源覆盖时，不以供体局部特征覆盖该组分的已提供电荷。
 - `applicable(self, context: RuleContext) -> RuleApplicability`
 - `action(self, context: RuleContext, configuration: Tuple[Tuple[str, RuleValue], ...]) -> RuleOutcome`
 - `specification` = `RuleSpecification(rule_id=_RULE_ID, rule_version=_RULE_VERSION, kind=RuleKind.EMPIRICAL, phase=RulePhase.COORDINATION_COUNTING, requires=(), consumes=(), produces=(ResultType.CANDIDATE_PROPOSAL, ResultType.EVIDENCE), applicability_schema=_DOMAIN_DEFINITION)` [类声明值；可重绑定不构成事实写许可]
@@ -1647,6 +1648,7 @@ RuleTrace(phase: RulePhase, outcome: RuleOutcome)
 
 定义 owner `hotpot.cheminfo.rules.chemistry.scientific_state.providers.neutral_l_donors.NeutralLDonorRule`；基类 `InferenceRule`。
 
+- `__init__(self, source_atom_formal_charges=None)`；可选绑定已有不可变来源电荷证据，无参数调用保留。完整或部分来源覆盖时，不以供体局部特征覆盖该组分的已提供电荷。
 - `applicable(self, context: RuleContext) -> RuleApplicability`
 - `action(self, context: RuleContext, configuration: Tuple[Tuple[str, RuleValue], ...]) -> RuleOutcome`
 - `specification` = `RuleSpecification(rule_id=_RULE_ID, rule_version=_RULE_VERSION, kind=RuleKind.EMPIRICAL, phase=RulePhase.COORDINATION_COUNTING, requires=(), consumes=(), produces=(ResultType.CANDIDATE_PROPOSAL, ResultType.EVIDENCE), applicability_schema=_DOMAIN_DEFINITION)` [类声明值；可重绑定不构成事实写许可]

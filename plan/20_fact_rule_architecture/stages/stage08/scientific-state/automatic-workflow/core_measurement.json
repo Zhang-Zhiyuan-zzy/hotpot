@@ -1,0 +1,701 @@
+{
+  "date": "2026-11-05",
+  "scope": "Warmed source facts/bind/manifest/resolve/pure projection only; no executable, FF, backend probe, install or scientific energy evaluation.",
+  "command": [
+    "/tmp/hotpot-plan20-env/bin/python",
+    "/tmp/hotpot_plan20/short/automatic-state-core-20261105/measure_core.py"
+  ],
+  "python": "3.11.16 (main, Aug 27 2026, 14:44:21) [GCC 14.3.0]",
+  "python_executable": "/tmp/hotpot-plan20-env/bin/python",
+  "platform": "Linux-5.15.0-139-generic-x86_64-with-glibc2.31",
+  "hotpot_source": "/home/zhangzhiyuan/hotpot/hotpot/__init__.py",
+  "production_profile_sha256": "afc2615f74ccf70c088b38e62785480f448a2f978d31e1c676d68bc3df6544be",
+  "isolated_active_profile_sha256": "270baf7fed88523bf22bd1a5dffdb8b0cb21217016131432c4d6bd15407e1152",
+  "activation_protocol_sha256": "e4de3e64d6eafcce3c2a20f37cad305bb3f0f71f9f98fe5ad74158018ceeff18",
+  "warmup_passes": 3,
+  "measured_passes": 10,
+  "sample_count": 120,
+  "candidate_budget": {
+    "max_materialized_values_per_factor": 64,
+    "max_expanded_paths": 4096,
+    "max_frontier_paths": 1024
+  },
+  "aggregate_ms": {
+    "facts_ms": {
+      "median": 2.6566289999999997,
+      "min": 1.680257,
+      "max": 7.557686
+    },
+    "source_ms": {
+      "median": 0.0729485,
+      "min": 0.055625,
+      "max": 0.147089
+    },
+    "manifest_ms": {
+      "median": 0.17544300000000002,
+      "min": 0.166295,
+      "max": 0.454542
+    },
+    "resolve_ms": {
+      "median": 13.1654015,
+      "min": 4.003003,
+      "max": 57.308311
+    },
+    "project_ms": {
+      "median": 0.07425599999999999,
+      "min": 0.06855,
+      "max": 0.103186
+    },
+    "total_ms": {
+      "median": 16.991514000000002,
+      "min": 6.657397,
+      "max": 60.103302
+    }
+  },
+  "holdouts": [
+    {
+      "id": "neutral_water",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 8,
+      "expanded_paths": 8,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 3,
+      "physical_two_s": 6,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 1.7157745,
+          "min": 1.700074,
+          "max": 1.953295
+        },
+        "source_ms": {
+          "median": 0.056502,
+          "min": 0.055625,
+          "max": 0.062839
+        },
+        "manifest_ms": {
+          "median": 0.169732,
+          "min": 0.166366,
+          "max": 0.196913
+        },
+        "resolve_ms": {
+          "median": 14.3584245,
+          "min": 14.243297,
+          "max": 14.447343
+        },
+        "project_ms": {
+          "median": 0.07172100000000001,
+          "min": 0.070995,
+          "max": 0.073199
+        },
+        "total_ms": {
+          "median": 16.379869,
+          "min": 16.250794,
+          "max": 16.561453
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "neutral_ether",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 8,
+      "expanded_paths": 8,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 3,
+      "physical_two_s": 6,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 2.9684749999999998,
+          "min": 2.94678,
+          "max": 3.146177
+        },
+        "source_ms": {
+          "median": 0.0764355,
+          "min": 0.075362,
+          "max": 0.082246
+        },
+        "manifest_ms": {
+          "median": 0.1757485,
+          "min": 0.173499,
+          "max": 0.181494
+        },
+        "resolve_ms": {
+          "median": 14.00245,
+          "min": 13.869557,
+          "max": 14.431704
+        },
+        "project_ms": {
+          "median": 0.07413600000000001,
+          "min": 0.073239,
+          "max": 0.075874
+        },
+        "total_ms": {
+          "median": 17.3176175,
+          "min": 17.16111,
+          "max": 17.7352
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "remote_cation",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 8,
+      "expanded_paths": 8,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 4,
+      "physical_two_s": 6,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 3.573107,
+          "min": 3.538462,
+          "max": 3.591281
+        },
+        "source_ms": {
+          "median": 0.085643,
+          "min": 0.085252,
+          "max": 0.090662
+        },
+        "manifest_ms": {
+          "median": 0.179616,
+          "min": 0.177667,
+          "max": 0.180843
+        },
+        "resolve_ms": {
+          "median": 13.099171,
+          "min": 12.988416,
+          "max": 13.249432
+        },
+        "project_ms": {
+          "median": 0.077362,
+          "min": 0.076054,
+          "max": 0.079992
+        },
+        "total_ms": {
+          "median": 16.988003,
+          "min": 16.916127,
+          "max": 17.172643
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "remote_dication",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 8,
+      "expanded_paths": 8,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 5,
+      "physical_two_s": 6,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 5.0811174999999995,
+          "min": 5.040411,
+          "max": 5.123558
+        },
+        "source_ms": {
+          "median": 0.108616,
+          "min": 0.106832,
+          "max": 0.117153
+        },
+        "manifest_ms": {
+          "median": 0.1880215,
+          "min": 0.186564,
+          "max": 0.194759
+        },
+        "resolve_ms": {
+          "median": 12.7809575,
+          "min": 12.700591,
+          "max": 12.970092
+        },
+        "project_ms": {
+          "median": 0.0815845,
+          "min": 0.080072,
+          "max": 0.083899
+        },
+        "total_ms": {
+          "median": 18.2558165,
+          "min": 18.173662,
+          "max": 18.417925
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "anionic_alkoxide",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 8,
+      "expanded_paths": 8,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 2,
+      "physical_two_s": 6,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 2.3527075,
+          "min": 2.33552,
+          "max": 2.370346
+        },
+        "source_ms": {
+          "median": 0.06748799999999999,
+          "min": 0.066256,
+          "max": 0.083769
+        },
+        "manifest_ms": {
+          "median": 0.172582,
+          "min": 0.171074,
+          "max": 0.178338
+        },
+        "resolve_ms": {
+          "median": 14.2558095,
+          "min": 14.160959,
+          "max": 14.37199
+        },
+        "project_ms": {
+          "median": 0.0736,
+          "min": 0.072347,
+          "max": 0.074211
+        },
+        "total_ms": {
+          "median": 16.920434,
+          "min": 16.814774,
+          "max": 17.03942
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "dianionic_dicarboxylate",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 8,
+      "expanded_paths": 8,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 1,
+      "physical_two_s": 6,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 3.573213,
+          "min": 3.541789,
+          "max": 3.588988
+        },
+        "source_ms": {
+          "median": 0.0862385,
+          "min": 0.084791,
+          "max": 0.091083
+        },
+        "manifest_ms": {
+          "median": 0.18017650000000002,
+          "min": 0.177667,
+          "max": 0.194729
+        },
+        "resolve_ms": {
+          "median": 13.072886,
+          "min": 12.982645,
+          "max": 13.305316
+        },
+        "project_ms": {
+          "median": 0.07685600000000001,
+          "min": 0.076425,
+          "max": 0.077557
+        },
+        "total_ms": {
+          "median": 16.974762,
+          "min": 16.87603,
+          "max": 17.18725
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "tetraanionic_edta",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 8,
+      "expanded_paths": 8,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": -1,
+      "physical_two_s": 6,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 7.492667,
+          "min": 7.423341,
+          "max": 7.557686
+        },
+        "source_ms": {
+          "median": 0.143628,
+          "min": 0.141719,
+          "max": 0.147089
+        },
+        "manifest_ms": {
+          "median": 0.2032505,
+          "min": 0.199268,
+          "max": 0.210028
+        },
+        "resolve_ms": {
+          "median": 13.1061745,
+          "min": 13.029022,
+          "max": 13.418421
+        },
+        "project_ms": {
+          "median": 0.09016099999999999,
+          "min": 0.088548,
+          "max": 0.103186
+        },
+        "total_ms": {
+          "median": 21.0551015,
+          "min": 20.902628,
+          "max": 21.384241
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "trivalent_lanthanum",
+      "factor_count": 5,
+      "materialized_value_count": 5,
+      "largest_factor": 1,
+      "expanded_paths": 1,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 3,
+      "physical_two_s": 0,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 2.3474125,
+          "min": 2.328016,
+          "max": 2.393681
+        },
+        "source_ms": {
+          "median": 0.06776299999999999,
+          "min": 0.066777,
+          "max": 0.068069
+        },
+        "manifest_ms": {
+          "median": 0.17239700000000002,
+          "min": 0.169672,
+          "max": 0.187556
+        },
+        "resolve_ms": {
+          "median": 4.043816,
+          "min": 4.003003,
+          "max": 4.087813
+        },
+        "project_ms": {
+          "median": 0.069767,
+          "min": 0.069211,
+          "max": 0.070915
+        },
+        "total_ms": {
+          "median": 6.7095565,
+          "min": 6.657397,
+          "max": 6.755524
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "trivalent_gadolinium",
+      "factor_count": 5,
+      "materialized_value_count": 11,
+      "largest_factor": 4,
+      "expanded_paths": 4,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 3,
+      "physical_two_s": 7,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 2.6554219999999997,
+          "min": 2.637343,
+          "max": 2.684362
+        },
+        "source_ms": {
+          "median": 0.0723775,
+          "min": 0.071185,
+          "max": 0.074
+        },
+        "manifest_ms": {
+          "median": 0.17536800000000002,
+          "min": 0.173449,
+          "max": 0.454542
+        },
+        "resolve_ms": {
+          "median": 7.2949415,
+          "min": 7.220545,
+          "max": 7.543558
+        },
+        "project_ms": {
+          "median": 0.072207,
+          "min": 0.070674,
+          "max": 0.079691
+        },
+        "total_ms": {
+          "median": 10.308879000000001,
+          "min": 10.195037,
+          "max": 10.51846
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "generic_zinc",
+      "factor_count": 5,
+      "materialized_value_count": 14,
+      "largest_factor": 4,
+      "expanded_paths": 4,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 2,
+      "physical_two_s": 0,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 1.71618,
+          "min": 1.680257,
+          "max": 1.721204
+        },
+        "source_ms": {
+          "median": 0.056553,
+          "min": 0.055907,
+          "max": 0.059714
+        },
+        "manifest_ms": {
+          "median": 0.168865,
+          "min": 0.166295,
+          "max": 0.169581
+        },
+        "resolve_ms": {
+          "median": 13.1298445,
+          "min": 13.080741,
+          "max": 13.22195
+        },
+        "project_ms": {
+          "median": 0.07008800000000001,
+          "min": 0.06855,
+          "max": 0.072908
+        },
+        "total_ms": {
+          "median": 15.117755,
+          "min": 15.076867,
+          "max": 15.23637
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 0,
+      "expected_match": true
+    },
+    {
+      "id": "generic_copper",
+      "factor_count": 5,
+      "materialized_value_count": 20,
+      "largest_factor": 6,
+      "expanded_paths": 6,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 2,
+      "physical_two_s": 1,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 2.6642580000000002,
+          "min": 2.6311,
+          "max": 2.718005
+        },
+        "source_ms": {
+          "median": 0.0728885,
+          "min": 0.071445,
+          "max": 0.073379
+        },
+        "manifest_ms": {
+          "median": 0.174977,
+          "min": 0.173308,
+          "max": 0.187485
+        },
+        "resolve_ms": {
+          "median": 18.182398,
+          "min": 18.131762,
+          "max": 18.218397
+        },
+        "project_ms": {
+          "median": 0.0746165,
+          "min": 0.07347,
+          "max": 0.092065
+        },
+        "total_ms": {
+          "median": 21.172434,
+          "min": 21.139136,
+          "max": 21.187288
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 1,
+      "expected_match": true
+    },
+    {
+      "id": "radical_ligand",
+      "factor_count": 5,
+      "materialized_value_count": 27,
+      "largest_factor": 15,
+      "expanded_paths": 15,
+      "frontier": 0,
+      "truncated_factor_count": 0,
+      "search_status": "decision_certified",
+      "decision": "select_state",
+      "charge": 3,
+      "physical_two_s": 5,
+      "timings_ms": {
+        "facts_ms": {
+          "median": 2.452251,
+          "min": 2.426833,
+          "max": 2.473191
+        },
+        "source_ms": {
+          "median": 0.069046,
+          "min": 0.067659,
+          "max": 0.08429
+        },
+        "manifest_ms": {
+          "median": 0.1733085,
+          "min": 0.171725,
+          "max": 0.176786
+        },
+        "resolve_ms": {
+          "median": 22.579513,
+          "min": 22.32215,
+          "max": 57.308311
+        },
+        "project_ms": {
+          "median": 0.07645550000000001,
+          "min": 0.074341,
+          "max": 0.090592
+        },
+        "total_ms": {
+          "median": 25.344632500000003,
+          "min": 25.096562,
+          "max": 60.103302
+        }
+      },
+      "projection_status": "projected",
+      "backend_uhf": 1,
+      "expected_match": true
+    }
+  ],
+  "stress": [
+    {
+      "eu_centers": 2,
+      "factor_count": 9,
+      "materialized_value_count": 88,
+      "largest_factor": 64,
+      "expanded_paths": 0,
+      "frontier": 1,
+      "truncated_factor_count": 1,
+      "search_status": "resource_limit_no_certified_decision",
+      "decision": "no_automatic_state",
+      "charge": null,
+      "physical_two_s": null,
+      "timings_ms": {
+        "facts_ms": 2.167431,
+        "source_ms": 0.066536,
+        "manifest_ms": 0.186173,
+        "resolve_ms": 356.624884,
+        "project_ms": 0.024827,
+        "total_ms": 359.069851
+      },
+      "projection_status": "not_projected"
+    },
+    {
+      "eu_centers": 3,
+      "factor_count": 13,
+      "materialized_value_count": 100,
+      "largest_factor": 64,
+      "expanded_paths": 0,
+      "frontier": 1,
+      "truncated_factor_count": 1,
+      "search_status": "resource_limit_no_certified_decision",
+      "decision": "no_automatic_state",
+      "charge": null,
+      "physical_two_s": null,
+      "timings_ms": {
+        "facts_ms": 2.606685,
+        "source_ms": 0.076405,
+        "manifest_ms": 0.186323,
+        "resolve_ms": 2947.777235,
+        "project_ms": 0.036389,
+        "total_ms": 2950.683037
+      },
+      "projection_status": "not_projected"
+    }
+  ],
+  "interpretation": "Single-process warm-cache wall time; no before/after comparator and no throughput, scalability or speedup claim. Stress samples are single observations.",
+  "measurement_conditions": "Shared development host; final source pytest ran concurrently for part of the measurement. Wall-time observations are not a controlled benchmark or a before/after comparison.",
+  "source_head_at_core_handoff": "8715c9b3fdfb960a4068e671c04956617c9d43ee",
+  "source_file_sha256": {
+    "hotpot/cheminfo/operations/calculation/scientific_state/defaults.py": "afd30c2213f229a8f3121d9b4c3a2a11387d89e9fefab4220be4cf2dd0ad816b",
+    "hotpot/cheminfo/operations/calculation/scientific_state/facts.py": "8455641f7f973457684a33e4a9e09b8e4e7c971e2250588e940966882bdc59f3",
+    "hotpot/cheminfo/operations/calculation/scientific_state/manifest.py": "bc919e43df418c1f9d699bfd34357b44d1ada6a2bc9684b545da49e448ddef0d",
+    "hotpot/cheminfo/operations/calculation/scientific_state/state_resolver.py": "449c02db75e29d76ec0f28ce7c8b33b5817e261965006caed10959f7fcc57269",
+    "hotpot/cheminfo/rules/chemistry/scientific_state/providers/automatic_components.py": "aa3a4d06d8fb79810c1f1c99ba50f2f750f3bdc9e168eda770b615ee7d1e137a",
+    "hotpot/cheminfo/rules/chemistry/scientific_state/providers/neutral_l_donors.py": "669afa41b409e49e3fc1f73ed46d0982669b7aee50ddfeb5391f64304c65c9c1",
+    "hotpot/cheminfo/rules/chemistry/scientific_state/providers/anionic_x_ligands.py": "42380dcafa3105e65cfcb92aa00f396f13503733cce8c6e40bf142ccd74aea73",
+    "hotpot/cheminfo/rules/chemistry/scientific_state/providers/monoatomic_ions.py": "47cc53c5eff69989d7da45f6c08882133cfa06c02d35535fbcb3e8a359386480",
+    "hotpot/cheminfo/rules/chemistry/scientific_state/data/profiles/coordination_screening_v1.json": "afc2615f74ccf70c088b38e62785480f448a2f978d31e1c676d68bc3df6544be",
+    "hotpot/plugins/xtb/state_resolution.py": "5079723531e791d35eca2754271d8f894f91efc2c7019154b74e8863c5ed348a",
+    "hotpot/plugins/xtb/cli.py": "5fb7addf52ccff54a67c84dcdd1539530fe1c21223dc0d024bcb61cd9da51466",
+    "hotpot/plugins/xtb/stage.py": "be041407b0cd542c7c9df5dd0a967f78b58b14cbac287a9380e387b4055b5173",
+    "hotpot/plugins/xtb/cli_doc.md": "635be6d9ba786ee074ac852d8e56bfee28af5b5427e14edb40657587b07f3931",
+    "tests/test_cheminfo/calculator/test_automatic_scientific_state.py": "4d334cba0df9f83553d7e8d4c4c99ea30c3a9e8bb78398d58e3dcd64ee733290",
+    "tests/test_plugin/test_xtb/test_automatic_state_resolution.py": "5dfd37c0bfa891c11a985b6c1865fe0ee2b0e8421d1c87d8779cf26a9ae37f15",
+    "tests/test_pipeline/test_builtin_stages.py": "fdda59302f2f750c1b8a61d55eae14f5dfb907ad7d0d2baabbe74d26e6081983",
+    "tests/test_cli/test_xtb_cli.py": "cef7078c60519ed16f62c495240ba426d3ae1caf0e68991fb5b2b29bbba8076e"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "command": [
+    "/tmp/hotpot-plan20-env/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_cheminfo/calculator/test_automatic_scientific_state.py",
+    "tests/test_plugin/test_xtb/test_automatic_state_resolution.py",
+    "tests/test_plugin/test_xtb/test_automatic_stream.py",
+    "tests/test_pipeline/test_builtin_stages.py",
+    "tests/test_cli/test_xtb_cli.py"
+  ],
+  "cwd": "/home/zhangzhiyuan/hotpot",
+  "started_utc": "2026-11-05T09:02:36.815063+00:00",
+  "finished_utc": "2026-11-05T09:02:44.829430+00:00",
+  "returncode": 0
+}

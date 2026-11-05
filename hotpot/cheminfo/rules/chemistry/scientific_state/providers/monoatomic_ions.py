@@ -28,6 +28,9 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
 )
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.automatic_components import (
+    _source_counted_component_ids,
+)
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.base import (
     InferenceRule,
 )
@@ -49,7 +52,7 @@ __all__ = [
 
 
 _RULE_ID = "OPTIONAL-002"
-_RULE_VERSION = "1.0.0"
+_RULE_VERSION = "1.1.0"
 _REGISTRY_SCHEMA = "hotpot-monoatomic-ion-registry-v1"
 _REGISTRY_RESOURCE = "data/rules/monoatomic_ions_v1.json"
 _DOMAIN_DEFINITION = "common-disconnected-monoatomic-ion-v1"
@@ -139,6 +142,7 @@ def _matching_components(
         )
         for component in context.facts.source_components
         if len(component.atom_indices) == 1
+        and covalent_by_atoms[component.atom_indices] not in _source_counted_component_ids(context)
         and component.atom_indices in covalent_by_atoms
         and context.facts.atomic_numbers[component.atom_indices[0]] in entries
     )

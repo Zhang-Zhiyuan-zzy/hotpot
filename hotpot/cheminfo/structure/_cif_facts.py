@@ -47,7 +47,7 @@ def _facts_to_data(record, labels, contained):
         if name in _BUFFERS:
             value = value.hex()
         elif name == 'cell':
-            value = _crystal_to_data(value)
+            value = None if value is None else _crystal_to_data(value)
         elif name == 'stereo_payload':
             value = _stereo_to_data(value)
         elif name == 'partial_charge_result':
@@ -83,7 +83,8 @@ def _facts_from_data(data):
         else:
             value = _thaw_value(_value_from_data(value))
         decoded[name] = value
-    decoded['cell'] = _crystal_from_data(values['cell'], decoded['atom_count'], len(decoded['bond_endpoints']))
+    decoded['cell'] = (None if values['cell'] is None else
+                       _crystal_from_data(values['cell'], decoded['atom_count'], len(decoded['bond_endpoints'])))
     record = MoleculeRecord(**decoded, source_frames=(), conformer_results=(), frame_selection=None)
     if (len(labels) != record.atom_count or len(set(labels)) != len(labels)
             or any(type(label) is not str or label in ('', '?', '.') for label in labels)

@@ -1,0 +1,62 @@
+{
+  "date": "2026-11-05",
+  "owner": "root",
+  "decision": "ACTIVATE_COORDINATION_SCREENING_V1_1_0",
+  "scope": "Owner-authorized automatic coordination workflow; production activation, not final scientific/runtime/global acceptance.",
+  "preregistered_protocol_sha256": "e4de3e64d6eafcce3c2a20f37cad305bb3f0f71f9f98fe5ad74158018ceeff18",
+  "profile_before_sha256": "afc2615f74ccf70c088b38e62785480f448a2f978d31e1c676d68bc3df6544be",
+  "profile_after_sha256": "dfba1eb6f19c5ccd868c462bb3276ed6cbf417e71b3f114254be166ecdc687ff",
+  "reviewed_evidence": {
+    "core": "/tmp/hotpot_plan20/short/automatic-state-core-20261105/",
+    "independent_bound_regression": "/tmp/hotpot_plan20/short/automatic-payload-identity-20261105/spin-bound-summary.json",
+    "stream_original_failures": "/tmp/hotpot_plan20/short/automatic-stream-20261105/",
+    "final_focused": {
+      "passed": 143,
+      "seconds": 6.91
+    },
+    "heldout_positive": {
+      "selected": 12,
+      "denominator": 12,
+      "hard_legal": 12
+    },
+    "bound_correction": {
+      "red_failed": 1,
+      "red_passed": 3,
+      "green_passed": 69
+    },
+    "multicenter_stress": "Two/three Eu center fixtures retain64/4096/1024 bounds and abstain rather than certify incomplete spin domains."
+  },
+  "root_disposition": "Source evidence/default precedence, explicit contradictions, represented-H and radical boundaries, physical versus active spin, snapshot transport and connected source identity accepted for activating this bounded method. Original failure evidence retained.",
+  "data_lifecycle": "Any default periodic/prior data change requires a coordinated profile artifact/version revision; no data hot-edit API or separate aggregate hashing.",
+  "remaining_gates": [
+    "Frozen integrated CP311 affected contracts",
+    "Actual original187 four-stage route with no manual charge/UHF",
+    "Representative installed CP311 automatic native workflow",
+    "Default delivery suite and final business/artifact verification"
+  ],
+  "limits": [
+    "No ground-state/experimental truth guarantee",
+    "Multi-center bounded-domain abstention remains possible",
+    "Other Python/native delivery and full Plan20 acceptance unchanged"
+  ],
+  "post_activation_source_validation": {
+    "initial": {
+      "tests": 4244,
+      "passed": 4196,
+      "failed": 7,
+      "skipped": 41,
+      "seconds": 136.2255654335022,
+      "production_unchanged": true
+    },
+    "qualified_fixture_repair": {
+      "passed": 84,
+      "failed": 0,
+      "skipped": 0,
+      "seconds": 1.09,
+      "original_production_hashes_match": true,
+      "preserved_conversion_assertions": 119
+    },
+    "disposition": "Affected production contracts accepted by composed evidence; original seven historical fixture failures remain preserved.",
+    "evidence_root": "/tmp/hotpot_plan20/short/automatic-state-integration-20261105/"
+  }
+}

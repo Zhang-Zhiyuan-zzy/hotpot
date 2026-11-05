@@ -40,7 +40,10 @@ $ hotpot xtb gfnff.sdf --method gfn2 --task optimize \
 The SDF output carries a narrow, versioned set of `HOTPOT_XTB_*` properties:
 total charge, unpaired-electron count when applicable, method, energy and
 backend provenance. These properties are bound to the molecular record and are
-validated before reuse by a later `hotpot xtb` command.
+validated before reuse by a later `hotpot xtb` command. Current Hotpot facts
+also preserve coordination bond kinds, supplied charge/spin declarations and
+radicals across this transport. Reuse verifies the original scientific identity
+before running the next method.
 
 ## Electronic state
 
@@ -51,16 +54,22 @@ $ hotpot xtb radical.sdf --method gfn2 --charge 0 \
     --unpaired-electrons 1 -o radical-opt.sdf
 ```
 
-Without an attributable state from an earlier Hotpot SDF record, `--charge` is
-required under the default `strict` policy. `--unpaired-electrons` is a backend
-UHF value, not a scientific multiplicity. When scientific spin remains
-unresolved, xTB execution chooses the lowest parity-compatible UHF as an
-explicit execution-only default. GFN-FF accepts charge but has no spin option;
-passing `--unpaired-electrons` with `--method gfnff` is an error.
+With no `--state-policy` flag, a molecule containing semantic metal
+coordination uses `coordination-screening-v1`; other molecules use `strict`.
+Current supplied molecular and atom charge facts are read in both routes.
+Explicit invocation values take priority over stored declarations. The
+screening policy applies specific rules before its named common defaults and
+requires an active profile plus a certified legal state. Use
+`--state-policy strict` to require the strict route, or
+`--state-policy coordination-screening-v1` to request screening explicitly.
 
-`--state-policy coordination-screening-v1` explicitly requests the named
-screening policy. If its registered rules cannot certify one state, execution
-still fails rather than silently assuming a neutral molecule.
+`--unpaired-electrons` is the backend's active UHF count. Physical molecular
+spin remains in the scientific state. For ordinary GFN calculations with
+f electrons in the core, physical f spin is not projected directly into active
+UHF. When no safe projection or stronger execution evidence exists, xTB uses
+the lowest legal active-electron parity value. These screening conventions do
+not establish a physical ground state. GFN-FF accepts charge but has no spin
+option; passing `--unpaired-electrons` with `--method gfnff` is an error.
 
 ## Multiple records and resources
 

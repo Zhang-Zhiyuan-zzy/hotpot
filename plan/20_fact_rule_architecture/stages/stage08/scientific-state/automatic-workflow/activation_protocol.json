@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "date": "2026-11-05",
+  "status": "PREREGISTERED_NOT_EXECUTED",
+  "source_base": "a2799dba45790a4385fc4d30f8a99cbb869c33a4",
+  "profile": "coordination_screening_v1",
+  "profile_version": "1.1.0",
+  "candidate_budget": {
+    "max_materialized_values_per_factor": 64,
+    "max_expanded_paths": 4096,
+    "max_frontier_paths": 1024
+  },
+  "activation_owner": "root; after inspecting recorded checks, no implicit activation by source implementation",
+  "design_cohort": "historical187 and earlier unit fixtures inform design; neither is held-out truth",
+  "independent_holdout": [
+    {
+      "id": "neutral_water",
+      "metal": "Eu",
+      "ligand": "O",
+      "expected_charge": 3,
+      "physical_two_s": 6
+    },
+    {
+      "id": "neutral_ether",
+      "metal": "Eu",
+      "ligand": "CCOCC",
+      "expected_charge": 3,
+      "physical_two_s": 6
+    },
+    {
+      "id": "remote_cation",
+      "metal": "Eu",
+      "ligand": "C[N+](C)(C)CCO",
+      "expected_charge": 4,
+      "physical_two_s": 6
+    },
+    {
+      "id": "remote_dication",
+      "metal": "Eu",
+      "ligand": "C[N+](C)(CCO)CC[N+](C)(C)C",
+      "expected_charge": 5,
+      "physical_two_s": 6
+    },
+    {
+      "id": "anionic_alkoxide",
+      "metal": "Eu",
+      "ligand": "CC[O-]",
+      "expected_charge": 2,
+      "physical_two_s": 6
+    },
+    {
+      "id": "dianionic_dicarboxylate",
+      "metal": "Eu",
+      "ligand": "O=C([O-])CC(=O)[O-]",
+      "expected_charge": 1,
+      "physical_two_s": 6
+    },
+    {
+      "id": "tetraanionic_edta",
+      "metal": "Eu",
+      "ligand": "O=C([O-])CN(CC(=O)[O-])CCN(CC(=O)[O-])CC(=O)[O-]",
+      "expected_charge": -1,
+      "physical_two_s": 6
+    },
+    {
+      "id": "trivalent_lanthanum",
+      "metal": "La",
+      "ligand": "COC",
+      "expected_charge": 3,
+      "physical_two_s": 0
+    },
+    {
+      "id": "trivalent_gadolinium",
+      "metal": "Gd",
+      "ligand": "OCCO",
+      "expected_charge": 3,
+      "physical_two_s": 7
+    },
+    {
+      "id": "generic_zinc",
+      "metal": "Zn",
+      "ligand": "O",
+      "expected_charge": 2,
+      "physical_two_s": 0
+    },
+    {
+      "id": "generic_copper",
+      "metal": "Cu",
+      "ligand": "NCCO",
+      "expected_charge": 2,
+      "physical_two_s": 1
+    },
+    {
+      "id": "radical_ligand",
+      "metal": "Eu",
+      "ligand": "[CH2]CO",
+      "expected_charge": 3,
+      "physical_two_s": 5
+    }
+  ],
+  "positive_coverage_gate": {
+    "minimum_selected_fraction": 1.0,
+    "denominator": "the12 listed complete in-domain positive fixtures, retained without deletion",
+    "hard_legal_fraction": 1.0
+  },
+  "negative_boundary_gate": [
+    "explicit valid charge/spin wins over defaults; zero is explicit when present",
+    "hard-invalid spin parity and mutually contradictory complete source charges yield local typed failure",
+    "unknown H and source formal-charge absence remain distinct; modeled completion is attributable",
+    "stale source/carried facts or changed source evidence must not reuse identity",
+    "source-known charged components have no neutral-L0 alternative",
+    "unsupported backend elements remain explicit unsupported projections",
+    "all118 registry rows load; source/model missingness is preserved; no molecular-spin lookup from neutral atoms",
+    "factor budgets and non-equivalent ties retain certification/abstention behavior"
+  ],
+  "stress_gate": "64values/factor,4096expanded,1024frontier bounds remain enforced; existing candidate-search/serialization tests plus multi-component fixtures; no uncertified canonical selection",
+  "backend_gate": "EuIII closed ligand: physical2S6/M7 retained, GFN2activeUHF0; odd active electron and explicit UHF tests; charge-only GFN-FF; exact backend convention/source attribution",
+  "actual_gate": "root executes original full187 CBond->FF->GFN-FF->GFN2 route without manual states, retaining all original indices, actual attempts, failures, non-hard findings, trajectories and timings; 182 is not a target",
+  "delivery_gate": "affected source and representative installed CP311 automatic workflow, default suite at delivery, other-version/native support only as actually evidenced",
+  "cost_gate": "source/resolve/project overhead and actual comparable work/resource observations; no fabricated parity or speedup from earlier failure or less computation",
+  "results": null
+}

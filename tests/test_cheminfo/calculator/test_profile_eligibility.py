@@ -98,7 +98,7 @@ def test_effective_profile_identity_is_bound_to_molecular_facts() -> None:
     assert first.effective_profile_identity != second.effective_profile_identity
 
 
-def test_unactivated_screening_artifact_is_machine_readable_out_of_domain() -> None:
+def test_unactivated_screening_artifact_is_machine_readable_out_of_domain(planned_screening_profile) -> None:
     eligibility = _static_profile_eligibility(
         _facts(),
         StatePolicy.COORDINATION_SCREENING_V1,

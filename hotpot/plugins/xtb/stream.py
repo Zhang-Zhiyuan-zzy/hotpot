@@ -11,6 +11,8 @@ from dataclasses import dataclass
 from typing import Dict, Iterable, List, Optional, Tuple
 
 from hotpot.cheminfo.operations.io import MolReader
+from hotpot.cheminfo.structure._builder import MoleculeRecord
+from hotpot.cheminfo.structure._cif_facts import _facts_from_data, _facts_to_data
 from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
 from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
 from hotpot.cheminfo.operations.calculation.scientific_state.facts import extract_molecular_facts
@@ -18,6 +20,7 @@ from hotpot.cheminfo.structure.molecule import Molecule
 from hotpot.cheminfo.rules.chemistry.bonding.hydrogen import _non_graph_hydrogens
 
 from .contracts import XTBMethod, XTBRunReport
+from .state_projection import _effective_nuclear_charge, _GFN_CORE_BOUNDARIES
 
 
 __all__ = [
@@ -101,7 +104,10 @@ _REQUIRED_TAGS = frozenset(
         _TAG_PROVENANCE,
     }
 )
-_KNOWN_TAGS = _REQUIRED_TAGS | {_TAG_UNPAIRED_ELECTRONS}
+_FACTS_TAG_PREFIX = "HOTPOT_FACTS_"
+_TAG_FACTS = f"{_FACTS_TAG_PREFIX}CURRENT"
+_FACTS_SCHEMA = "hotpot.sdf.facts/1"
+_KNOWN_TAGS = _REQUIRED_TAGS | {_TAG_UNPAIRED_ELECTRONS, _TAG_FACTS}
 _PROPERTY_HEADER = re.compile(r"^>\s*<([^>]+)>\s*$")
 _INTEGER = re.compile(r"^[+-]?\d+$")
 _SHA256 = re.compile(r"^[0-9a-f]{64}$")
@@ -157,8 +163,8 @@ def _reserved_properties(lines: Tuple[str, ...]) -> Dict[str, str]:
         line = lines[index]
         header = _PROPERTY_HEADER.match(line)
         if header is None:
-            if _TAG_PREFIX in line:
-                raise XTBStreamError("Malformed reserved xTB SDF property header")
+            if _TAG_PREFIX in line or _FACTS_TAG_PREFIX in line:
+                raise XTBStreamError("Malformed reserved Hotpot SDF property header")
             index += 1
             continue
 
@@ -171,7 +177,7 @@ def _reserved_properties(lines: Tuple[str, ...]) -> Dict[str, str]:
             values.append(lines[index])
             index += 1
 
-        if not name.startswith(_TAG_PREFIX):
+        if not name.startswith((_TAG_PREFIX, _FACTS_TAG_PREFIX)):
             continue
         if name not in _KNOWN_TAGS:
             raise XTBStreamError(f"Unknown reserved xTB SDF property {name!r}")
@@ -183,6 +189,48 @@ def _reserved_properties(lines: Tuple[str, ...]) -> Dict[str, str]:
             )
         properties[name] = values[0].strip()
     return properties
+
+
+def _factual_value(record: MoleculeRecord, structure: str) -> str:
+    labels = tuple(f"A{row + 1}" for row in range(record.atom_count))
+    return json.dumps(
+        {
+            "schema": _FACTS_SCHEMA,
+            "structure_sha256": _record_sha256(structure),
+            "facts": _facts_to_data(record, labels, bool(record.atom_count)),
+        },
+        ensure_ascii=True,
+        allow_nan=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    )
+
+
+def _restore_factual_molecule(
+    structure: str, properties: Dict[str, str],
+) -> Optional[Molecule]:
+    if _TAG_FACTS not in properties:
+        return None
+    try:
+        payload = json.loads(properties[_TAG_FACTS], object_pairs_hook=_unique_json_object)
+    except (ValueError, TypeError) as error:
+        raise XTBStreamError("Reserved Hotpot facts are not valid JSON") from error
+    if not isinstance(payload, dict) or set(payload) != {
+        "schema", "structure_sha256", "facts",
+    }:
+        raise XTBStreamError("Reserved Hotpot facts fields are incomplete")
+    if payload["schema"] != _FACTS_SCHEMA:
+        raise XTBStreamError("Unsupported reserved Hotpot facts schema")
+    digest = payload["structure_sha256"]
+    if not isinstance(digest, str) or _SHA256.fullmatch(digest) is None or not hmac.compare_digest(
+        digest, _record_sha256(structure),
+    ):
+        raise XTBStreamError("Reserved Hotpot facts binding does not match its SDF record")
+    try:
+        record, _, _ = _facts_from_data(payload["facts"])
+        return Molecule._build_molecule(record)
+    except (ValueError, TypeError, KeyError, IndexError, AttributeError, OverflowError) as error:
+        raise XTBStreamError("Reserved Hotpot facts schema or record is malformed") from error
 
 
 def _integer_value(value: str, name: str) -> int:
@@ -312,8 +360,25 @@ def _validate_metadata(mol: Molecule, metadata: XTBStreamMetadata) -> None:
             facts.hydrogen_inventory.implicit_counts,
         )
     )
+    spin_method = metadata.method
+    if (
+        spin_method is XTBMethod.GFNFF
+        and provenance.projection_convention == "pure_spin_highest_ms"
+        and unpaired is not None
+    ):
+        # Ordinary GFN0/1/2 share this convention; GFN-FF only carries its UHF.
+        spin_method = XTBMethod.GFN2_XTB
+    if spin_method is not XTBMethod.GFNFF:
+        unsupported = tuple(
+            number for number in facts.atomic_numbers
+            if not 1 <= number <= _GFN_CORE_BOUNDARIES[-1][0]
+        )
+        if unsupported:
+            raise XTBStreamError(
+                f"xTB active-electron convention has unsupported atomic numbers {unsupported!r}"
+            )
     electron_count = (
-        sum(facts.atomic_numbers)
+        sum(_effective_nuclear_charge(number, spin_method) for number in facts.atomic_numbers)
         + sum(count for count in non_graph_hydrogens if count is not None)
         - metadata.total_charge
     )
@@ -465,14 +530,17 @@ def read_sdf_records(text: str) -> Tuple[XTBStreamRecord, ...]:
     records: List[XTBStreamRecord] = []
     for raw_record in _split_sdf_records(text):
         structure, property_lines = _structure_block(raw_record)
-        try:
-            mol = next(MolReader(raw_record + "$$$$\n", fmt="sdf"))
-        except (OSError, RuntimeError, StopIteration, ValueError) as error:
-            raise XTBStreamError("Cannot parse an SDF molecular record") from error
+        properties = _reserved_properties(property_lines)
+        mol = _restore_factual_molecule(structure, properties)
+        if mol is None:
+            try:
+                mol = next(MolReader(raw_record + "$$$$\n", fmt="sdf"))
+            except (OSError, RuntimeError, StopIteration, ValueError) as error:
+                raise XTBStreamError("Cannot parse an SDF molecular record") from error
         metadata = _metadata_from_properties(
             mol,
             structure,
-            _reserved_properties(property_lines),
+            {name: value for name, value in properties.items() if name.startswith(_TAG_PREFIX)},
         )
         records.append(XTBStreamRecord(mol=mol, metadata=metadata))
     return tuple(records)
@@ -482,17 +550,20 @@ def write_sdf_records(records: Iterable[XTBStreamRecord]) -> str:
     """Serialize molecular records with a narrow, versioned xTB property set."""
     serialized: List[str] = []
     for record in records:
-        base = record.mol.write(fmt="sdf", write_single=True)
+        if record.metadata is not None:
+            _validate_metadata(record.mol, record.metadata)
+        factual_record, _ = record.mol._capture_factual_record(include_frames=False)
+        base = Molecule._build_molecule(factual_record).write(fmt="sdf", write_single=True)
         structure, property_lines = _structure_block(
             _split_sdf_records(base)[0]
         )
         if _reserved_properties(property_lines):
             raise XTBStreamError("Molecule writer emitted reserved xTB metadata")
+        facts_property = _property(_TAG_FACTS, _factual_value(factual_record, structure))
         if record.metadata is None:
-            serialized.append(base.rstrip("\n") + "\n")
+            serialized.append(f"{structure}{facts_property}$$$$\n")
             continue
 
-        _validate_metadata(record.mol, record.metadata)
         values = [
             (_TAG_SCHEMA, _SCHEMA_VERSION),
             (_TAG_RECORD_SHA256, _record_sha256(structure)),
@@ -513,5 +584,5 @@ def write_sdf_records(records: Iterable[XTBStreamRecord]) -> str:
             )
         )
         properties = "".join(_property(name, value) for name, value in values)
-        serialized.append(f"{structure}{properties}$$$$\n")
+        serialized.append(f"{structure}{facts_property}{properties}$$$$\n")
     return "".join(serialized)

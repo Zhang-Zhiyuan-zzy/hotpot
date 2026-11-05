@@ -2090,9 +2090,14 @@ ResolvedXTBState(scientific_state: ScientificStateBundle, projection: BackendSta
 ### `resolve_xtb_state`
 
 ```python
-resolve_xtb_state(mol: Molecule, method: XTBMethod, *, executable: Optional[_ExecutablePath], environment: Mapping[str, str], charge: Optional[int], uhf: Optional[int], policy: StatePolicy, carried_state: Optional[ScientificStateBundle]=None, expected_scientific_identity: Optional[ScientificStateIdentity]=None, expected_facts_identity: Optional[MolecularFactsIdentity]=None) -> ResolvedXTBState
+resolve_xtb_state(mol: Molecule, method: XTBMethod, *, executable: Optional[_ExecutablePath], environment: Mapping[str, str], charge: Optional[int], uhf: Optional[int], policy: Optional[StatePolicy], carried_state: Optional[ScientificStateBundle]=None, expected_scientific_identity: Optional[ScientificStateIdentity]=None, expected_facts_identity: Optional[MolecularFactsIdentity]=None) -> ResolvedXTBState
 ```
 
+
+`policy=None` 按语义选择已有策略：含金属配位边的输入使用已激活的协调筛选规则，
+普通输入使用 `STRICT`。显式策略不变。调用级显式状态先于分子声明、适用专门规则和
+具名默认值；未声明的数值 0 不作为来源事实。坐标变化可复用科学 bundle，源电荷、
+自旋、formal-charge 来源或自由基变化需要重新求解。GFN 方法投影使用同一求解链。
 
 <a id="hotpot-plugins-xtb-stream"></a>
 ## `hotpot.plugins.xtb.stream`

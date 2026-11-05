@@ -1,0 +1,14 @@
+{
+  "command": [
+    "/tmp/hotpot-plan20-env/bin/python",
+    "-m",
+    "pytest",
+    "-q",
+    "tests/test_cheminfo/calculator",
+    "tests/test_plugin/test_xtb/test_automatic_state_resolution.py"
+  ],
+  "cwd": "/home/zhangzhiyuan/hotpot",
+  "started_utc": "2026-11-05T08:51:26.693580+00:00",
+  "finished_utc": "2026-11-05T08:51:34.707774+00:00",
+  "returncode": 1
+}

@@ -11637,3 +11637,38 @@ frame/result selection returned251passed in6.02s. Exact logs/JUnit are in
 These tests do not claim native GFN execution, installed-wheel support,
 scientific profile activation or performance parity. CBond checkpoint9757c374
 follows periodic checkpoint2c8af85c on the owner-authorized new branch.
+
+
+### 2026-11-05 — Automatic source/default integration and activation
+
+Reuse the sole scientific-state resolver/composer and add source-bound
+OPTIONAL-015/016 with source-aware L/X/monoatomic templates. Retain charged
+ligands, radicals and explicit declarations; missing values use named periodic,
+component/ionic parity and coupled-spin conventions, not a ground-state claim.
+Contextual CLI/stage defaults select screening for semantic metal coordination
+and strict for ordinary inputs. Known absent backing values normalize to source
+absence. Source declarations/profile changes invalidate carried state; default
+registry/prior changes require a coordinated profile artifact/version revision.
+CLI replay resolves source facts first and reconstructs earlier explicit charge
+only on exact recorded scientific identity. GFN-FF remains charge-only.
+
+Root accepted the independent last-rank optimistic-bound correction after a
+real negative-rank/frontier failure (red1failed/3passed; green69passed). The
+frozen activation protocol e4de3e64...18ceeff18 selected12/12 legal positive
+holdouts; negative/serialization and two-/three-Eu stress gates retain bounded
+abstention. Final connected source143passed in6.91s. Root then activated
+profile1.1.0, digestdfba1eb6f19c5ccd868c462bb3276ed6cbf417e71b3f114254be166ecdc687ff,
+in stages/stage08/scientific-state/automatic-workflow/activation_decision.json.
+No held-out expectation or source denominator was changed.
+
+Expanded current-source CP311:182affected files,4244tests =4196passed/7failed/
+41skipped in136.23s; product bindings unchanged. Seven historical fixture
+failures were preserved: five planned-only benchmark cases and two now-mapped
+metal DATIVE cutoff cases. Explicit planned test fixtures and unmapped N–C
+cutoff inputs retain every original assertion; both entire conversion files
+and benchmark directory then84passed/0failed/0skipped in1.09s, original product
+hashes unchanged. Composed affected evidence is accepted; no initial all-green
+claim. Evidence: /tmp/hotpot_plan20/short/automatic-state-integration-20261105/
+(attempt-01 and fixture-correction-01). Existing Gemmi0.7.5 dependency path is
+explicit; no package environment was modified. Current-runtime/installed/default
+and original187 native execution remain pending at this business checkpoint.

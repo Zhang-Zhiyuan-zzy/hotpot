@@ -98,7 +98,7 @@ class _XTBStageOptions:
     task: XTBTask
     charge: Optional[int]
     unpaired_electrons: Optional[int]
-    state_policy: StatePolicy
+    state_policy: Optional[StatePolicy]
     executable: Optional[str]
     threads: Optional[int]
     post_check: str
@@ -217,7 +217,7 @@ class _XTBStage(MolecularStage):
                 task=_TASKS[args.task],
                 charge=args.charge,
                 unpaired_electrons=args.unpaired_electrons,
-                state_policy=StatePolicy(args.state_policy.replace("-", "_")),
+                state_policy=(None if args.state_policy is None else StatePolicy(args.state_policy.replace("-", "_"))),
                 executable=args.xtb_executable,
                 threads=args.threads,
                 post_check=args.post_check,
@@ -258,7 +258,7 @@ def _stage_parser() -> _StageArgumentParser:
     parser.add_argument(
         "--state-policy",
         choices=("strict", "coordination-screening-v1"),
-        default="strict",
+        default=None,
     )
     parser.add_argument("--xtb-executable")
     parser.add_argument("--threads", type=_positive_int)

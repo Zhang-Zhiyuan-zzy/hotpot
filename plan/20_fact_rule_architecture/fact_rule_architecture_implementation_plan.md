@@ -2169,6 +2169,22 @@ closes A1–A11 within CP311 and P20-D021; optional activation and all later/glo
 gates remain open. Stage8B requires its own entry alignment.
 
 
+2026-11-05 owner-directed automatic-state correction: the bounded
+[automatic-workflow contract](stages/stage08/scientific-state/automatic-workflow/interface_contract.md)
+and [preregistered activation protocol](stages/stage08/scientific-state/automatic-workflow/activation_protocol.json),
+with the [method/activation companion](stages/stage08/scientific-state/automatic-workflow/method_and_activation.md)
+and [core validation record](stages/stage08/scientific-state/automatic-workflow/validation.md),
+add source-aware ligand charge/spin preparation, common periodic defaults and
+method-specific active-space xTB projection through these existing Stage8A
+owners and Stage12 actual/delivery gates. Explicit user state precedes
+applicable specific rules, then documented screening defaults. This is new
+scientific-default scope after the earlier ownership checkpoint, not a
+retroactive claim that its planned profile was active. Profile activation
+requires the recorded independent held-out/stress evidence and root disposition;
+the actual original187 run retains every outcome without a182 success target.
+No trained model, fresh native kernel, generic pipeline or bond algebra change
+is included. Physical molecular spin and backend active UHF remain distinct.
+
 #### Stage 8B — Force fields
 
 Split physics/acceptance kernels, structure packing, workflow controllers, and

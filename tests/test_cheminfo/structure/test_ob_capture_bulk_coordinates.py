@@ -245,7 +245,7 @@ def test_capture_rows_remain_detached_and_next_capture_reads_current_values():
 @pytest.mark.parametrize('malformed', [False, True], ids=['complete-atoms-before-cutoff', 'atom-error-before-cutoff'])
 def test_capture_finishes_atom_rows_before_first_dative_and_never_reads_cell(monkeypatch, malformed):
     mol = Molecule()
-    for number in (7, 29, 8):
+    for number in (7, 6, 8):
         mol.create_atom(atomic_number=number)
     mol.coordinates = np.array(((0., 0., 0.), (1., 0., 0.), (2., 0., 0.)))
     dative = mol.add_bond(0, 1, bond_kind=BondKind.DATIVE, bond_direction='atom1_to_atom2')

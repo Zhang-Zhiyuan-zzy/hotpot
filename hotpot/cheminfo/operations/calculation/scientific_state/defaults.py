@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Optional, Tuple
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import (
@@ -43,13 +44,32 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.providers.contracts import
     RankAdjustment,
 )
 from hotpot.cheminfo.operations.calculation.scientific_state.profile_decision import (
-    _CoordinationScreeningDecisionCompiler,
+    _CoordinationScreeningDecisionCompiler, _candidate_index, _molecular_two_s,
 )
 from hotpot.cheminfo.operations.calculation.scientific_state.profiles import (
     _coordination_screening_profile,
 )
 
 __all__ = []
+
+
+class _AutomaticCoordinationDecisionCompiler(_CoordinationScreeningDecisionCompiler):
+    """Apply the final named molecular-spin execution preference after rule ranks."""
+
+    def record_for_path(self, path, factors):
+        record = super().record_for_path(path, factors)
+        two_s = _molecular_two_s(path, _candidate_index(factors))
+        rank_values = record.preference.rank_values[:-1] + (
+            -float(two_s) if two_s is not None else 0.0,
+        )
+        return replace(record, preference=replace(record.preference, rank_values=rank_values))
+
+    def optimistic_bound_for_prefix(self, selected_values, remaining_factors):
+        bound = super().optimistic_bound_for_prefix(selected_values, remaining_factors)
+        if bound is None:
+            return None
+        # Physical 2S is nonnegative, so zero bounds the replacement rank -2S.
+        return replace(bound, rank_upper=bound.rank_upper[:-1] + (0.0,))
 
 
 def _decision_search_compiler(
@@ -65,7 +85,7 @@ def _decision_search_compiler(
         return None
     if not eligibility.in_domain:
         return None
-    return _CoordinationScreeningDecisionCompiler(
+    return _AutomaticCoordinationDecisionCompiler(
         _coordination_screening_profile(),
         requirements,
         rank_adjustments,
@@ -440,5 +460,10 @@ def _decide_scientific_state(
                 "The named policy certified one operation-complete path.",
                 (selected.identity.digest,),
             ),
-        ),
+        ) + ((DecisionReason(
+            "DECISION.LOWEST_COUPLED_SPIN_DEFAULT",
+            "After specific rule ranks, the profile prefers the lowest coupled molecular 2S; "
+            "this is a screening convention rather than a ground-state claim.",
+            (selected.identity.digest,),
+        ),) if policy is StatePolicy.COORDINATION_SCREENING_V1 else ()),
     )

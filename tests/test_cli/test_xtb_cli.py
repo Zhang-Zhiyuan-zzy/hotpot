@@ -102,7 +102,7 @@ def test_parser_defaults_and_documented_choices() -> None:
     assert args.task == "optimize"
     assert args.charge is None
     assert args.unpaired_electrons is None
-    assert args.state_policy == "strict"
+    assert args.state_policy is None
     assert not hasattr(args, "charge_model")
     assert args.input_format is None
     assert args.output_format == "sdf"

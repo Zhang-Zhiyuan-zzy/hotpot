@@ -6,6 +6,12 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from hotpot.cheminfo.rules.chemistry.scientific_state.contracts import CandidateBudget
+from hotpot.cheminfo.rules.chemistry.scientific_state.charge.contracts import (
+    AtomFormalChargeEvidence, ComponentChargeEvidence,
+)
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.automatic_components import (
+    SourceComponentChargeRule, AutomaticComponentDefaultsRule, _automatic_source_digest,
+)
 from hotpot.cheminfo.operations.calculation.scientific_state.contracts import (
     ProviderSet,
     ProviderToggle,
@@ -72,13 +78,25 @@ class _ScientificStateRuntimeManifest:
 
 def _coordination_screening_registry(
     trusted_records: Tuple[TrustedScientificStateRecord, ...] = (),
+    *,
+    source_atom_formal_charges: AtomFormalChargeEvidence | None = None,
+    source_component_charges: ComponentChargeEvidence | None = None,
+    source_radical_electrons: tuple[int | None, ...] = (),
+    source_evidence_identity: str = "",
 ) -> InferenceRuleRegistry:
     registry = InferenceRuleRegistry()
+    source_digest = _automatic_source_digest(
+        source_atom_formal_charges, source_component_charges,
+        source_radical_electrons, source_evidence_identity,
+    )
     rules = (
+        SourceComponentChargeRule(source_atom_formal_charges, source_component_charges, source_digest),
+        AutomaticComponentDefaultsRule(source_atom_formal_charges, source_component_charges,
+                                       source_radical_electrons, source_digest),
         MainGroupClosedShellRule(),
         MonoatomicIonRule(),
-        NeutralLDonorRule(),
-        AnionicXLigandRule(),
+        NeutralLDonorRule(source_atom_formal_charges),
+        AnionicXLigandRule(source_atom_formal_charges),
         LanthanideIIIPriorRule(),
         AmericiumCuriumIIIPriorRule(),
         ThoriumIVPriorRule(),
@@ -93,10 +111,25 @@ def _coordination_screening_registry(
 
 def _coordination_screening_manifest(
     trusted_records: Tuple[TrustedScientificStateRecord, ...] = (),
+    *,
+    source_atom_formal_charges: AtomFormalChargeEvidence | None = None,
+    source_component_charges: ComponentChargeEvidence | None = None,
+    source_radical_electrons: tuple[int | None, ...] = (),
+    source_evidence_identity: str = "",
 ) -> _ScientificStateRuntimeManifest:
-    """Build the exact planned profile configuration without activating it."""
+    """Build the exact versioned profile configuration without changing activation."""
     profile = _coordination_screening_profile()
-    registry = _coordination_screening_registry(trusted_records)
+    source_digest = _automatic_source_digest(
+        source_atom_formal_charges, source_component_charges,
+        source_radical_electrons, source_evidence_identity,
+    )
+    registry = _coordination_screening_registry(
+        trusted_records,
+        source_atom_formal_charges=source_atom_formal_charges,
+        source_component_charges=source_component_charges,
+        source_radical_electrons=source_radical_electrons,
+        source_evidence_identity=source_evidence_identity,
+    )
     specifications = {
         specification.rule_id: specification
         for specification in registry.available()
@@ -111,7 +144,9 @@ def _coordination_screening_manifest(
             "Built-in rule implementations do not match the profile artifact"
         )
     toggles = tuple(
-        RuleToggle(rule_id, True)
+        RuleToggle(rule_id, True,
+                   (("source_evidence_digest", source_digest),)
+                   if rule_id in {"OPTIONAL-015", "OPTIONAL-016"} else ())
         for rule_id in sorted(required_versions)
     )
     return _ScientificStateRuntimeManifest(

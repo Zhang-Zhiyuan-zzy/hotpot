@@ -31,6 +31,9 @@ from hotpot.cheminfo.rules.chemistry.scientific_state.composition import (
     ProposedCandidateFactor,
     ProposedCandidateValue,
 )
+from hotpot.cheminfo.rules.chemistry.scientific_state.providers.automatic_components import (
+    _source_counted_component_ids,
+)
 from hotpot.cheminfo.rules.chemistry.scientific_state.providers.base import (
     InferenceRule,
 )
@@ -52,7 +55,7 @@ __all__ = [
 
 
 _RULE_ID = "OPTIONAL-004"
-_RULE_VERSION = "1.0.0"
+_RULE_VERSION = "1.1.0"
 _REGISTRY_SCHEMA = "hotpot-anionic-x-ligand-registry-v1"
 _REGISTRY_RESOURCE = "data/rules/anionic_x_ligands_v1.json"
 _DOMAIN_DEFINITION = "ordinary-anionic-x-ligand-v1"
@@ -257,9 +260,17 @@ def _motif(
 
 def _matching_components(
     context: RuleContext,
+    source_atom_formal_charges=None,
 ) -> Tuple[Tuple[str, int, str], ...]:
     matches = []
+    source_counted = _source_counted_component_ids(context)
     for component in context.facts.covalent_components:
+        if component.identity in source_counted or (
+            source_atom_formal_charges is not None
+            and any(source_atom_formal_charges.charges[index] is not None
+                    for index in component.atom_indices)
+        ):
+            continue
         donor_index = _coordination_donor(context, component.atom_indices)
         if donor_index is None:
             continue
@@ -283,8 +294,11 @@ class AnionicXLigandRule(InferenceRule):
         applicability_schema=_DOMAIN_DEFINITION,
     )
 
+    def __init__(self, source_atom_formal_charges=None):
+        self._source_atom_formal_charges = source_atom_formal_charges
+
     def applicable(self, context: RuleContext) -> RuleApplicability:
-        matches = _matching_components(context)
+        matches = _matching_components(context, self._source_atom_formal_charges)
         return RuleApplicability(
             bool(matches),
             () if matches else ("NO_SUPPORTED_ANIONIC_X_LIGAND",),
@@ -298,7 +312,7 @@ class AnionicXLigandRule(InferenceRule):
         if configuration:
             raise ValueError("OPTIONAL-004 does not accept configuration")
         registry = _x_ligand_registry()
-        matches = _matching_components(context)
+        matches = _matching_components(context, self._source_atom_formal_charges)
         branch = BranchAssignment(
             f"counting-convention:{context.facts.identity.chemical_identity_digest}",
             CountingConvention.IONIC.value,

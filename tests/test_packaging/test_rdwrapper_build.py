@@ -306,7 +306,8 @@ def test_wheel_excludes_rdwrapper_sdk_and_build_inputs():
 
 def test_build_requirements_and_wheel_workflow_pin_release_profile():
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    workflow = (ROOT / ".github/workflows/publish_pypi.yml").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github/workflows/native_wheels.yml").read_text(encoding="utf-8")
+    smoke = (ROOT / "tests/test_packaging/native_wheel_smoke.py").read_text(encoding="utf-8")
 
     assert '"cmake==4.4.3"' in pyproject
     assert '"ninja==1.13.2"' in pyproject
@@ -317,10 +318,12 @@ def test_build_requirements_and_wheel_workflow_pin_release_profile():
     assert "HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64" in workflow
     assert "docker; disable_host_mount: true" in workflow
     assert "auditwheel repair" in workflow
-    assert "rdWrappers.runtime_info()" in workflow
-    assert "rdWrappers.generate_conformers" in workflow
-    assert "from rdkit import Chem, rdBase" in workflow
-    assert "importlib.metadata.version('rdkit') == '2026.9.1'" in workflow
+    assert "native_wheel_smoke.py hotpot-first" in workflow
+    assert "native_wheel_smoke.py rdkit-first" in workflow
+    assert "rdWrappers.runtime_info()" in smoke
+    assert "rdWrappers.generate_conformers" in smoke
+    assert "from rdkit import Chem, rdBase" in smoke
+    assert "importlib.metadata.version('rdkit') == '2026.9.1'" in smoke
     assert (
         "python tests/test_packaging/audit_rdwrapper_wheel.py wheelhouse/*.whl"
         in workflow

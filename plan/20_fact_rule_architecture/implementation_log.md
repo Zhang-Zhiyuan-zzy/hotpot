@@ -12146,3 +12146,22 @@ disablement. SSH push access does not supply that credential. Subsequent current
 commit remote conclusions and compact receipts are recorded under
 .plan20-artifacts/20261106/github-workflow-cleanup/; no release/full remote run,
 PyPI publication, weekly activation on main or final-stage closure is implied.
+
+The first cleaned-definition remote run42165297178 on d8a8b634 passed scope,
+the shared CP311 native build and installed package smokes, but coverage failed:
+test_rdwrapper_build.py still asserted the locked build/smoke source lived inline
+in publish_pypi.yml. Project/patch Codecov both passed independently; they do not
+cancel the test failure. Search all test/tool/workflow consumers for the moved
+workflow names; this was the sole remaining outdated consumer. Bind its original
+pin/build assertions to native_wheels.yml and its original smoke assertions to
+the extracted shared script, and require both script invocations in the builder.
+Retain all existing pin, version, runtime/conformer and wheel-audit assertions.
+The focused regression and a new current-commit remote run qualify this repair;
+original failure receipts remain under the cleanup remote/monitor directory.
+
+Pre-push regression:39tests passed in2.27s across the complete RDWrapper build-
+contract module plus workflow/scope modules. The initial local regression command
+failed to create its parent --basetemp directory; retain that setup failure and
+the subsequent passing receipt under regression-repair. Existing workflow/native
+source hashes are unchanged; prior actionlint, build, smoke and sdist evidence
+continues to apply. Only the stale test consumer and this record change.

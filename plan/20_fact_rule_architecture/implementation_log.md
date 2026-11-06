@@ -12079,3 +12079,13 @@ wheel/native identities remain reusable because no product bytes changed.
 Full installed default-equivalent testing and the subsequent actual GitHub run
 are separate pending observations, not implied by these focused passes.
 Workflow definitions and historical registry scope are indexed in.github/README.md.
+
+The subsequent full installed diagnostic run reached3344passes before stopping
+at20CIF-test failures (46skips,3xfails,0collection errors,159.10s); every failure
+traced to missing Gemmi in the CI requirements. Add the existing crystal-extra
+range gemmi>=0.7.5,<0.8 to tests/requirements-inference.txt rather than suppressing
+CIF tests. Binary wheels were obtainable for all five CI Python versions; the
+outside-checkout installed CIF selection then passed99tests. Evidence and failed
+attempts remain under the task temp root, runner/gemmi-dependency-repair and
+local-validation/attempt02 respectively. Full-suite and remote results remain
+pending; no product behavior or assertions changed.

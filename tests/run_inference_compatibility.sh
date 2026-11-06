@@ -40,6 +40,7 @@ for version in "${versions[@]}"; do
         test_support="$work_dir/python-test-support"
         mkdir -p "$test_support"
         ln -sfn "$repo_root/tests" "$test_support/tests"
+        ln -sfn "$repo_root/plan" "$test_support/plan"
         if [[ -n "$wheel" ]]; then
             export PYTHONPATH="$test_support"
         else
@@ -75,7 +76,7 @@ assert actual == expected
             "$repo_root/tests/test_cheminfo/test_bond_metadata.py"
             "$repo_root/tests/test_cheminfo/test_ligand_rings.py"
             "$repo_root/tests/test_cheminfo/test_relevant_ring_integration.py"
-            "$repo_root/tests/test_cheminfo/test_hidden_bond_restoration.py"
+            "$repo_root/tests/test_cheminfo/structure/test_topology_selection.py"
             "$repo_root/tests/test_cheminfo/kekulize"
             "$repo_root/tests/test_cheminfo/obWrappers"
             "$repo_root/tests/test_cheminfo/rdWrappers"

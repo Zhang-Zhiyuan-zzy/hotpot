@@ -3,8 +3,12 @@
 from __future__ import annotations
 
 from importlib import import_module
+from importlib.util import find_spec
 import json
+import os
 from pathlib import Path
+import subprocess
+import sys
 from types import SimpleNamespace
 
 import numpy as np
@@ -260,3 +264,38 @@ def test_comparison_retains_quality_without_an_optimization_result(tmp_path, bui
     assert all(pair["monitor_observations"] == {
         "baseline": {"passed": True}, "candidate": {"passed": False},
     } for pair in comparison["pairs"])
+
+
+@pytest.mark.parametrize("tool", ("run_scientific_report", "compare_scientific_reports"))
+def test_imported_report_tool_preserves_module_search_path_and_hotpot_origin(tmp_path, tool):
+    root = Path(__file__).resolve().parents[2]
+    support = tmp_path / "support"
+    support.mkdir()
+    for name in ("tests", "plan"):
+        (support / name).symlink_to(root / name, target_is_directory=True)
+    package = Path(find_spec("hotpot").origin).resolve().parent
+    environment = dict(os.environ, PYTHONSAFEPATH="1", PYTHONPATH=os.pathsep.join((
+        str(support), str(package.parent),
+    )))
+    probe = """
+from importlib import import_module
+from pathlib import Path
+import sys
+
+before = sys.path.copy()
+assert 'hotpot' not in sys.modules
+import_module('plan.20_fact_rule_architecture.' + sys.argv[1])
+assert sys.path == before
+import hotpot
+package = Path(sys.argv[2])
+for name, module in tuple(sys.modules.items()):
+    if name == 'hotpot' or name.startswith('hotpot.'):
+        filename = getattr(module, '__file__', None)
+        if filename:
+            assert Path(filename).resolve().is_relative_to(package), (name, filename)
+"""
+    result = subprocess.run(
+        [sys.executable, "-B", "-c", probe, tool, str(package)],
+        cwd=tmp_path, env=environment, capture_output=True, text=True,
+    )
+    assert result.returncode == 0, result.stdout + result.stderr

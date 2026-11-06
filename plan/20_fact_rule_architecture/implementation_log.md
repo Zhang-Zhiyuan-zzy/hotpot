@@ -12043,3 +12043,39 @@ No clean-native/ABI, other-version, full187/182 cohort, CBond/MCA inference,
 report-size, comparative performance or global-plan completion claim follows.
 The business commit carries related tests/docs and this disposition; its Git
 identity belongs in the next normal update, without a bookkeeping-only commit.
+
+
+### 2026-11-06 — GitHub CI runner repair entry on0.5.5.0
+
+The owner requests resolving current GitHub failures and an accurate workflow
+inventory. HEAD339dc00f and tracked sources are clean after branch rename. Align
+with current goal/governance/validation: inspect actual GitHub outcomes, preserve
+business assertions and installed-package provenance, repair concrete harness
+faults before assessing downstream behavior, and avoid unrelated scientific or
+version-support changes. The same HEAD's run42152844959 belongs to the former
+branch name: all five native-wheel jobs and package-smoke succeeded; four
+cpu-inference jobs exit4; coverage reports six plan-tool import collection errors.
+The compatibility runner names a deleted hidden-bond-restoration test; installed
+support exposes tests but omits the repository's plan namespace. Root owns the
+repair boundary, subsequent evidence/acceptance, coherent commit and push. A
+local Sol-medium worker owns the two test runners, while an independent read-only
+local inventory distinguishes current files from historical GitHub registrations.
+No external helper, chemistry/native/model change or PyPI publication is assigned.
+Temp evidence: /tmp/hotpot_plan20/short/github-ci-repair-20261106. Preserve original
+failed check/job/annotation receipts and reuse unchanged wheel/native evidence
+where applicable; executed source, installed and remote outcomes remain distinct.
+
+The repaired installed-test support exposes only tests/plan, and the deleted
+hidden-bond target is replaced by its maintained topology-selection successor.
+Report-tool package imports no longer insert checkout paths; direct CLI execution
+retains its source bootstrap. Two fresh-process regression cases require an
+unchanged search path and correct Hotpot module origins before any preload.
+Focused CP311 evidence: 67 source and 67 installed helper tests passed, 69 tests
+collected across the six formerly failing modules, 22 topology tests passed,
+and four script/module help invocations passed. All172 loaded Hotpot modules
+in the fresh collection probe came from the installed site. Both runners passed
+shell syntax/setup checks; all64 explicit compatibility targets exist. Prior
+wheel/native identities remain reusable because no product bytes changed.
+Full installed default-equivalent testing and the subsequent actual GitHub run
+are separate pending observations, not implied by these focused passes.
+Workflow definitions and historical registry scope are indexed in.github/README.md.

@@ -16,6 +16,7 @@ if [[ -n "${HOTPOT_TEST_INSTALLED_PACKAGE:-}" ]]; then
   test_support="$work_dir/python-test-support"
   mkdir -p "$test_support"
   ln -sfn "$repo_root/tests" "$test_support/tests"
+  ln -sfn "$repo_root/plan" "$test_support/plan"
   export PYTHONSAFEPATH=1
   export PYTHONPATH="$test_support"
 fi

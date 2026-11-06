@@ -11,8 +11,11 @@ import sys
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from _scientific_report import read_report, sha256
+if __package__:
+    from ._scientific_report import read_report, sha256
+else:
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from _scientific_report import read_report, sha256
 
 
 def _finite(value):

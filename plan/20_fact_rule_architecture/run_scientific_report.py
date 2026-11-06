@@ -23,13 +23,17 @@ import traceback
 
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+if not __package__:
+    sys.path.insert(0, str(ROOT))
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import numpy as np
 from rdkit import Chem as _rdkit_chem  # noqa: F401; supported toolkit load order
 
-from _scientific_report import SCHEMA, artifact, sha256, summarize
+if __package__:
+    from ._scientific_report import SCHEMA, artifact, sha256, summarize
+else:
+    from _scientific_report import SCHEMA, artifact, sha256, summarize
 from tests.benchmarks.coordination_complexes.configuration import (
     CANONICAL_EXTRACTANT_SOURCE, RunProfile, settings_for_profile,
 )

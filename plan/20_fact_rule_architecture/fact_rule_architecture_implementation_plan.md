@@ -434,7 +434,17 @@ Section 16.
 Coordinate conventions are explicit: the Molecule current frame and all
 `CoordinateFrame` values contain Cartesian coordinates in angstrom; fractional
 coordinates are calculated/import-export values and are never a second Atom
-fact. Current Stage15 `Crystal` stores an oriented row-basis matrix in
+fact. The owner-authorized 2026-11-06 refinement exposes
+`Molecule.fractional_coordinates` as an independent, dimensionless, unwrapped
+`(N,3)` float64 read/write projection through the active paired Crystal.
+Its getter converts complete supplied current Cartesian facts with
+`Crystal.to_fractional`; its setter converts with `Crystal.to_cartesian` and
+uses the existing `Molecule.coordinates` setter/atomic commit. Both hold the
+Molecule mutation lock across cell lookup, conversion and access/commit.
+No associated Crystal, or incomplete Cartesian facts on read, produces a local
+`ValueError` with `CRYSTAL-CONTEXT-INTEGRITY`; assignment may supply previously
+absent Cartesian facts. No fractional store, cache, frame or persistence field
+is added. Current Stage15 `Crystal` stores an oriented row-basis matrix in
 angstrom. `(a, b, c, alpha, beta, gamma)` remains the declared native-buffer
 projection order in angstrom/degrees, with numerical projection tolerances.
 The separately accepted Stage15 contract supersedes the Stage0–12 six-scalar
@@ -922,6 +932,7 @@ owner-specified future targets; their implementation remains in Plan21.
 Molecule
 ├── facts and membership [carrier]
 │   ├── atoms / bonds / coordinates / charge
+│   ├── fractional_coordinates (paired Crystal projection; read/write, no stored fact)
 │   ├── updata_atoms(*, atoms=None, **columns) / atom_matrix (complete float64 snapshot)
 │   ├── crystal / create_crystal
 │   ├── conformers / conformer_add/get/load/clear (source/result projection)

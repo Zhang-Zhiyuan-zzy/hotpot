@@ -1,0 +1,216 @@
+{
+  "status": "BOUNDED_REFINEMENT_CP311_SOURCE_AND_INSTALLED_PASSED",
+  "date": "2026-11-06",
+  "source_branch": "feat/automatic-coordination-state-workflow",
+  "source_base_commit": "a9ecad5902ce49b3854b21aa330c5fe4de8a9f47",
+  "tested_files_sha256": {
+    "hotpot/cheminfo/structure/molecule.py": "1521f7397efd0acfbf8b3dec11c878bcd24cdd165a9e8789e602cd789407507f",
+    "hotpot/cheminfo/structure/crystal.py": "709c09f0b7988f224ab446c33b61106baba0826bd4dc1d8236f18e85cf408b99",
+    "hotpot/cheminfo/operations/topology_queries.py": "41d93a589829d49c59a066087bcb180209bbe8541118eabae698ba7449429c48",
+    "plan/20_fact_rule_architecture/audit_architecture.py": "2a83d162e3d5835bf8ca2f12c407623f8d5d5d1af7847f3c1e7a58f41dfa56e2",
+    "tests/test_cheminfo/structure/test_architecture.py": "54e091067137b8913f2cfdb55dbc7a14850b35ae00c5828329f6cbbdab876ded",
+    "tests/test_cheminfo/test_molecule_fractional_coordinates.py": "cdde0adfbcde26e1c3e740b542a13c9f20089ea5096c33c1e586f4323bb9c3ca",
+    "hotpot/cheminfo/operations/crystal.md": "f2ba0ffafe21a09502a4cb80086996f23377094ca6ae5691a97b7f383a2f6896"
+  },
+  "coordinate_contract": {
+    "coordinates": "Independent (N,3) float64 Cartesian Atom-table projection in angstrom; existing setter/commit remains authoritative.",
+    "fractional_coordinates": "Independent (N,3) dimensionless unwrapped read/write projection using the active associated Crystal conversion under the Molecule mutation lock; no cache or stored fractional fact.",
+    "getter_absence": "ValueError CRYSTAL-CONTEXT-INTEGRITY for no active Crystal or incomplete supplied Cartesian facts; reuse existing Crystal presence check.",
+    "setter": "Convert through current Crystal.to_cartesian and delegate to existing coordinates setter, inheriting metadata/invalidation/transaction rollback. May install previously absent Cartesian facts.",
+    "numerical_tolerance": "Independent analytic fixture expectations use rtol=0 and atol=1e-10; source/metadata/alias/rollback invariants are exact."
+  },
+  "numerics": {
+    "oracle": "Independent analytic oriented/skew row basis",
+    "rtol": 0,
+    "atol": 1e-10,
+    "exact": "fact presence/source, mapping, isolation, source currentness, rollback"
+  },
+  "removed_private_facades": [
+    "Molecule._longest_path",
+    "Molecule._set_coordinates",
+    "Molecule._components_with_bindings",
+    "Crystal._matrix_to_params",
+    "operations.topology_queries._explicit_longest_path"
+  ],
+  "retained_boundaries": [
+    "Public Molecule.longest_path uses current topology and the sole pure graph implementation.",
+    "Pure mathematics.topology._longest_path retains scoped/start/end composition for canonical_tree.",
+    "Operation _components(with_bindings=True) remains an actual ligand-building/topology dependency.",
+    "Shared cell mathematics/scalar properties remain; obsolete direct-rule-import checker exception is retired."
+  ],
+  "source_tests": {
+    "current_unique_passed": 616,
+    "module_skips": 3,
+    "failures": 0,
+    "errors": 0,
+    "construction": "36 fractional + 207 unaffected agent-connected + 164 non-architecture root-connected + 209 final architecture. Earlier architecture outcomes are superseded, not added.",
+    "skip_reason": "Torch unavailable in hp-usage; no PyG pass claim.",
+    "skips": [
+      "test_pyg_crystal_transport",
+      "test_pyg_crystal_boundaries",
+      "test_aromatic_crystal_pyg_seam"
+    ],
+    "retained_original_failure": "Root attempt returned373passed/3module-skips/1obsolete checker expectation failure. Corrected the removed-facade-specific operation expectation; final architecture suite209passed.",
+    "source_binding": "All changed production/new test bytes match their evidence except topology_queries.py: one trailing blank line was removed after source runs. Both original hashes are independently reconstructed as SHA256(final bytes + newline). No semantic change; installed graph checks use final bytes.",
+    "trailing_blank_line_rebind_verified": true,
+    "exact_commands": {
+      "focused01": [
+        "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/test_molecule_fractional_coordinates.py",
+        "--junitxml=/tmp/hotpot_plan20/short/coordinate-refinement-20261106/focused01/junit.xml"
+      ],
+      "affected01": [
+        "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_crystal_lifecycle.py",
+        "tests/test_cheminfo/structure/test_coordinate_frames.py",
+        "tests/test_cheminfo/structure/test_coordinate_frame_lifecycle.py",
+        "tests/test_cheminfo/structure/test_commit_atomicity.py",
+        "tests/test_cheminfo/structure/test_interface_permissions.py",
+        "tests/test_cheminfo/structure/test_buffer_ownership.py",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "tests/test_cheminfo/structure/test_stage9_queries.py",
+        "tests/test_cheminfo/structure/test_crystal_convention.py",
+        "--junitxml=/tmp/hotpot_plan20/short/coordinate-refinement-20261106/affected01/junit.xml"
+      ],
+      "root_connected01": [
+        "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/graph/test_direct_algorithms.py",
+        "tests/test_cheminfo/structure/test_stage9_topology_operations.py",
+        "tests/test_cheminfo/structure/test_topology_selection.py",
+        "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+        "tests/test_cheminfo/structure/test_crystal_cell_math.py",
+        "tests/test_cheminfo/structure/test_crystal_portable_codec.py",
+        "tests/test_cheminfo/adapters/test_crystal_transport.py",
+        "tests/test_cheminfo/test_pyg_crystal_transport.py",
+        "tests/test_cheminfo/test_pyg_crystal_boundaries.py",
+        "tests/test_cheminfo/test_aromatic_crystal_pyg_seam.py",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "--junitxml=/tmp/hotpot_plan20/short/code-refinement-20261106/connected-source.xml"
+      ],
+      "architecture_source02": [
+        "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_cheminfo/structure/test_architecture.py",
+        "--junitxml=/tmp/hotpot_plan20/short/code-refinement-20261106/architecture-source02.xml"
+      ]
+    }
+  },
+  "installed_tests": {
+    "passed": 46,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "selection": "36 fractional,8 direct graph,1 public copy/components,1 public canonical-tree case",
+    "command": {
+      "argv": [
+        "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+        "-B",
+        "/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt02/run_pytest.py",
+        "-q",
+        "-rA",
+        "--import-mode=importlib",
+        "--junitxml=/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt02/junit.xml",
+        "--basetemp=/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt02/pytest-tmp",
+        "tests/test_cheminfo/test_molecule_fractional_coordinates.py",
+        "tests/test_cheminfo/graph/test_direct_algorithms.py",
+        "tests/test_cheminfo/test_core.py::test_molecule_copy_preserves_graph_without_sharing_atoms",
+        "tests/test_cheminfo/structure/test_view_identity.py::test_branched_topology_query_preserves_the_existing_canonical_tree"
+      ],
+      "cwd": "/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt01/outside",
+      "environment_overrides": {
+        "PYTHONPATH": "/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt01/site:/tmp/hotpot_plan20/medium/stage15e-cif-20261105/dependency-site",
+        "REFINEMENT_SITE": "/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt01/site",
+        "REFINEMENT_SOURCE": "/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt01/source",
+        "REFINEMENT_ORIGINS": "/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt02/origins.json"
+      },
+      "returncode": 0,
+      "elapsed_seconds": 1.6344720758497715
+    },
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/short/refinement-installed-20261106/attempt01/wheels/hotpot_zzy-0.5.5.0-cp311-cp311-linux_x86_64.whl",
+      "sha256": "cc47cc7824e5a965babe96b119173be84a4c3a5c56df27520a06c0e2d2b1d5bc",
+      "bytes": 6687515
+    },
+    "installed_members_verified": 922,
+    "loaded_hotpot_modules": 186,
+    "unchanged_loaded_natives": 6,
+    "native_reuse": {
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "b0d89a3ba37cd38251eff1fe3391c0f8da33c3e456710cdb66c80754c1a7a2c7",
+        "bytes": 517848
+      },
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "acb5fc75b4dd63eac6ef80a932f0ec93c2a926a3dd309d356437c3bc98b81a34",
+        "bytes": 2972296
+      },
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "7492e521de612a17d3a501d2418f447d02ea8ba42a0fb6c8fb4197962000306a",
+        "bytes": 4104824
+      },
+      "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "fb472fa8045c347c6c7b7342fd9dd3d19ea8cb6e9e76076f5b2c94d3f1f49ff1",
+        "bytes": 1288856
+      },
+      "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "febf7937e1e76717d55e632d6d1d9da71dc640681dea1526aa499e9081807f35",
+        "bytes": 371520
+      },
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "51d4022c6333ced340dbd55a98a6ce72694c39187b95cb8e3944bb25d2be2020",
+        "bytes": 433400
+      }
+    },
+    "retained_attempts": [
+      "Runtime preflight missing pybind11; private existing build interpreter used.",
+      "attempt01 completed all 46 case bodies but failed private session-finish origin collection because namespace packages lack __file__; attempt02 corrects collector and succeeds against the same wheel."
+    ],
+    "root_key_review": "Root matched current molecule.py, crystal.py, topology_queries.py and crystal.md against the wheel, and checked successful exact argv/results and wheel identity."
+  },
+  "build3d_assessment": {
+    "record": "stages/stage08/forcefields/build3d_field_assessment.md",
+    "debt": "P20-D047",
+    "disposition": "Field usefulness audited; report/signature/schema remains unchanged. Redundant/unavailable fields need coordinated result/JSON/reader migration. Retain actual observations and requested trajectory."
+  },
+  "evidence": {
+    "archive": ".plan20-artifacts/20261106/refinement/refinement-evidence.tar.gz",
+    "archive_sha256": "ad7bc282ea5bed5d5fd6796948c84926c6f4b74ddf4265051dae5d1fdc0c1d99",
+    "archive_bytes": 7036093,
+    "archive_members": 45,
+    "manifest": ".plan20-artifacts/20261106/refinement/manifest.json",
+    "read_on_demand": [
+      "coordinate-source/freeze.json",
+      "root-source/connected-source.json",
+      "root-source/architecture-source02.json",
+      "installed/attempt02/evidence.json",
+      "installed/attempt02/transport.json",
+      "build3d-field-audit/audit.md"
+    ]
+  },
+  "coverage_limits": [
+    "CP311 source and isolated installed Python behavior with six reused native binaries; no clean native rebuild, ABI matrix, SDK, sdist or all-version claim.",
+    "No full-default/187-case workflow, model/backend calculation or performance comparison was rerun for this projection/private-facade change.",
+    "Scoped reader analysis supports the removals; no repository-wide or external-consumer nonuse claim.",
+    "Build3d report slimming stays open as P20-D047. This record creates no new full-plan acceptance claim."
+  ]
+}

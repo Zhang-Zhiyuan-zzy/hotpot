@@ -1151,7 +1151,8 @@ CoordinationEnvironment(metal_idx: int, donor_indices: Tuple[int, ...], coordina
 - `conformers` [只读]: `'Conformers'`
 - `conformers_number` [只读]: `int`
 - `components` [只读]: `list['Molecule']`
-- `coordinates` [读/写]: `np.ndarray`；setter `coordinates(self, value: np.ndarray) -> None`
+- `coordinates` [读/写]: `np.ndarray`；独立 `(N,3)` float64 Cartesian/Angstrom 快照，唯一事实在 Atom table；setter `coordinates(self, value: np.ndarray) -> None` 经既有原子提交。
+- `fractional_coordinates` [读/写]: `np.ndarray`；独立 `(N,3)` float64、无量纲且不 wrap；仅通过当前配对 Crystal 的 `to_fractional`/`to_cartesian` 转换；setter `fractional_coordinates(self, value: np.ndarray) -> None` 转回 Cartesian 后走 `coordinates` 原子提交。无 Crystal 或读取缺少完整 Cartesian 事实时抛出 `ValueError` (`CRYSTAL-CONTEXT-INTEGRITY`)；不新增坐标存储、缓存或持久化字段。
 - `atom_pairwise_index` [只读]: `np.ndarray`
 - `pair_dist` [只读]: `np.ndarray`
 - `dist_matrix` [只读]: `np.ndarray`

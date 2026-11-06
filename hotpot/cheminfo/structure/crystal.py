@@ -10,11 +10,6 @@ class Crystal:
         _initialize_crystal(self, _cell_matrix((a, b, c, alpha, beta, gamma)),
                             molecule, space_group, site_relations, bond_images)
 
-    @staticmethod
-    def _matrix_to_params(matrix):
-        from ..rules.mathematics.cell import _matrix_to_params
-        return _matrix_to_params(matrix)
-
     @classmethod
     def from_matrix(cls, matrix, *, molecule=None, space_group=None,
                     site_relations=None, bond_images=None):

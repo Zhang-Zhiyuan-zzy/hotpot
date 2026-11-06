@@ -126,6 +126,9 @@ SymmUnit                                              [ABC; immutable group elem
 └── reduce_to_cell() -> (SymmUnit, Int3)                    [representative AND full carry]
 
 Molecule association boundary
+├── crystal -> Crystal | None                              [read-only active association]
+├── coordinates -> independent float64 Array(N,3)           [Angstrom; read/write Atom facts]
+├── fractional_coordinates -> independent float64 Array(N,3) [dimensionless; paired read/write projection]
 └── create_crystal(a, b, c, alpha, beta, gamma, *, space_group=None,
                    site_relations=None, bond_images=None) -> Crystal
     └── delegates to the same complete association/cell operation
@@ -156,6 +159,7 @@ unimplemented names, no `mol` alias, generic registry or result envelope.
 | `Candidate` | Immutable tuple `(operation,atom_pairs,maximum_distance)`: one full lifted SymmUnit, a complete tuple of paired ImageKeys, maximum Cartesian residual in Angstrom. This possible relation requires complete coordinate AND labelled graph/site matching; it grants no permission to erase sites. |
 | `Finding` | Existing applicable domain finding records, or a scoped immutable `(code,subjects,measurements)` tuple where no existing record fits. Exact image/edge/cycle subjects and immutable code-specific measurements from §4; no new public finding base/export. Freeze actual layouts at 15A. |
 | Coordinates / cell reads | Independent float64 arrays; coordinate conversions retain `(...,3)` shape. Methods requiring absent coordinates/content report exact local unavailability, without fabricated zeros. SpaceGroup's exact matrices/vectors are genuinely immutable tuples. |
+| `Molecule.fractional_coordinates` | Owner-authorized 2026-11-06 read/write projection of current Cartesian Atom facts through the active paired Crystal, with the Molecule lock held throughout. Getter reuses the existing complete-supplied-coordinate check and `to_fractional`; setter uses `to_cartesian` then the existing atomic `coordinates` setter. Values are dimensionless and unwrapped. No Crystal or incomplete Cartesian facts on read raises `ValueError` (`CRYSTAL-CONTEXT-INTEGRITY`); assignment may supply missing coordinates. No second store/cache/frame/codec field. |
 | Closed-cycle linking | Explicit oriented ordered `(current_atom_row,integer_image)` sequences, each closing with zero image voltage. Return the integer for supported separated simple closed polygonal curves; `None` means unavailable with a precise finding, never an inferred zero. |
 | Cell changes | One oriented row-basis `matrix`. `preserve` is exactly `"cartesian"` (default) or `"fractional"`. Legacy scalar setters use that complete operation, preserving global orientation and Cartesian atom positions. Cell changes revalidate group metric/applicable identifications; rejection leaves all input facts intact. |
 | Group replacement | `set_space_group` replaces the immutable group association, with cell/Cartesian chemistry retained. `site_relations=None` preserves existing relations **only if compatible**; an explicitly supplied mapping replaces the complete relation set in the same commit. Incompatible required maps reject atomically, rather than disappear. Historical origins remain historical. |

@@ -205,17 +205,6 @@ def layer_findings(path, source):
                 and inventory.imported_module(path, node) == module
                 and [(alias.name, alias.asname) for alias in node.names] == [(name, None)])
 
-    def crystal_math_import(node):
-        scope = lexical_scope(node)
-        cls = parents.get(scope)
-        return (path == CRYSTAL_PATH
-                and exact_import(node, "hotpot.cheminfo.rules.mathematics.cell", "_matrix_to_params")
-                and isinstance(scope, ast.FunctionDef) and scope.name == "_matrix_to_params"
-                and ast.unparse(scope.args) == "matrix"
-                and [ast.unparse(item) for item in scope.decorator_list] == ["staticmethod"]
-                and isinstance(cls, ast.ClassDef) and cls.name == "Crystal"
-                and parents.get(cls) is tree)
-
     def value_import(node):
         return (isinstance(node, ast.ImportFrom) and parents.get(node) is tree
                 and (inventory.imported_module(path, node),
@@ -228,11 +217,7 @@ def layer_findings(path, source):
             return False
         owner = parents.get(scope)
         if isinstance(owner, ast.ClassDef) and owner.name == "Crystal" and parents.get(owner) is tree:
-            if scope.name != "_matrix_to_params":
-                return True
-            return (exact_import(node, "hotpot.cheminfo.operations.crystal", "_matrix_to_params")
-                    and ast.unparse(scope.args) == "matrix"
-                    and [ast.unparse(item) for item in scope.decorator_list] == ["staticmethod"])
+            return True
         # Six scalar properties share one thin factory; neither closure owns
         # an independent cell or imports an execution backend.
         delegates = {("read", "crystal"): "_matrix_to_params",
@@ -303,7 +288,7 @@ def layer_findings(path, source):
                     add(node, "internal_upward_facade_import")
                 if layer in {"structure", "views"}:
                     forbidden = (target_layer in {"rules", "adapters"}
-                                 and not crystal_math_import(node) and not value_import(node))
+                                 and not value_import(node))
                     native = (any(part.endswith("_native") for part in target_parts)
                               or any(alias.name.endswith("_native") for alias in node.names))
                     eager = (target_parts[0] in EXTERNAL | {"scipy"}

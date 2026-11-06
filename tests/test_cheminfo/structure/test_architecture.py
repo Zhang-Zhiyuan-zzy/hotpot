@@ -162,7 +162,7 @@ def calculate(snapshot):
     assert audit.layer_findings("hotpot/cheminfo/rules/example.py", source) == []
 
 
-_CRYSTAL_DELEGATE = """class Crystal:
+_CRYSTAL_RULE_IMPORT = """class Crystal:
     @staticmethod
     def _matrix_to_params(matrix):
         from ..rules.mathematics.cell import _matrix_to_params
@@ -170,17 +170,17 @@ _CRYSTAL_DELEGATE = """class Crystal:
 """
 
 
-def test_crystal_value_can_delegate_locally_to_the_one_cell_math_function():
-    assert audit.layer_findings("hotpot/cheminfo/structure/crystal.py", _CRYSTAL_DELEGATE) == []
+def test_crystal_does_not_keep_the_retired_direct_cell_math_exception():
+    assert audit.layer_findings("hotpot/cheminfo/structure/crystal.py", _CRYSTAL_RULE_IMPORT)
 
 
 @pytest.mark.parametrize("changed_scope", [
     "path", "class", "method", "module", "nested", "nested_class", "class_method",
     "instance_method", "signature", "async", "nested_owner",
 ])
-def test_crystal_math_delegate_permission_has_exact_path_and_direct_static_method(changed_scope):
+def test_crystal_rule_import_remains_forbidden_across_scopes(changed_scope):
     path = "hotpot/cheminfo/structure/crystal.py"
-    source = _CRYSTAL_DELEGATE
+    source = _CRYSTAL_RULE_IMPORT
     if changed_scope == "path":
         path = path.replace("crystal.py", "other.py")
     elif changed_scope == "class":
@@ -214,14 +214,13 @@ def test_crystal_math_delegate_permission_has_exact_path_and_direct_static_metho
     "from ..rules.mathematics.cell import *",
     "from ..rules.chemistry import valence",
     "from ..adapters.openbabel import crystal",
-    "from ..operations.chemistry import calculate",
     "from ..graph import _graph_native",
     "from . import _fact_native",
     "from openbabel import openbabel",
     "import rdkit.Chem",
 ])
-def test_crystal_math_delegate_does_not_exempt_other_rules_adapters_or_execution(statement):
-    source = _CRYSTAL_DELEGATE.replace(
+def test_crystal_rule_import_does_not_exempt_other_rules_adapters_or_execution(statement):
+    source = _CRYSTAL_RULE_IMPORT.replace(
         "from ..rules.mathematics.cell import _matrix_to_params", statement)
     assert audit.layer_findings("hotpot/cheminfo/structure/crystal.py", source)
 
@@ -355,7 +354,7 @@ def test_current_crystal_thin_operation_facade_retains_external_and_eager_bounda
     assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from ..operations.forcefields._native import calculate'))
     assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from ..operations.forcefields import _forcefields_native'))
     assert audit.layer_findings(path, source.replace('from ..operations.crystal_generation import _expand_crystal', 'from ..adapters.crystal import expand'))
-    assert audit.layer_findings(path, _CRYSTAL_DELEGATE.replace('..rules.mathematics.cell', '..operations.crystal')) == []
+    assert audit.layer_findings(path, _CRYSTAL_RULE_IMPORT.replace('..rules.mathematics.cell', '..operations.crystal')) == []
 
 
 @pytest.mark.parametrize("method,arguments,operation", [

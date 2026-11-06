@@ -11828,3 +11828,103 @@ remains read-only under this session; actual /tmp output and repository-local
 archives are retained without a filesystem workaround. Maintained method,
 activation, current cohort, issue index and final report now agree. No chemical
 business bytes changed during this final records update.
+
+
+### 2026-11-06 — Owner-directed build/coordinate/query refinement entry
+
+Current branch feat/automatic-coordination-state-workflow at a9ecad59 is clean
+for tracked source. Owner requests actual use assessment of build_3d report
+fields, Molecule Cartesian/fractional access with the paired Crystal conversion,
+and removal assessment of the private/public longest-path pair and similar
+redundant facades. Apply governance/stage/validation and focused goal/main-plan
+alignment (carrier budget, coordinate ownership, public tree and Stage15
+accepted cell/lifecycle contract); the owner's goal does not require repeated
+whole-plan reading for this ongoing bounded refinement.
+
+Keep the sole Atom table Cartesian block and paired Crystal cell authority.
+Fractional access is derived, never a second stored/current coordinate truth;
+any setter must use the existing atomic Cartesian commit. No new native, model,
+chemistry rule or scientific/default algorithm is selected. Explicit source
+state and mutation/rollback/currentness remain mandatory. Assess each build
+field by actual owning workflows/readers rather than a blanket search-absence
+claim. Distinguish useful carrier facade/operation/pure-rule boundaries from
+unconsumed private forwarding aliases before removal.
+
+A local Sol-max writer owns coordinate design/implementation and narrowly
+connected public plan/API text; a separate local Sol/medium explorer owns the
+read-only build-field consumer inventory. Root audits query aliases, accepts
+public/report decisions, integrates dependent edits and validates CP311 affected
+business and representative installed behavior. No external helper. Source
+writers have exclusive files and no nested delegation. Evidence is classified
+under /tmp/hotpot_plan20/short/{coordinate-refinement,build3d-field-audit}-20261106
+and a root refinement directory. Preserve unrelated untracked work and actual
+failed attempts. Completion requires coherent source/consumer migration,
+affected tests, compact maintained assessment and normal business commit/push;
+no whole-plan or universal external-caller-unused claim is authorized.
+
+
+### 2026-11-06 — Cartesian/fractional refinement, private facade consolidation and build-result assessment
+
+Completed the owner-directed bounded refinement on a9ecad59. Molecule retains
+sole Cartesian Atom facts and now exposes independent unwrapped float64
+fractional_coordinates through its active paired Crystal. Both accessors hold
+the Molecule lock; fractional assignment uses the established Cartesian
+transaction/commit, source metadata, invalidation and rollback. Missing Crystal
+and incomplete supplied Cartesian read facts produce precise local integrity
+errors. No new coordinate store, cache, persistent field, native ABI, model
+encoding or scientific rule. The main plan, public API tree, Stage15 contract
+review and packaged Crystal guide now describe the same boundary.
+
+Removed unused Molecule._longest_path, _set_coordinates,
+_components_with_bindings, Crystal._matrix_to_params, and the intermediate
+operations.topology_queries._explicit_longest_path. Preserve public
+Molecule.longest_path and the sole pure graph implementation/scoped canonical
+composition; actual forcefield ligand consumers still use the component-binding
+operation. Existing useful constructor, ring/materialization and record helpers
+remain. Retired the obsolete Crystal direct-mathematics-import checker exception
+while retaining thin local operation delegation and the scalar-property factory.
+
+Actual hp-usage CP311 source:36 focused cases passed; initial connected run417
+passed. Root's added selection returned373passed/3module-skips/1failure: one
+negative checker fixture still assumed the removed private facade's special
+operation permission. Corrected that obsolete expectation; final architecture
+suite209passed. Current unique affected coverage is616passed/3module-skips,
+with earlier architecture versions superseded. Three PyG modules require
+unavailable Torch; they are not passes. Topology query final-byte rebind confirms
+only removal of one trailing blank line after the source runs. All other
+changed production/test bytes match their frozen evidence. Installed public
+graph checks use final bytes; no semantic change requires repeating other tests.
+
+Actual isolated outside-checkout CP311 wheel qualification:46passed, no failures,
+errors or skips, covering all36 fractional cases,8 direct graph cases, public
+copy/components and canonical tree. Standard Python/resource wheel assembly uses
+the attributed existing build interpreter and six unchanged native binaries;
+all922 installed Hotpot members and186 loaded Hotpot module origins, including
+all6native modules, verify. Original runtime missing-pybind11 preflight and the
+first private namespace-origin collector failure are retained. The corrected
+collector succeeds on the same wheel/site; no business assertion was weakened.
+Root checked changed packaged source/guide bytes and the successful wheel,
+command and result identities. No clean-native, other-ABI, SDK, sdist,
+full-default, backend/model,187-case science or performance rerun is claimed.
+
+The build3d audit distinguishes Molecule construction+optimization, FF initial
+build and raw native builder results. Actual selected/terminal energy, gradients,
+work, routing/failure/repair findings, geometry coverage and requested trajectory
+are useful. Known input repetitions, an always-unavailable steps_completed,
+derivable flags/counts and duplicate optimized quality JSON are cleanup
+candidates. CLI/pipeline and benchmark serialization are actual readers;
+scientific/performance recorders also dynamically read work counters. Preserve
+current public report fields/signatures in this slice; coherent report/JSON/reader
+consolidation is explicitly OPEN as P20-D047. candidate_count is a documented
+no-op; other complex candidate/repair/refinement budgets do real work.
+
+Exact argv/cwd/environment overrides, frozen source/native/wheel identities,
+original failures, numerical oracle/tolerance, final counts and limits are indexed
+in stages/stage15/domain/validation/coordinate_refinement_20261106.json. Raw
+receipts/logs/JUnit, installed tests/wheel and the detailed field-reader inventory
+are archived at .plan20-artifacts/20261106/refinement/refinement-evidence.tar.gz
+(45members,7036093bytes,SHA256
+ad7bc282ea5bed5d5fd6796948c84926c6f4b74ddf4265051dae5d1fdc0c1d99).
+The maintained field assessment is stages/stage08/forcefields/
+build3d_field_assessment.md. Source diff/whitespace and final record validation
+precede the coherent business commit and normal push; root retains acceptance.

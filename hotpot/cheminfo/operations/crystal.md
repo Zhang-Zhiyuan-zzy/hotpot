@@ -12,6 +12,14 @@ angle(a,b). `matrix` returns an independent array. Its orientation is preserved
 through the current Hotpot record, copying, pickle and the Hotpot CIF extension.
 The six conventional cell parameters alone cannot preserve that orientation.
 
+`mol.coordinates` reads and writes the sole Cartesian Atom facts, returning an
+independent array. For a Molecule paired with a Crystal,
+`mol.fractional_coordinates` converts through that Crystal's current oriented
+cell; assignment converts back through the same cell and uses the atomic
+Cartesian setter. Values are dimensionless and unwrapped, with no fractional
+store or cache. Reading requires complete supplied Cartesian coordinates;
+reading or assigning without a Crystal raises `CRYSTAL-CONTEXT-INTEGRITY`.
+
 ## Exact operations and one placement
 
 ```python

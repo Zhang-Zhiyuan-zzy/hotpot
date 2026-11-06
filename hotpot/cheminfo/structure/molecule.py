@@ -382,9 +382,6 @@ class Molecule:
         from ..operations.topology_queries import _simple_paths
         return _simple_paths(self, source, target, cutoff)
 
-    def _set_coordinates(self, coordinates):
-        self.coordinates = np.asarray(coordinates)
-
     def _update_topology(self, clear_conformers: bool = True, *,
                          _prepared_index=None, _constraint_rows=None) -> None:
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
@@ -1037,10 +1034,6 @@ class Molecule:
         from ..operations.chemistry import _calculate_hydrogens
         _calculate_hydrogens(self, stacklevel=5)
 
-    def _components_with_bindings(self):
-        from ..operations.topology_queries import _components
-        return _components(self, Molecule, with_bindings=True)
-
     @property
     def components(self) -> list['Molecule']:
         from ..operations.topology_queries import _components
@@ -1064,6 +1057,7 @@ class Molecule:
 
     @property
     def coordinates(self) -> np.ndarray:
+        """Independent Cartesian coordinates in angstrom from the Atom fact table."""
         with self._mutation_lock:
             return self._atom_table.coordinates()
 
@@ -1075,6 +1069,22 @@ class Molecule:
             update = _normalize_atom_facts(_capture_source(self), tuple(range(len(self._atoms))),
                         tuple(atom._uid for atom in self._atoms), {'coordinates': coordinates})
             _commit_coordinates(self, update)
+
+    @property
+    def fractional_coordinates(self) -> np.ndarray:
+        """Independent unwrapped fractional coordinates in the associated Crystal."""
+        from ..operations.crystal import _coordinates
+        with self._mutation_lock:
+            if self._crystal is None:
+                raise ValueError('CRYSTAL-CONTEXT-INTEGRITY: fractional coordinates require an associated Crystal')
+            return self._crystal.to_fractional(_coordinates(self))
+
+    @fractional_coordinates.setter
+    def fractional_coordinates(self, value: np.ndarray) -> None:
+        with self._mutation_lock:
+            if self._crystal is None:
+                raise ValueError('CRYSTAL-CONTEXT-INTEGRITY: fractional coordinates require an associated Crystal')
+            self.coordinates = self._crystal.to_cartesian(value)
 
     def _create_atom_from_array(self, attrs_array: np.ndarray) -> "Atom":
         from .atom import _import_atom_row
@@ -1597,13 +1607,6 @@ class Molecule:
         """
         from ..operations.descriptors import _similarity
         return _similarity(self, other, method, norm)
-
-    @staticmethod
-    def _longest_path(node_count: int, edges: Iterable[tuple[int, int]],
-                      _start_node: int = None, _end_node: int = None,
-                      _scope_nodes: Iterable[int] = None):
-        from ..operations.topology_queries import _explicit_longest_path
-        return _explicit_longest_path(node_count, edges, _start_node, _end_node, _scope_nodes)
 
     def longest_path(self):
         from ..operations.topology_queries import _longest_path

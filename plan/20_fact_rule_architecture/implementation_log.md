@@ -12089,3 +12089,19 @@ outside-checkout installed CIF selection then passed99tests. Evidence and failed
 attempts remain under the task temp root, runner/gemmi-dependency-repair and
 local-validation/attempt02 respectively. Full-suite and remote results remain
 pending; no product behavior or assertions changed.
+
+With Gemmi available, the full installed default selection completed:8567passed,
+3failed,120skipped,3xfailed,49subtests passed,0errors in642.03s (69%coverage).
+All429loaded Hotpot modules originated in the private venv. The only remaining
+failures were three seeds42/43/44 in the native-builder stereo workflow test,
+which still read the removed Build3DReport.atom_count field. Migrate that test
+to the factual Molecule count/coordinate shape and the retained added-H count;
+keep all original stereochemistry, payload, graph and seed assertions. The
+complete affected module then passed42tests outside checkout in3.70s, with all
+179Hotpot module origins installed. Other8567passes remain unchanged evidence;
+a subsequent full remote selection is required for a single all-green run.
+No production Python, native, model bytes or scientific assertions changed.
+Original failures, repaired runs and exact provenance are retained under
+local-validation/attempt03 and runner/native-builder-stereo-repair in the task
+root. The new GitHub run's actual commit/check conclusions are authoritative
+for remote qualification; historical branch/run names remain historical.

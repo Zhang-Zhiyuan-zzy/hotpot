@@ -173,10 +173,13 @@ def test_seeded_public_workflow_preserves_case54_stereo(seed):
     mol = read_mol(CASE54)
     mol.add_hydrogens(rm_polar_hs=False, rng=np.random.default_rng(seed))
     payload, graph = get_stereo_payload(mol), _graph(mol)
+    atom_count = len(mol.atoms)
 
     report = build3d(mol, add_hydrogens=False, seed=seed)
 
-    assert report.atom_count == len(mol.atoms)
+    assert len(mol.atoms) == atom_count
+    assert mol.coordinates.shape == (atom_count, 3)
+    assert report.added_hydrogen_count == 0
     assert _geometry_stereo(mol)[0] == ((1, 'R'), (12, 'R'))
     assert get_stereo_payload(mol) == payload
     assert _graph(mol) == graph

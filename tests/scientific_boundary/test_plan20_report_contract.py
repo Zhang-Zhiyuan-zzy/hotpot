@@ -34,7 +34,7 @@ def _report(root: Path, *, energy=1.0, failed_seed=None, monitor_passed=True) ->
             "eligibility": "eligible", "outcome": "execution_error" if failed else "completed",
             "attempted": True, "scientific_status": "unresolved" if failed else "observed",
             "elapsed_seconds": 0.1 if failed else 10.0, "stages": [],
-            "observations": {"production_report": {"quality_report": {"passed": monitor_passed}}},
+            "observations": {"production_report": {"optimization": {"quality_report": {"passed": monitor_passed}}}},
             "optimization": {"best_energy": energy, "energy_unit": "kJ/mol"},
             "work": {"epochs_completed": 0 if failed else 10},
             "selected_frame": None if failed else frame, "last_finite_frames": [],
@@ -64,6 +64,9 @@ def test_large_scientific_difference_and_monitor_flags_do_not_fail_comparison(tm
     assert exit_code == 0
     assert comparison["distributions"]["absolute_energy_difference_kj_mol"]["maximum"] > 1e19
     assert comparison["candidate_summary"]["unresolved_trials"] == 0
+    assert comparison["pairs"][0]["monitor_observations"] == {
+        "baseline": {"passed": True}, "candidate": {"passed": False},
+    }
 
 
 def test_failed_early_trial_survives_later_output_and_is_excluded_from_work_pair(tmp_path):
@@ -238,3 +241,22 @@ def test_case_keeps_unresolved_h_unknown_without_fabricating_zero(monkeypatch):
     with pytest.raises(ValueError, match="requires present implicit-H facts"):
         runner._graph_document(molecule)
     assert not int(molecule._atom_table._presence[0]) & (1 << field)
+
+
+@pytest.mark.parametrize("build_only", (True, False))
+def test_comparison_retains_quality_without_an_optimization_result(tmp_path, build_only):
+    for name, passed in (("before", True), ("after", False)):
+        root = tmp_path / name
+        document = _report(root, monitor_passed=passed)
+        for trial in document["trials"]:
+            report = {"quality_report": {"passed": passed}}
+            if build_only:
+                report["optimization"] = None
+            trial["observations"]["production_report"] = report
+        (root / "report.json").write_text(json.dumps(document))
+
+    comparison = _compare.compare_reports(tmp_path / "before", tmp_path / "after")
+
+    assert all(pair["monitor_observations"] == {
+        "baseline": {"passed": True}, "candidate": {"passed": False},
+    } for pair in comparison["pairs"])

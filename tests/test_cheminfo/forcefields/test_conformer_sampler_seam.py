@@ -118,12 +118,10 @@ def _accepted_report():
 def _patch_accepted_downstream(monkeypatch, trace):
     report = _accepted_report()
     untangling_report = RingUntanglingReport(
-        attempt_limit=4,
         attempts_completed=0,
         initial_piercing_count=0,
         final_piercing_count=0,
         minimum_piercing_count=0,
-        resolved=True,
     )
 
     monkeypatch.setattr(ligand, "capture_topology", lambda *args, **kwargs: object())
@@ -239,7 +237,7 @@ def test_provider_runs_once_per_component_and_downstream_budgets_are_unchanged(
 
     assert sorted(atom_count for atom_count, _ in sampler.calls) == [1, 2]
     assert all(
-        request == ConformerSamplingRequest(conformer_count=1, seed=19)
+        request == ConformerSamplingRequest(seed=19)
         for _, request in sampler.calls
     )
     assert diagnostics.attempt_count == 2
@@ -367,7 +365,7 @@ def test_rdkit_adapter_requests_one_and_selects_the_lowest_stable_ordinal(
     packed_sources = _patch_rdkit_sampling(monkeypatch, generate)
     sampled = RDKitConformerAdapter().sample(
         molecule,
-        ConformerSamplingRequest(conformer_count=32, seed=29),
+        ConformerSamplingRequest(seed=29),
     )
 
     assert len(calls) == 1
@@ -407,7 +405,7 @@ def test_rdkit_materialized_hydrogen_mode_projects_a_copy(monkeypatch):
     packed_sources = _patch_rdkit_sampling(monkeypatch, generate)
     RDKitConformerAdapter(materialized_hydrogens=True).sample(
         molecule,
-        ConformerSamplingRequest(conformer_count=1, seed=31),
+        ConformerSamplingRequest(seed=31),
     )
 
     assert len(calls) == 1
@@ -514,7 +512,7 @@ def test_default_rdkit_adapter_preserves_partially_explicit_hydrogens(monkeypatc
     packed_sources = _patch_rdkit_sampling(monkeypatch, generate)
     RDKitConformerAdapter().sample(
         molecule,
-        ConformerSamplingRequest(conformer_count=1, seed=41),
+        ConformerSamplingRequest(seed=41),
     )
 
     assert len(calls) == len(packed_sources) == 1
@@ -561,7 +559,8 @@ def test_rdkit_failure_is_explicit_and_never_falls_back_to_openbabel(monkeypatch
     assert fallback_calls == []
 
 
-def test_public_forcefield_api_keeps_candidate_count_reserved(monkeypatch):
+def test_public_forcefield_api_drops_ignored_candidate_count(monkeypatch):
+    from hotpot import Molecule
     marker = object()
     captured = {}
 
@@ -570,7 +569,11 @@ def test_public_forcefield_api_keeps_candidate_count_reserved(monkeypatch):
         return marker
 
     monkeypatch.setattr(workflows, "_complexes_build_workflow", private_workflow)
-    assert workflows.complexes_build(object(), candidate_count=37) is marker
+    for operation in (workflows.complexes_build, workflows.build_and_optimize, Molecule.build3d):
+        with pytest.raises(TypeError, match="candidate_count"):
+            operation(object(), candidate_count=37)
+    assert captured == {}
+    assert workflows.complexes_build(object()) is marker
     assert "candidate_count" not in captured
     assert "sampler" not in captured
 
@@ -668,9 +671,9 @@ def test_auto_native_fast_finalization_retains_actual_input_seed_and_effective_o
     mol = read_mol("[Eu]N", "smi")
     source = auto_workflow._capture_working_source(mol)
     report = ForceFieldRunReport(
-        requested_forcefield=None, effective_forcefield="UFF", setup_succeeded=True,
+        effective_forcefield="UFF", setup_succeeded=True,
         converged=True, epochs_completed=1, steps_submitted=7, initialization_steps=0,
-        steps_completed=None, final_energy=0., best_energy=0., energy_unit="kJ/mol",
+        final_energy=0., best_energy=0., energy_unit="kJ/mol",
         rms_gradient=0., max_gradient=0., exploded=False,
     )
     attempt = auto_workflow._NativeFastBuildAttempt(

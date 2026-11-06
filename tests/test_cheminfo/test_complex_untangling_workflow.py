@@ -169,12 +169,10 @@ def _untangling_result(
     piercing_count=0,
 ):
     report = forcefield_utils.RingUntanglingReport(
-        attempt_limit=3,
         attempts_completed=1,
         initial_piercing_count=piercing_count,
         final_piercing_count=0,
         minimum_piercing_count=0,
-        resolved=True,
     )
     return repair._RingUntanglingResult(
         report=report,
@@ -243,7 +241,7 @@ def test_ring_untangling_opens_perturbs_optimizes_closes_and_rechecks(monkeypatc
         ("optimize", 9),
         ("scan",),
     ]
-    assert result.report.resolved
+    assert result.report.final_piercing_count == 0
     assert result.report.attempts_completed == 1
     assert result.checkpoint_report.state is geo.PiercingState.DOES_NOT_PIERCE
 
@@ -420,7 +418,7 @@ def test_unrepairable_chelate_watch_warns_without_opening_a_bond(monkeypatch):
     )
 
     assert result.report.attempts_completed == 0
-    assert result.report.resolved is False
+    assert result.report.final_piercing_count > 0
     assert "no eligible ring-opening edge" in result.report.warning_messages[0]
     assert not any(event[0] == "open" for event in molecule.events)
 
@@ -469,7 +467,7 @@ def test_ring_untangling_consumes_the_entry_checkpoint_without_rescanning(
         checkpoint_report=checkpoint,
     )
 
-    assert result.report.resolved
+    assert result.report.final_piercing_count == 0
     assert result.checkpoint_report is checkpoint
 
 
@@ -713,7 +711,7 @@ def test_ring_untangling_budget_scans_only_selected_watch_frame(monkeypatch):
     assert result.report.initial_piercing_count == 3
     assert result.report.minimum_piercing_count == 1
     assert result.report.final_piercing_count == 1
-    assert not result.report.resolved
+    assert result.report.final_piercing_count > 0
     assert full_scan_count == 1
     assert result.checkpoint_report is selected_checkpoint
     np.testing.assert_array_equal(molecule.coordinates, np.full((3, 3), 2.0))

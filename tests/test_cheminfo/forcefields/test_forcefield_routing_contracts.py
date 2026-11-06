@@ -19,14 +19,12 @@ from hotpot.cheminfo.operations.forcefields.contracts import (
 
 def _run_report() -> ForceFieldRunReport:
     return ForceFieldRunReport(
-        requested_forcefield="UFF",
         effective_forcefield="UFF",
         setup_succeeded=True,
         converged=True,
         epochs_completed=1,
         steps_submitted=100,
         initialization_steps=1,
-        steps_completed=None,
         final_energy=1.0,
         best_energy=1.0,
         energy_unit="kJ/mol",

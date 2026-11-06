@@ -24,7 +24,6 @@ from hotpot.cheminfo.operations.forcefields.stage import ForceFieldRouteOptions
 
 @dataclass(frozen=True)
 class _Report:
-    requested_forcefield: str | None
     effective_forcefield: str
     quality_report: ForceFieldValidationReport
     trajectory: object | None = None
@@ -52,7 +51,7 @@ def _report(*, passed: bool = True) -> _Report:
     checks = (AcceptanceCheck("finite_coordinates", True),)
     if not passed:
         checks += (AcceptanceCheck("atom_too_close", False, measured=0.1, threshold=0.5),)
-    return _Report(None, "UFF", ForceFieldValidationReport("standard", passed, checks))
+    return _Report("UFF", ForceFieldValidationReport(passed, checks))
 
 
 def _install_reader(monkeypatch, molecules):
@@ -787,7 +786,6 @@ def test_forcefield_error_report_preserves_typed_evidence(
     mol = _Molecule("failed")
     _install_reader(monkeypatch, [mol])
     setup_report = ForceFieldSetupReport(
-        requested_forcefield="GAFF",
         effective_forcefield="GAFF",
         stage="setup",
         setup_succeeded=False,
@@ -813,7 +811,6 @@ def test_forcefield_error_report_preserves_typed_evidence(
     assert error["evidence"]["code"] == "FF-SETUP-UNAVAILABLE"
     assert error["evidence"]["setup_report"] == {
         "effective_forcefield": "GAFF",
-        "requested_forcefield": "GAFF",
         "setup_succeeded": False,
         "stage": "setup",
         "workflow_stage": "complex_optimization",
@@ -981,10 +978,10 @@ def test_only_coded_route_request_is_input_error_with_exact_code(monkeypatch, tm
 def test_required_result_failure_preserves_report_code_and_emits_no_molecule(monkeypatch, tmp_path, capsys, name):
     mol = _Molecule("unavailable")
     _install_reader(monkeypatch, [mol])
-    quality = ForceFieldValidationReport("strict", False, (
+    quality = ForceFieldValidationReport(False, (
         AcceptanceCheck(name, False, measured=None, threshold="required", message="required result unavailable"),
     ))
-    monkeypatch.setattr(cli, "build_and_optimize", lambda *args, **kwargs: _Report(None, "UFF", quality))
+    monkeypatch.setattr(cli, "build_and_optimize", lambda *args, **kwargs: _Report(effective_forcefield="UFF", quality_report=quality))
     report_path = tmp_path / "hard.json"
     assert cli.main(["CN", "--report", str(report_path)]) == 1
     assert capsys.readouterr().out == ""

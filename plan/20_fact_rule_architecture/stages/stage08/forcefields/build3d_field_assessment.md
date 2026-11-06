@@ -1,5 +1,9 @@
 # build3d field-use assessment — 2026-11-06
 
+Historical discovery record. The owner subsequently authorized and implemented
+the [cross-interface simplification](../../stage12/public-output-simplification/report.md).
+Statements below that cleanup is unimplemented describe the original snapshot.
+
 Bounded source review at `a9ecad5902ce49b3854b21aa330c5fe4de8a9f47`,
 with the accompanying coordinate/query refinement. This records actual consumers
 and cleanup candidates; it does not change public report fields or scientific

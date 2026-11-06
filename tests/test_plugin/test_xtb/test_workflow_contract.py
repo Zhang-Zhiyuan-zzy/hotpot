@@ -118,16 +118,16 @@ def test_gfn_workflows_accept_complete_success_artifacts(
         xtb_projection_factory,
     )
 
-    assert report.return_code == 0
+    assert report.provenance.return_code == 0
     assert report.energy_hartree == pytest.approx(-5.123456789)
     assert report.atom_order_verified is True
     assert report.coordinates_committed is (task is XTBTask.OPTIMIZE)
     assert report.converged is True
-    assert report.stderr == ""
+    assert report.provenance.stderr == ""
     assert Path(report.backend_info.executable).is_absolute()
     assert report.backend_info.version == "6.7.1"
-    assert report.argv
-    assert report.elapsed_seconds >= 0.0
+    assert report.provenance.argv
+    assert report.provenance.elapsed_seconds >= 0.0
     expected_result = (
         "gfnff_lists.json" if workflow == "gfnff" else "xtbout.json"
     )
@@ -157,9 +157,9 @@ def test_nonempty_stderr_does_not_turn_success_into_failure(
         xtb_projection_factory,
     )
 
-    assert report.return_code == 0
+    assert report.provenance.return_code == 0
     assert report.converged is True
-    assert "informational diagnostic" in report.stderr
+    assert "informational diagnostic" in report.provenance.stderr
 
 
 def test_nonzero_exit_is_execution_failure(
@@ -178,8 +178,8 @@ def test_nonzero_exit_is_execution_failure(
             xtb_projection_factory,
         )
 
-    assert error.value.report.return_code == 17
-    assert "fake execution failure" in error.value.report.stderr
+    assert error.value.report.provenance.return_code == 17
+    assert "fake execution failure" in error.value.report.provenance.stderr
     np.testing.assert_array_equal(mol.coordinates, initial_coordinates)
 
 
@@ -235,8 +235,8 @@ def test_executable_and_workspace_paths_may_contain_spaces(
 
     assert report.coordinates_committed is True
     assert " " in str(report.backend_info.executable)
-    assert " " in str(report.work_directory)
-    assert Path(report.work_directory).is_dir()
+    assert " " in str(report.provenance.cwd)
+    assert Path(report.provenance.cwd).is_dir()
 
 
 def test_simultaneous_runs_use_isolated_workspaces(
@@ -258,7 +258,7 @@ def test_simultaneous_runs_use_isolated_workspaces(
     with ThreadPoolExecutor(max_workers=4) as executor:
         reports = tuple(executor.map(run_once, range(8)))
 
-    work_directories = tuple(Path(report.work_directory) for report in reports)
+    work_directories = tuple(Path(report.provenance.cwd) for report in reports)
     assert len(set(work_directories)) == len(work_directories)
     assert all(path.is_dir() for path in work_directories)
     assert all(report.coordinates_committed for report in reports)

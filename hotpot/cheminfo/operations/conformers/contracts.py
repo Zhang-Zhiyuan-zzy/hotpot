@@ -20,7 +20,6 @@ class ConformerSamplingError(RuntimeError):
 
 @dataclass(frozen=True, kw_only=True)
 class ConformerSamplingRequest:
-    """Backend-neutral request made at the force-field builder seam."""
+    """Request one placement at the force-field builder seam."""
 
-    conformer_count: int = 1
     seed: int | None = None

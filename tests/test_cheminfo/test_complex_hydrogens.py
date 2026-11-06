@@ -28,14 +28,12 @@ def _coordinated(smiles, donor_index):
 
 def _optimization_report(best_energy):
     return ff.ForceFieldRunReport(
-        requested_forcefield="UFF",
         effective_forcefield="UFF",
         setup_succeeded=True,
         converged=True,
         epochs_completed=1,
         steps_submitted=1,
         initialization_steps=1,
-        steps_completed=None,
         final_energy=best_energy,
         best_energy=best_energy,
         energy_unit="kJ/mol",

@@ -58,7 +58,7 @@ def test_native_setup_translation_preserves_cause_and_report():
     cause = RuntimeError("native setup rejected")
     with pytest.raises(ForceFieldSetupError) as caught:
         backend._raise_forcefield_setup_error(
-            cause, requested_forcefield="UFF", effective_forcefield="UFF", stage="setup",
+            cause, effective_forcefield="UFF", stage="setup",
         )
     assert caught.value.sample_failure_code == "FF-SETUP-UNAVAILABLE"
     assert caught.value.__cause__ is cause
@@ -152,7 +152,7 @@ def _patch_ligand_recovery(monkeypatch, *, first_candidate_passes=True):
         state=ligand.geo.PiercingState.DOES_NOT_PIERCE,
         piercings=(), undetermined_pair_count=0, excluded_ring_count=0, max_ring_size=16,
     )
-    untangling_report = RingUntanglingReport(3, 0, 0, 0, 0, True)
+    untangling_report = RingUntanglingReport(0, 0, 0, 0)
 
     def sample(component, request):
         trace.append(("sample",))

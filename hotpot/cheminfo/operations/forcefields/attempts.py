@@ -47,7 +47,6 @@ def _forcefield_acceptance_evidence(
 def _run_ordinary_optimization_attempt(
     working_mol: "Molecule",
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
     algorithm: OptimizationAlgorithm,
     epochs: int,
@@ -70,7 +69,6 @@ def _run_ordinary_optimization_attempt(
     """Optimize and assess one working molecule without committing it."""
     report = _optimize_working_mol(
         working_mol,
-        requested_forcefield=requested_forcefield,
         effective_forcefield=effective_forcefield,
         algorithm=algorithm,
         epochs=epochs,

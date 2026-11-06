@@ -1,5 +1,8 @@
 # Plan20 整体交付报告
 
+2026-11-06 接口精修见[结果与转发层精简记录](stages/stage12/public-output-simplification/report.md)；
+下列整体交付数据保留其原始快照，当前细化接口以关联 API 文档和精修证据为准。
+
 报告日期：2026-11-05。当前产品提交：`2c2ef889abb6adcceba043b606da2e718dbea109`，分支
 `experiment/plan20-kekulize-aromatic-protocol`，已推送到 GitHub。
 本文覆盖 Stage0–12 主线、整合的 Plan12 要求，以及 Stage13–15 三条已批准支线。

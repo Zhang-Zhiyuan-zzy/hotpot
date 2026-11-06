@@ -101,7 +101,6 @@ class _PreparedCBondStage(PreparedMolecularStage):
             payload=MolecularPayload((MolecularRecord(result.molecule),)),
             report={
                 "cbond": {
-                    "metal": self.metal,
                     "donor_indices": tuple(int(value) for value in result.donor_indices),
                     "path_probability": float(result.path_probability),
                     "steps": _steps(result.steps),

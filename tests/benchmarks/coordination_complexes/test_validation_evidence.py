@@ -72,7 +72,6 @@ def _optimization_evidence(*, finite_gradients: bool = True):
 
 def _quality() -> ff.ForceFieldValidationReport:
     return ff.ForceFieldValidationReport(
-        level="standard",
         passed=True,
         checks=(ff.AcceptanceCheck("finite_coordinates", True),),
     )
@@ -152,14 +151,12 @@ def _execution(
     )
     quality = _quality()
     optimization = ff.ForceFieldRunReport(
-        requested_forcefield="UFF",
         effective_forcefield="UFF",
         setup_succeeded=True,
         converged=False,
         epochs_completed=2 if include_later_frame else 1,
         steps_submitted=20,
         initialization_steps=1,
-        steps_completed=None,
         final_energy=-2.0 if include_later_frame else -1.0,
         best_energy=-2.0 if include_later_frame else -1.0,
         energy_unit="kJ/mol",
@@ -171,7 +168,6 @@ def _execution(
         termination_reason="budget_exhausted",
     )
     report = ff.ComplexBuildReport(
-        requested_forcefield="UFF",
         effective_forcefield="UFF",
         build=ff.ComplexBuildDiagnostics(
             attempt_count=1,
@@ -193,6 +189,7 @@ def _execution(
         proposal_seconds=0.01,
         forcefield_seconds=0.10,
         elapsed_seconds=0.11,
+        quality_level="standard",
     )
 
 
@@ -424,3 +421,15 @@ def test_failed_route_cannot_write_a_selected_structure(tmp_path) -> None:
     else:
         raise AssertionError("failed acceptance wrote a selected structure")
     assert not output.exists()
+
+
+@pytest.mark.parametrize("quality_level", ("off", "basic", "strict"))
+def test_a08_retains_the_configured_level_at_the_execution_evidence_owner(quality_level):
+    molecule = _complex()
+    execution = replace(_execution(molecule), quality_level=quality_level)
+
+    evidence, result = evaluate_route(_case(molecule), execution)
+
+    assert evidence.quality.level == quality_level
+    assert not result.decision("A08").passed
+    assert f"quality_level:{quality_level}" in result.decision("A08").diagnostics

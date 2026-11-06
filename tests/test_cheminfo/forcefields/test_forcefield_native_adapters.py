@@ -206,20 +206,19 @@ def test_native_stage_results_map_to_existing_python_reports() -> None:
     coordination = coordination_restoration_report(coordination_result)
     optimization = forcefield_run_report(
         optimization_result,
-        requested_forcefield=None,
         effective_forcefield="UFF",
     )
 
-    assert coordination.attempt_limit == coordination_result.attempt_limit
-    assert coordination.bond_count == 1
+    assert not hasattr(coordination, "attempt_limit")
+    assert not hasattr(coordination, "bond_count")
     assert coordination.warning_messages == (
         NATIVE_WARNING_MESSAGES["coordination_bonds_forced"],
     )
     assert coordination.elapsed_seconds == coordination_result.elapsed_seconds
-    assert optimization.requested_forcefield is None
+    assert not hasattr(optimization, "requested_forcefield")
     assert optimization.effective_forcefield == "UFF"
     assert optimization.setup_succeeded
-    assert optimization.steps_completed is None
+    assert not hasattr(optimization, "steps_completed")
     assert optimization.energy_unit == "kJ/mol"
     assert optimization.final_energy == optimization_result.final_energy_kj_mol
     assert optimization.elapsed_seconds == optimization_result.elapsed_seconds
@@ -245,7 +244,6 @@ def test_topology_blocked_result_does_not_report_setup_success() -> None:
 
     report = forcefield_run_report(
         blocked_result,
-        requested_forcefield="MMFF94",
         effective_forcefield="UFF",
     )
 
@@ -266,7 +264,6 @@ def test_topology_blocked_tail_overrides_earlier_optimizer_work() -> None:
 
     report = forcefield_run_report(
         blocked_result,
-        requested_forcefield=None,
         effective_forcefield="UFF",
     )
 

@@ -238,13 +238,13 @@ def test_retained_workspace_is_a_unique_child_of_requested_parent(
         keep_work_directory=True,
     )
 
-    assert first.work_directory.parent == workspace_parent.resolve()
-    assert second.work_directory.parent == workspace_parent.resolve()
-    assert first.work_directory != second.work_directory
+    assert first.provenance.cwd.parent == workspace_parent.resolve()
+    assert second.provenance.cwd.parent == workspace_parent.resolve()
+    assert first.provenance.cwd != second.provenance.cwd
     assert first.workspace_retained is True
     assert second.workspace_retained is True
-    assert first.work_directory.is_dir()
-    assert second.work_directory.is_dir()
+    assert first.provenance.cwd.is_dir()
+    assert second.provenance.cwd.is_dir()
 
 
 def test_gfnff_am_input_is_rejected_before_numerical_run(
@@ -298,9 +298,9 @@ def test_default_workspace_is_removed_after_success(
         work_directory=workspace_parent,
     )
 
-    assert report.work_directory.parent == workspace_parent.resolve()
+    assert report.provenance.cwd.parent == workspace_parent.resolve()
     assert report.workspace_retained is False
-    assert not report.work_directory.exists()
+    assert not report.provenance.cwd.exists()
     assert tuple(workspace_parent.iterdir()) == ()
 
 
@@ -330,7 +330,7 @@ def test_failed_run_removes_workspace_unless_retention_is_requested(
         )
 
     assert error.value.report.workspace_retained is False
-    assert not error.value.report.work_directory.exists()
+    assert not error.value.report.provenance.cwd.exists()
     assert tuple(workspace_parent.iterdir()) == ()
 
 

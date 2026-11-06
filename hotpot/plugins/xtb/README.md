@@ -126,9 +126,27 @@ commits coordinates.
 | `read_sdf_records(text)` / `write_sdf_records(records)` | Decode or encode the narrow SDF stream contract used between xTB nodes. |
 | `validate_element_support(backend_info, method, atomic_numbers)` | Reject unsupported method/element combinations before execution. |
 
-`XTBRunReport` separates process success, xTB convergence, parsed energy,
-coordinate commit, scientific-state identity, retained artifacts, and backend
-identity. Failures are explicit subclasses of `XTBError`; methods are never
+`XTBRunReport` retains xTB convergence, parsed energy and its unit, coordinate
+commit, scientific-state identity, artifacts and backend identity. Its existing
+`provenance` value is the sole owner of process argv, workspace (`cwd`), return
+code, stdout, stderr and elapsed time. Read, for example,
+`report.provenance.return_code` or `report.provenance.stdout`. Process success is
+`report.provenance.return_code == 0`; native convergence remains the independent
+`report.converged` observation. The report keeps one `effective_method` for
+artifact parsing and detached stream attribution. These current constructor and
+JSON fields replace the former repeated top-level process fields,
+`process_succeeded` and `requested_method`; no forwarding aliases are provided.
+
+Controlled pipeline summaries return discovered numerical, convergence, commit,
+state/projection and artifact observations. Invocation method/task remain in the
+stage's saved `argv`. A failed sample's `report_index` joins its one native
+report in `report["xtb"]`: a dictionary for one report, a sequence for several.
+Failure payloads retain exact code/type/message and any scientific-state or
+projection findings. Complete process facts occur under the native report's
+`provenance`; logs remain available separately. The portable SDF metadata schema
+is unchanged.
+
+Failures are explicit subclasses of `XTBError`; methods are never
 silently substituted. Standalone batch execution continues only for exact known
 sample-failure codes, preserves ordered reports, and exits 1 for unavailable
 results. Unknown errors and stream/commit/provenance integrity failures propagate.

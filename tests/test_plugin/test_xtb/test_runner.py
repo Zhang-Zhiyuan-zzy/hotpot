@@ -98,11 +98,17 @@ def test_runner_builds_method_and_task_specific_argv_and_artifacts(
     recorded = json.loads(
         (request.work_directory / "argv.json").read_text(encoding="utf-8")
     )
-    assert tuple(recorded) == report.argv[1:]
-    assert all(item in report.argv for item in expected_method)
-    assert expected_task in report.argv
-    assert "--chrg" in report.argv
-    assert report.argv[report.argv.index("--chrg") + 1] == "-1"
+    assert tuple(recorded) == report.provenance.argv[1:]
+    assert report.provenance.cwd == request.work_directory.resolve()
+    assert report.effective_method is request.method
+    assert not any(hasattr(report, name) for name in (
+        "requested_method", "work_directory", "argv", "return_code", "stdout",
+        "stderr", "elapsed_seconds", "process_succeeded",
+    ))
+    assert all(item in report.provenance.argv for item in expected_method)
+    assert expected_task in report.provenance.argv
+    assert "--chrg" in report.provenance.argv
+    assert report.provenance.argv[report.provenance.argv.index("--chrg") + 1] == "-1"
     assert result_name in report.artifacts
     assert report.provenance.executable == executable.resolve()
     assert report.provenance.executable_sha256 == request.backend_info.executable_sha256
@@ -114,9 +120,9 @@ def test_runner_builds_method_and_task_specific_argv_and_artifacts(
     assert len(artifact_hashes[result_name]) == 64
     assert not executable.with_name("version_argv.json").exists()
     if method_name == "GFN2_XTB":
-        assert report.argv[report.argv.index("--uhf") + 1] == "2"
+        assert report.provenance.argv[report.provenance.argv.index("--uhf") + 1] == "2"
     else:
-        assert "--uhf" not in report.argv
+        assert "--uhf" not in report.provenance.argv
     if task_name == "OPTIMIZE":
         assert ".xtboptok" in report.artifacts
 
@@ -151,8 +157,8 @@ def test_stderr_text_is_preserved_without_turning_success_into_failure(
 
     report = run_xtb(request)
 
-    assert report.return_code == 0
-    assert "informational diagnostic" in report.stderr
+    assert report.provenance.return_code == 0
+    assert "informational diagnostic" in report.provenance.stderr
 
 
 def test_nonzero_exit_raises_with_complete_failure_report(
@@ -170,8 +176,8 @@ def test_nonzero_exit_raises_with_complete_failure_report(
     with pytest.raises(XTBExecutionError) as error:
         run_xtb(request)
 
-    assert error.value.report.return_code == 17
-    assert "fake execution failure" in error.value.report.stderr
+    assert error.value.report.provenance.return_code == 17
+    assert "fake execution failure" in error.value.report.provenance.stderr
 
 
 def test_missing_method_specific_result_is_an_explicit_result_failure(
@@ -188,5 +194,5 @@ def test_missing_method_specific_result_is_an_explicit_result_failure(
     with pytest.raises(XTBResultError) as error:
         run_xtb(request)
 
-    assert error.value.report.return_code == 0
+    assert error.value.report.provenance.return_code == 0
     assert "gfnff_lists.json" not in error.value.report.artifacts

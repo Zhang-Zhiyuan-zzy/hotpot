@@ -161,12 +161,12 @@ def test_batch_stages_all_inputs_and_preserves_explicit_downstream_values(monkey
         return 4
 
     monkeypatch.setattr(Atom, 'get_valence', valence)
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', lambda self: 3)
 
     def rule(*args):
         seen.append(args)
         return 3
 
+    monkeypatch.setattr(chemistry, '_atom_implicit_proposal', rule)
     monkeypatch.setattr(chemistry, '_calculate_valence', rule)
     monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', rule)
     assert mol.updata_atoms(atoms=[second, first], symbol=['N', 'O'],
@@ -253,7 +253,7 @@ def test_factual_installer_builds_index_once_and_never_runs_chemistry(monkeypatc
 
     monkeypatch.setattr(molecule_owner, '_build_topology_index', counted)
     monkeypatch.setattr(Atom, 'get_valence', forbidden)
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
+    monkeypatch.setattr(chemistry, '_atom_implicit_proposal', forbidden)
     monkeypatch.setattr(chemistry, '_calculate_valence', forbidden)
     monkeypatch.setattr(chemistry, '_calculate_implicit_hydrogens', forbidden)
     target = Molecule()

@@ -23,7 +23,7 @@ def test_geometry_route_keeps_exact_geometry_checks_and_profiles_without_ff_repo
     mol = _molecule()
     geometry = acceptance._evaluate_geometry_acceptance(mol, level=level)
     public = acceptance.evaluate_structure_acceptance(mol, level=level)
-    assert geometry.level == level
+    assert not hasattr(geometry, "level")
     assert geometry.checks == tuple(check for check in public.checks if check.name != "forcefield_report")
     assert geometry.metrics == public.metrics
     assert geometry.passed is True

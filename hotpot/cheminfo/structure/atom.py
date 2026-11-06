@@ -287,15 +287,6 @@ class Atom(MolBlock):
         from ..operations.chemistry import _atom_polar_hydrogen_site
         return _atom_polar_hydrogen_site(self)
 
-    def _add_hydrogens(
-            self,
-            num: int = None,
-            rm_polar_hs: bool = True,
-            rng: Optional[np.random.Generator] = None,
-    ) -> (int, list["Atom"]):
-        from ..operations.chemistry import _add_atom_hydrogens
-        return _add_atom_hydrogens(self, num, rm_polar_hs, rng)
-
     def add_hydrogen(self, num: int = None) -> list["Atom"]:
         """
         Adds hydrogen atoms to the molecule.
@@ -319,12 +310,6 @@ class Atom(MolBlock):
         with self.mol._mutation_lock:
             record = self.mol._topology_index.get(id(self))
             return [] if record is None else list(record[1])
-
-    def _calc_implicit_hydrogens(self) -> int:
-        # TODO: Implement by C++
-        from ..operations.chemistry import _atom_implicit_proposal
-        return _atom_implicit_proposal(self)
-
 
     def calc_implicit_hydrogens(self):
         from ..operations.chemistry import _calculate_hydrogens

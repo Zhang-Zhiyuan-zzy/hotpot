@@ -160,6 +160,10 @@ def work_counters(value):
     result = {}
     def visit(item, prefix):
         if isinstance(item, dict):
+            if "steps_submitted" in item and "steps_completed" not in item:
+                # The recorder keeps unavailable exact backend work explicit.
+                path = f"{prefix}.steps_completed" if prefix else "steps_completed"
+                result[path] = None
             for key, child in item.items():
                 path = f"{prefix}.{key}" if prefix else key
                 # A reported unknown step count is evidence, not a zero or an absent field.

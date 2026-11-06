@@ -1915,22 +1915,14 @@ XTBRequest(backend_info: XTBBackendInfo, method: XTBMethod, task: XTBTask, input
 定义 owner `hotpot.plugins.xtb.contracts.XTBRunReport`；基类 无。
 
 ```python
-XTBRunReport(backend_info: XTBBackendInfo, requested_method: XTBMethod, effective_method: XTBMethod, task: XTBTask, charge: int, unpaired_electrons: Optional[int], work_directory: Path, argv: Tuple[str, ...], return_code: int, stdout: str, stderr: str, elapsed_seconds: float, process_succeeded: bool, converged: bool, artifacts: Mapping[str, XTBArtifact], provenance: ProcessProvenance, energy_hartree: Optional[float] = None, energy_unit: str = 'hartree', gradient_norm: Optional[float] = None, atom_order_verified: bool = False, coordinates_committed: bool = False, scientific_state_identity: Optional[ScientificStateIdentity] = None, facts_identity: Optional[MolecularFactsIdentity] = None, projection_convention: Optional[str] = None, workspace_retained: bool = False)
+XTBRunReport(backend_info: XTBBackendInfo, effective_method: XTBMethod, task: XTBTask, charge: int, unpaired_electrons: Optional[int], converged: bool, artifacts: Mapping[str, XTBArtifact], provenance: ProcessProvenance, energy_hartree: Optional[float] = None, energy_unit: str = 'hartree', gradient_norm: Optional[float] = None, atom_order_verified: bool = False, coordinates_committed: bool = False, scientific_state_identity: Optional[ScientificStateIdentity] = None, facts_identity: Optional[MolecularFactsIdentity] = None, projection_convention: Optional[str] = None, workspace_retained: bool = False)
 ```
 
 - `backend_info: XTBBackendInfo` [只读值字段]
-- `requested_method: XTBMethod` [只读值字段]
 - `effective_method: XTBMethod` [只读值字段]
 - `task: XTBTask` [只读值字段]
 - `charge: int` [只读值字段]
 - `unpaired_electrons: Optional[int]` [只读值字段]
-- `work_directory: Path` [只读值字段]
-- `argv: Tuple[str, ...]` [只读值字段]
-- `return_code: int` [只读值字段]
-- `stdout: str` [只读值字段]
-- `stderr: str` [只读值字段]
-- `elapsed_seconds: float` [只读值字段]
-- `process_succeeded: bool` [只读值字段]
 - `converged: bool` [只读值字段]
 - `artifacts: Mapping[str, XTBArtifact]` [只读值字段]
 - `provenance: ProcessProvenance` [只读值字段]
@@ -1943,6 +1935,12 @@ XTBRunReport(backend_info: XTBBackendInfo, requested_method: XTBMethod, effectiv
 - `facts_identity: Optional[MolecularFactsIdentity]` = `None` [只读值字段]
 - `projection_convention: Optional[str]` = `None` [只读值字段]
 - `workspace_retained: bool` = `False` [只读值字段]
+
+`provenance` 是进程事实的唯一 owner：`argv/cwd/return_code/stdout/stderr/elapsed_seconds`。
+原 `work_directory` 使用 `provenance.cwd`；进程成功由 `provenance.return_code == 0` 表达，
+与独立的 `converged`、数值解析、坐标提交和 workspace 保留事实分开。保留唯一的
+`effective_method` 供脱离请求后的解析和 SDF 归属使用；删除重复的 `requested_method`。
+这是当前构造器、字段反射及 CLI/失败原始 JSON 的直接迁移，无旧字段 accessor 或双 schema。
 
 <a id="hotpot-plugins-xtb-contracts-xtberror"></a>
 ### `XTBError`
@@ -2026,6 +2024,12 @@ get_stage() -> MolecularStage
 
 
 <a id="hotpot-plugins-xtb-state-projection"></a>
+成功 stage summary 保留数值、收敛、提交、自动解析的电荷/自旋、科学态/投影绑定和
+artifact 观察；method/task 来自保存的 stage `argv`，不再重复 `requested_method`、
+`effective_method`、`task`、`process_succeeded` 或恒定的 projected status。失败 sample 的
+`report_index` 关联唯一的 `report["xtb"]` 原始报告；不再嵌套 `failure.native_report`。
+一份报告仍为 dict，多份仍为序列，sample 分母、故障与发现保持原有语义。
+
 ## `hotpot.plugins.xtb.state_projection`
 
 `hotpot/plugins/xtb/state_projection.py`；显式 __all__: ('XTBBackendContext',)

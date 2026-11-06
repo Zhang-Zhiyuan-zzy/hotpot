@@ -163,7 +163,6 @@ def _optimizer(monkeypatch, native_result, **options):
     return (
         optimizer_impl._OpenBabelOptimizer(
             "MMFF94s",
-            "MMFF94s",
             **defaults,
         ),
         calls,
@@ -240,15 +239,15 @@ def test_optimizer_forwards_native_controls_and_translates_report(monkeypatch):
         "maximum_rms_gradient_kj_mol_angstrom": 1.0,
         "maximum_gradient_kj_mol_angstrom": 5.0,
     }
-    assert report.requested_forcefield == "MMFF94s"
+    assert not hasattr(report, "requested_forcefield")
     assert report.effective_forcefield == "MMFF94s"
     assert report.epochs_completed == 3
     assert report.steps_submitted == 18
     assert report.initialization_steps == 3
-    assert report.steps_completed is None
+    assert not hasattr(report, "steps_completed")
     assert report.converged is True
     assert report.terminal_converged is True
-    assert report.convergence_level is ff.ConvergenceLevel.FAST
+    assert not hasattr(report, "convergence_level")
     assert report.termination_reason == "converged"
     assert report.best_energy == pytest.approx(4.184)
     assert report.final_energy == pytest.approx(8.368)
@@ -528,7 +527,6 @@ def test_native_setup_failure_is_translated_to_public_diagnostics(
     monkeypatch.setattr(optimizer_impl, "_native_optimize", fail)
     optimizer = optimizer_impl._OpenBabelOptimizer(
         "MMFF94s",
-        "MMFF94s",
         algorithm="conjugate",
         epochs=1,
         steps_per_epoch=1,
@@ -552,7 +550,6 @@ def test_native_setup_failure_is_translated_to_public_diagnostics(
     assert trajectory.selected_index is None
     assert trajectory.terminal_index is None
     assert caught.value.report == ff.ForceFieldSetupReport(
-        requested_forcefield="MMFF94s",
         effective_forcefield="MMFF94s",
         stage=stage,
     )
@@ -677,7 +674,7 @@ def test_optimizer_rejects_invalid_control_parameters(options, message):
     defaults.update(options)
 
     with pytest.raises(ValueError, match=message):
-        optimizer_impl._OpenBabelOptimizer("UFF", "UFF", **defaults)
+        optimizer_impl._OpenBabelOptimizer("UFF", **defaults)
 
 
 @pytest.mark.parametrize(
@@ -718,14 +715,12 @@ def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
     def fake_run(working, **options):
         captured.update(options)
         return ff.ForceFieldRunReport(
-            requested_forcefield=options["requested_forcefield"],
             effective_forcefield=options["effective_forcefield"],
             setup_succeeded=True,
             converged=True,
             epochs_completed=1,
             steps_submitted=1,
             initialization_steps=1,
-            steps_completed=None,
             final_energy=1.0,
             best_energy=1.0,
             energy_unit="kJ/mol",
@@ -743,7 +738,7 @@ def test_ordinary_none_forcefield_is_reported_as_mmff94s(monkeypatch):
         stopping_criteria=stopping_criteria,
     )
 
-    assert captured["requested_forcefield"] is None
+    assert "requested_forcefield" not in captured
     assert captured["effective_forcefield"] == "MMFF94s"
     assert captured["stopping_criteria"] is stopping_criteria
 
@@ -816,3 +811,15 @@ def test_public_uff_trajectory_attributes_terminal_native_observation(
     np.testing.assert_array_equal(
         restored.coordinates(restored.terminal_index), native_result.terminal_coordinates,
     )
+
+
+@pytest.mark.parametrize("elapsed_seconds", (0.0, 0.125))
+def test_ordinary_optimizer_records_measured_adapter_duration(monkeypatch, elapsed_seconds):
+    optimizer, calls = _optimizer(monkeypatch, _native_result())
+    ticks = iter((17.0, 17.0 + elapsed_seconds))
+    monkeypatch.setattr(optimizer_impl, "perf_counter", lambda: next(ticks))
+
+    report, _ = _run_optimizer(optimizer, _optimizer_molecule())
+
+    assert len(calls) == 1
+    assert report.elapsed_seconds == elapsed_seconds

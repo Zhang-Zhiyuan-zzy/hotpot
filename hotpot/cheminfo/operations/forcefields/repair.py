@@ -684,7 +684,6 @@ def _resolve_ring_piercings(
             warning_messages.append(
                 "A bond-ring relation remained mathematically undetermined"
             )
-    resolved = current_count == 0
     terminal_index = trajectory_recorder.record(
         TrajectoryEvent.TERMINAL,
         energy=best_trace_energy,
@@ -694,12 +693,10 @@ def _resolve_ring_piercings(
 
     return _RingUntanglingResult(
         report=RingUntanglingReport(
-            attempt_limit=attempt_limit,
             attempts_completed=attempts_completed,
             initial_piercing_count=initial_count,
             final_piercing_count=current_count,
             minimum_piercing_count=minimum_count,
-            resolved=resolved,
             warning_messages=_unique_messages(warning_messages),
         ),
         energy=best_energy,

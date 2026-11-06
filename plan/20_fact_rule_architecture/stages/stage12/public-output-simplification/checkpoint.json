@@ -1,0 +1,889 @@
+{
+  "date": "2026-11-06",
+  "status": "VALIDATED_BOUNDED_SIMPLIFICATION",
+  "base_commit": "16c01664b1fa2c6caab4e447bfba0ba421d7b7ca",
+  "branch": "feat/automatic-coordination-state-workflow",
+  "scope": "FF, CBond/MCA/xTB report and serializer ownership; inactive parameters/private forwarding; documented writer option.",
+  "approval": "Owner explicitly requested implementing analogous simplifications beyond build3d; no aliases or generic envelopes.",
+  "invariants": [
+    "Chemical algorithms and automatic state defaults unchanged",
+    "Actual attempts, local failures, finite observations, selected/terminal frames, units and denominators retained",
+    "Native ABI, trained features and trajectory/SDF formats unchanged",
+    "Source/currentness/mapping and atomic commit/rollback preserved"
+  ],
+  "commands": {
+    "carrier_driver": {
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "actual_subprocess": {
+        "argv": [
+          "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+          "-B",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/source-attempt01/pytest_runner.py",
+          "-q",
+          "--import-mode=importlib",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/source-attempt01/pytest-tmp",
+          "--junitxml",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/source-attempt01/junit.xml",
+          "tests/test_cheminfo/test_plan20_carrier_cutover.py",
+          "tests/test_cheminfo/structure/test_commit_atomicity.py",
+          "tests/test_cheminfo/structure/test_factual_imports.py",
+          "tests/test_cheminfo/structure/test_builder.py",
+          "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py",
+          "tests/test_cheminfo/structure/test_stereo_hydrogen_storage.py",
+          "tests/test_cheminfo/structure/test_stage12_hydrogen_lifecycle.py",
+          "tests/test_cheminfo/structure/test_coordinate_frame_lifecycle.py",
+          "tests/test_cheminfo/structure/test_crystal_lifecycle.py",
+          "tests/test_cheminfo/structure/test_architecture.py",
+          "tests/test_cheminfo/test_topology_index.py",
+          "tests/test_cheminfo/test_topology_determinism.py",
+          "tests/test_cheminfo/test_molecule_structural_lifecycle.py",
+          "tests/test_cheminfo/adapters/test_io_transport.py",
+          "tests/test_cheminfo/test_ligand_rings.py",
+          "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+          "tests/test_cheminfo/test_stereo_level2_gate7_public.py",
+          "tests/test_cheminfo/test_stereo_level2_gate6_projection.py",
+          "tests/test_cheminfo/test_relevant_ring_integration.py",
+          "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py",
+          "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py",
+          "tests/test_cheminfo/test_stereo_level2_gate7_coordinates.py",
+          "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py",
+          "tests/test_cheminfo/test_stereo_level2_gate6_derived.py",
+          "tests/test_cheminfo/test_stereo_extraction.py",
+          "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py",
+          "tests/test_cheminfo/kekulize/test_known_limitations.py",
+          "tests/smarts_conformance/test_relevant_cycle_ring_semantics.py"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot:/tmp/hotpot_plan20/medium/stage15e-cif-20261105/dependency-site",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "HF_HUB_OFFLINE": "1",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "SIMPLIFICATION_ROOT": "/home/zhangzhiyuan/hotpot",
+          "SIMPLIFICATION_ORIGINS": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/source-attempt01/origins.json"
+        },
+        "returncode": 0,
+        "elapsed_seconds": 26.60706526041031
+      },
+      "entrypoint": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/run_carrier_checks.py",
+      "attribution": "Actual executed subprocess argv/cwd/environment follow; no independent driver-launch interpreter claim."
+    },
+    "ff_driver": {
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "actual_subprocess": {
+        "argv": [
+          "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+          "-B",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/ff/source-attempt03/pytest_runner.py",
+          "-q",
+          "--import-mode=importlib",
+          "-p",
+          "no:cacheprovider",
+          "--basetemp",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/ff/source-attempt03/pytest-tmp",
+          "--junitxml",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/ff/source-attempt03/junit.xml",
+          "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+          "tests/test_cheminfo/forcefields/test_coordination_components.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_checkpoint_acceptance.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_coordination_stage.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_optimization_stage.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_placement.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_public_workflows.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_setup_errors.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_native_workflow_stage.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_settings.py",
+          "tests/test_cheminfo/forcefields/test_native_default_parity.py",
+          "tests/test_cheminfo/forcefields/test_native_trajectory_ingestion.py",
+          "tests/test_cheminfo/obWrappers/test_bridge.py",
+          "tests/test_cheminfo/obWrappers/test_native_engine_contract.py",
+          "tests/test_cheminfo/obWrappers/test_native_rules.py",
+          "tests/test_cheminfo/obWrappers/test_packing.py",
+          "tests/test_cheminfo/test_complex_hydrogens.py",
+          "tests/test_cheminfo/test_complex_untangling_workflow.py",
+          "tests/test_cheminfo/test_complexes_build.py",
+          "tests/test_cheminfo/test_complexes_build_full.py",
+          "tests/test_cheminfo/test_forcefield_acceptance.py",
+          "tests/test_cheminfo/test_forcefield_api.py",
+          "tests/test_cheminfo/test_forcefield_auto_optimize.py",
+          "tests/test_cheminfo/test_forcefield_checkpoint_acceptance.py",
+          "tests/test_cheminfo/test_forcefield_cli.py",
+          "tests/test_cheminfo/test_forcefield_integration.py",
+          "tests/test_cheminfo/test_forcefield_native_session.py",
+          "tests/test_cheminfo/test_forcefield_optimizer.py",
+          "tests/test_cheminfo/test_forcefield_package.py",
+          "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py",
+          "tests/test_cheminfo/test_forcefield_trajectory.py",
+          "tests/test_cheminfo/forcefields/test_acceptance_rules.py",
+          "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+          "tests/test_cheminfo/forcefields/test_coordinate_displacement.py",
+          "tests/test_cheminfo/forcefields/test_geometry_only_acceptance.py",
+          "tests/test_cheminfo/forcefields/test_sample_failure_identity.py",
+          "tests/test_cheminfo/forcefields/test_stage12_observed_geometry.py",
+          "tests/benchmarks/coordination_complexes/test_support.py",
+          "tests/benchmarks/coordination_complexes/test_backend_comparison.py",
+          "tests/benchmarks/coordination_complexes/test_validation_evidence.py",
+          "tests/benchmarks/coordination_complexes/test_validation_routes.py",
+          "tests/benchmarks/coordination_complexes/test_validation_runner.py",
+          "tests/benchmarks/coordination_complexes/test_validation_acceptance.py",
+          "tests/benchmarks/coordination_complexes/test_validation_cohort.py",
+          "tests/benchmarks/coordination_complexes/test_validation_providers.py",
+          "tests/benchmarks/coordination_complexes/test_workflow_benchmarks.py",
+          "tests/test_plan20_performance_reports.py",
+          "tests/scientific_boundary/test_plan20_report_contract.py"
+        ],
+        "cwd": "/home/zhangzhiyuan/hotpot",
+        "environment_overrides": {
+          "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+          "PYTHONPATH": "/home/zhangzhiyuan/hotpot:/tmp/hotpot_plan20/medium/stage15e-cif-20261105/dependency-site",
+          "PYTHONDONTWRITEBYTECODE": "1",
+          "PYTHONNOUSERSITE": "1",
+          "OMP_NUM_THREADS": "1",
+          "MKL_NUM_THREADS": "1",
+          "OPENBLAS_NUM_THREADS": "1",
+          "HF_HUB_OFFLINE": "1",
+          "HOTPOT_MODEL_SOURCE": "local",
+          "FF_SIMPLIFICATION_ROOT": "/home/zhangzhiyuan/hotpot",
+          "FF_SIMPLIFICATION_ORIGINS": "/tmp/hotpot_plan20/short/output-simplification-20261106/ff/source-attempt03/origins.json"
+        },
+        "inherited_pytest_addopts": null,
+        "returncode": 0,
+        "elapsed_seconds": 44.30184272490442
+      },
+      "entrypoint": "/tmp/hotpot_plan20/short/output-simplification-20261106/ff/run_source_checks.py",
+      "attribution": "Actual executed subprocess argv/cwd/environment follow; no independent driver-launch interpreter claim."
+    },
+    "nonff_source": {
+      "argv": [
+        "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+        "-m",
+        "pytest",
+        "-q",
+        "--import-mode=importlib",
+        "tests/test_plugin/test_xtb",
+        "tests/benchmarks/coordination_complexes/test_xtb_benchmark.py",
+        "tests/test_pipeline/test_sample_containment.py",
+        "tests/test_pipeline/test_builtin_stages.py",
+        "tests/test_cli/test_xtb_cli.py",
+        "tests/mca/test_result_serialization.py",
+        "tests/mca/test_api.py::test_existing_result_constructor_remains_compatible",
+        "--junitxml=/tmp/hotpot_plan20/short/output-simplification-20261106/nonff-implementation/provenance-extension/attempt01/junit.xml"
+      ],
+      "cwd": "/home/zhangzhiyuan/hotpot",
+      "environment_overrides": {
+        "PYTHONPATH": "/home/zhangzhiyuan/hotpot",
+        "PYTHONDONTWRITEBYTECODE": "1",
+        "OMP_NUM_THREADS": "1",
+        "MKL_NUM_THREADS": "1",
+        "OPENBLAS_NUM_THREADS": "1"
+      }
+    },
+    "installed_build_and_initial_selection": [
+      {
+        "name": "runtime-interpreter",
+        "argv": [
+          "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+          "-I",
+          "-B",
+          "-c",
+          "import sys,sysconfig,json; print(json.dumps({\"version\":sys.version,\"executable\":sys.executable,\"ext_suffix\":sysconfig.get_config_var(\"EXT_SUFFIX\")}))"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside",
+        "environment_overrides": {},
+        "returncode": 0,
+        "elapsed_seconds": 0.03097975254058838
+      },
+      {
+        "name": "build-interpreter",
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-I",
+          "-B",
+          "-c",
+          "import sys,sysconfig,json; print(json.dumps({\"version\":sys.version,\"executable\":sys.executable,\"ext_suffix\":sysconfig.get_config_var(\"EXT_SUFFIX\")}))"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside",
+        "environment_overrides": {},
+        "returncode": 0,
+        "elapsed_seconds": 0.02817358821630478
+      },
+      {
+        "name": "build-toolchain",
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-I",
+          "-B",
+          "-c",
+          "import setuptools,wheel,pybind11,json; print(json.dumps({\"setuptools\":setuptools.__version__,\"wheel\":wheel.__version__,\"pybind11\":pybind11.__version__,\"pybind11_origin\":pybind11.__file__}))"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside",
+        "environment_overrides": {},
+        "returncode": 0,
+        "elapsed_seconds": 0.10762159153819084
+      },
+      {
+        "name": "build-python",
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-B",
+          "setup.py",
+          "build_py"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/source",
+        "environment_overrides": {},
+        "returncode": 0,
+        "elapsed_seconds": 0.530826585367322
+      },
+      {
+        "name": "wheel",
+        "argv": [
+          "/tmp/hotpot-plan20-env/bin/python",
+          "-B",
+          "setup.py",
+          "bdist_wheel",
+          "--skip-build",
+          "--dist-dir",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/wheels",
+          "--bdist-dir",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/bdist"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/source",
+        "environment_overrides": {},
+        "returncode": 0,
+        "elapsed_seconds": 1.2877156883478165
+      },
+      {
+        "name": "install",
+        "argv": [
+          "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+          "-I",
+          "-B",
+          "-m",
+          "pip",
+          "install",
+          "--no-index",
+          "--no-deps",
+          "--ignore-installed",
+          "--no-compile",
+          "--target",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/site",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/wheels/hotpot_zzy-0.5.5.0-cp311-cp311-linux_x86_64.whl"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside",
+        "environment_overrides": {},
+        "returncode": 0,
+        "elapsed_seconds": 0.5737362466752529
+      },
+      {
+        "name": "installed-pytest",
+        "argv": [
+          "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+          "-B",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside/run_pytest.py",
+          "-q",
+          "-rA",
+          "--import-mode=importlib",
+          "--junitxml=/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/junit.xml",
+          "--basetemp=/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/pytest-tmp",
+          "tests/test_cheminfo/adapters/test_io_transport.py",
+          "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py::test_num0_preserves_transport_and_automatic_zero_residual_consumes_supplied_current_I",
+          "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py::test_zero_residual_current_H_cleanup_failure_rolls_back_whole_entry",
+          "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py::test_expansion_entry_rolls_back_first_row_when_a_later_step_fails",
+          "tests/test_cheminfo/structure/test_stage5_hydrogen_defaults.py::test_direct_automatic_H_and_metal_calls_preserve_current_transport",
+          "tests/test_cheminfo/test_topology_index.py",
+          "tests/test_cheminfo/test_stereo_level1_lifecycle.py",
+          "tests/test_cheminfo/forcefields/test_contract_ownership.py",
+          "tests/test_cheminfo/test_forcefield_api.py",
+          "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py",
+          "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py",
+          "tests/test_pipeline/test_sample_containment.py",
+          "tests/mca/test_result_serialization.py",
+          "tests/test_plugin/test_xtb/test_runner.py",
+          "tests/test_plugin/test_xtb/test_native_convergence.py",
+          "tests/test_plugin/test_xtb/test_stream.py",
+          "tests/test_cli/test_xtb_cli.py"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside",
+        "environment_overrides": {
+          "PYTHONPATH": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/site:/tmp/hotpot_plan20/medium/stage15e-cif-20261105/dependency-site",
+          "REFINEMENT_SITE": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/site",
+          "REFINEMENT_SOURCE": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/source",
+          "REFINEMENT_ORIGINS": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/origins.json"
+        },
+        "returncode": 1,
+        "elapsed_seconds": 11.1008224748075
+      }
+    ],
+    "installed_targeted_retry_and_actual_backend": [
+      {
+        "name": "installed-pytest-retry",
+        "argv": [
+          "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+          "-B",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside/run_pytest.py",
+          "-q",
+          "-rA",
+          "--import-mode=importlib",
+          "--junitxml=/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt02/junit.xml",
+          "--basetemp=/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt02/pytest-tmp",
+          "tests/test_cheminfo/forcefields/test_contract_ownership.py::test_workflow_json_keeps_each_geometry_quality_at_its_result_owner[benchmark]"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside",
+        "returncode": 0,
+        "elapsed_seconds": 1.0809787809848785
+      },
+      {
+        "name": "installed-actual-automatic-workflow",
+        "argv": [
+          "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+          "-B",
+          "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed_automatic_smoke.py"
+        ],
+        "cwd": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/outside",
+        "returncode": 0,
+        "elapsed_seconds": 1.2415887545794249
+      }
+    ],
+    "installed_environment_overrides": {
+      "PYTHONDONTWRITEBYTECODE": "1",
+      "PYTHONNOUSERSITE": "1",
+      "OMP_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "HOTPOT_TEST_WHEEL": "1",
+      "HOTPOT_TEST_INSTALLED_PACKAGE": "1",
+      "HF_HUB_OFFLINE": "1",
+      "HOTPOT_MODEL_SOURCE": "local",
+      "LD_LIBRARY_PATH": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib:/home/zhangzhiyuan/usr/conda3/envs/hp-usage/lib/python3.11/site-packages/openbabel/lib",
+      "PYTHONPATH": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/site:/tmp/hotpot_plan20/medium/stage15e-cif-20261105/dependency-site",
+      "REFINEMENT_SITE": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/site",
+      "REFINEMENT_SOURCE": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/source",
+      "REFINEMENT_ORIGINS": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt02/origins.json"
+    },
+    "limits": "Exact identities, inherited relevant environment and origin maps reside in the indexed immutable raw receipts."
+  },
+  "results": {
+    "carrier_source": {
+      "passed": 1080,
+      "xfailed": 3,
+      "skipped": 0,
+      "failed": 0,
+      "errors": 0,
+      "classification": {
+        "junit_sha256": "8a83b7f6a18023870ed4128f9d10e5010d256fbeaddd6189967fafe30bafd93a",
+        "cases": 1083,
+        "passed": 1080,
+        "xfailed": 3,
+        "skipped": 0,
+        "failures": 0,
+        "errors": 0,
+        "xfail_reasons": [
+          {
+            "case": "tests.test_cheminfo.kekulize.test_known_limitations::test_aromaticity_is_independent_of_relevant_cycle_order",
+            "reason": "the retained per-ring assignment makes aromaticity depend on ring order"
+          },
+          {
+            "case": "tests.test_cheminfo.kekulize.test_known_limitations::test_azulene_is_perceived_without_imported_aromatic_flags",
+            "reason": "legacy per-ring Huckel counting does not perceive fused azulene globally"
+          },
+          {
+            "case": "tests.test_cheminfo.kekulize.test_known_limitations::test_aromatic_joint_rings_accept_relevant_cycles_with_shared_paths",
+            "reason": "legacy joint-ring grouping rejects rings sharing multiple edges"
+          }
+        ],
+        "qualification": "evidence.json retains raw JUnit skipped count; pytest.xfail cases are classified precisely here without repeating execution."
+      }
+    },
+    "ff_source": {
+      "cases": 840,
+      "passed": 838,
+      "skipped": 2,
+      "failures": 0,
+      "errors": 0
+    },
+    "nonff_source": {
+      "passed": 443,
+      "skipped": 10,
+      "failed": 0,
+      "errors": 0,
+      "skip_reasons": {
+        "requires --run-external": 10
+      },
+      "pytest_seconds": 19.37,
+      "child_wall_seconds": 20.529652815312147,
+      "source_changes_during_run": []
+    },
+    "installed": {
+      "distinct_passed": 292,
+      "initial_passed": 291,
+      "initial_failed": 1,
+      "targeted_retry_passed": 1,
+      "remaining_failures": 0,
+      "cause": "Missing copied tests.benchmarks support, repaired with unchanged support files; same wheel/site and 291 passes reused."
+    },
+    "source_builder_smoke": {
+      "status": "PASSED",
+      "cases": [
+        "CC",
+        "[Zn](N)N"
+      ],
+      "qualification": "Actual builder/schema plumbing at tiny budgets and qualityoff; high finite Zn energy and placement warning retained."
+    },
+    "installed_actual_automatic_workflow": {
+      "status": "PASSED",
+      "python": "/home/zhangzhiyuan/usr/conda3/envs/hp-usage/bin/python",
+      "hotpot_origin": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/site/hotpot/__init__.py",
+      "executable": {
+        "path": "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+        "sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887"
+      },
+      "route": [
+        {
+          "name": "ff",
+          "argv": [
+            "--optimize-only",
+            "--forcefield",
+            "uff",
+            "--epochs",
+            "10",
+            "--steps-per-epoch",
+            "20",
+            "--quality",
+            "standard"
+          ]
+        },
+        {
+          "name": "xtb",
+          "argv": [
+            "--method",
+            "gfnff",
+            "--task",
+            "optimize",
+            "--xtb-executable",
+            "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "--threads",
+            "1",
+            "--post-check",
+            "standard"
+          ]
+        },
+        {
+          "name": "xtb",
+          "argv": [
+            "--method",
+            "gfn2",
+            "--task",
+            "optimize",
+            "--xtb-executable",
+            "/home/zhangzhiyuan/usr/conda3/envs/pyscf/bin/xtb",
+            "--threads",
+            "1",
+            "--post-check",
+            "standard"
+          ]
+        }
+      ],
+      "elapsed_seconds": 0.4358000159263611,
+      "automatic_state": "no charge, UHF, multiplicity or state override supplied; imported facts retain precedence",
+      "imported_state": {
+        "charge_present": true,
+        "charge_source": "openbabel",
+        "spin_present": false,
+        "spin_source": null
+      },
+      "original_atomic_numbers": [
+        1,
+        8,
+        1
+      ],
+      "final_atomic_numbers": [
+        1,
+        8,
+        1
+      ],
+      "ff": {
+        "effective_forcefield": "UFF",
+        "elapsed_seconds": 0.002556711435317993,
+        "energy": 2.6999382556174093e-10,
+        "energy_unit": "kJ/mol"
+      },
+      "xtb": [
+        {
+          "scientific_state": {
+            "facts_identity": "e94235b16490a8fdce13c479ae02fda3043fe6d2ca0042ac2dac084c57925c71",
+            "resolution_status": "unresolved",
+            "decision_action": "select_state",
+            "selected_state_identity": "21cd386ebb0a8d9e2fc5a82dbaea06b8ff76364c62373ef48d6c2361884dc195"
+          },
+          "backend_projection": {
+            "projection_convention": "charge_only",
+            "decision_source": "scientific_state"
+          },
+          "energy_hartree": -0.327656101804197,
+          "gradient_norm": 4.366905042e-06,
+          "converged": true,
+          "coordinates_committed": true,
+          "charge": 0,
+          "unpaired_electrons": null,
+          "backend": {
+            "version": "6.7.1",
+            "revision": "edcfbbe",
+            "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887"
+          },
+          "native_artifacts": [
+            {
+              "name": ".xtboptok",
+              "relative_path": "native/hotpot-xtb-_n5gv8mk/.xtboptok",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "size_bytes": 0
+            },
+            {
+              "name": "gfnff_charges",
+              "relative_path": "native/hotpot-xtb-_n5gv8mk/gfnff_charges",
+              "sha256": "695e9267728d7969f537080718b243c1a47eb868f14de9ba0d4af66ef629b815",
+              "size_bytes": 45
+            },
+            {
+              "name": "gfnff_lists.json",
+              "relative_path": "native/hotpot-xtb-_n5gv8mk/gfnff_lists.json",
+              "sha256": "3b54e7b40e1299e65875625f4475bbd73dbce902568432d2fa64414a8e0c9f3f",
+              "size_bytes": 2383
+            },
+            {
+              "name": "gfnff_topo",
+              "relative_path": "native/hotpot-xtb-_n5gv8mk/gfnff_topo",
+              "sha256": "f9bc2f777dc81856e4320d44ce6a4db0e9fd1811ba47d5988d37a66bbf72ca35",
+              "size_bytes": 142108
+            },
+            {
+              "name": "input.sdf",
+              "relative_path": "native/hotpot-xtb-_n5gv8mk/input.sdf",
+              "sha256": "b9318d554681de3141d5f27ad5c7b157bfc2915ca50b4866f1b64235a736b76e",
+              "size_bytes": 336
+            },
+            {
+              "name": "xtbopt.log",
+              "relative_path": "native/hotpot-xtb-_n5gv8mk/xtbopt.log",
+              "sha256": "7f095296184074e6ea877e234b4094253ab427084f1ed9b3de587fbba15e3c22",
+              "size_bytes": 1824
+            },
+            {
+              "name": "xtbopt.sdf",
+              "relative_path": "native/hotpot-xtb-_n5gv8mk/xtbopt.sdf",
+              "sha256": "9f46e5c6ab23f3420524fecd9afc6b4fd1adab44519ec9e0c5311541eebaa164",
+              "size_bytes": 398
+            }
+          ]
+        },
+        {
+          "scientific_state": {
+            "facts_identity": "e94235b16490a8fdce13c479ae02fda3043fe6d2ca0042ac2dac084c57925c71",
+            "resolution_status": "unresolved",
+            "decision_action": "select_state",
+            "selected_state_identity": "21cd386ebb0a8d9e2fc5a82dbaea06b8ff76364c62373ef48d6c2361884dc195"
+          },
+          "backend_projection": {
+            "projection_convention": "pure_spin_highest_ms",
+            "decision_source": "execution_default"
+          },
+          "energy_hartree": -5.07054436,
+          "gradient_norm": null,
+          "converged": true,
+          "coordinates_committed": true,
+          "charge": 0,
+          "unpaired_electrons": 0,
+          "backend": {
+            "version": "6.7.1",
+            "revision": "edcfbbe",
+            "executable_sha256": "271dd6cdd5da127a8e39919e7e32d924790fb346f0057b4183769ba8b3411887"
+          },
+          "native_artifacts": [
+            {
+              "name": ".xtboptok",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/.xtboptok",
+              "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+              "size_bytes": 0
+            },
+            {
+              "name": "charges",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/charges",
+              "sha256": "59de2d535e45dcfdc88f9ac3fb0069ccbb1bbd6b4cc74fe724733a51a18b63cb",
+              "size_bytes": 45
+            },
+            {
+              "name": "input.xyz",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/input.xyz",
+              "sha256": "041a770f8a7060ed4981a9d799280b9df5bd8e7baca6ef105354928894d77b5f",
+              "size_bytes": 140
+            },
+            {
+              "name": "wbo",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/wbo",
+              "sha256": "fb2f4ce90a598ff537f1e24401386b461d87d8a2556f6e3c85fca7f799f7d339",
+              "size_bytes": 102
+            },
+            {
+              "name": "xtbopt.log",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/xtbopt.log",
+              "sha256": "e910e1b893d1a26fa3567b936d4edf679292f34f13ec22d937c882e34f8486d4",
+              "size_bytes": 1216
+            },
+            {
+              "name": "xtbopt.xyz",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/xtbopt.xyz",
+              "sha256": "7d13e3da86c28124f9480e0525c781728e2b3bb0285f8c01861919e8cbfe2679",
+              "size_bytes": 304
+            },
+            {
+              "name": "xtbout.json",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/xtbout.json",
+              "sha256": "2edf1a70cad13ba0f29d4d7364454896d4a1e747db211614e9e66d11ee3a8cae",
+              "size_bytes": 1601
+            },
+            {
+              "name": "xtbrestart",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/xtbrestart",
+              "sha256": "ec51e85147f85e0d48ab8e0f0245149c9a0cb4506d40384cce34ab929105c860",
+              "size_bytes": 328
+            },
+            {
+              "name": "xtbtopo.mol",
+              "relative_path": "native/hotpot-xtb-k_bb8qfr/xtbtopo.mol",
+              "sha256": "06618c8f5eec32e3a90ee3dd6e2482f4229a09e9c62d58bea8df1b138580716e",
+              "size_bytes": 347
+            }
+          ]
+        }
+      ],
+      "limits": [
+        "One installed CP311 water workflow using actual UFF, GFN-FF and GFN2-xTB. No CBond/MCA model inference or full-cohort rerun.",
+        "Finite observations, automatic legal state, retained graph identity and actual convergence checked; no universal energy or ground-state truth claim."
+      ]
+    },
+    "source_suite_counting": "Groups overlap; do not sum as unique test coverage."
+  },
+  "final_bindings": {
+    "changed_python_files": {
+      "hotpot/cheminfo/operations/chemistry.py": "cb04f81372d962f9c0b9e41dca0054db241db49ca4cb14483f04900ddbb79205",
+      "hotpot/cheminfo/operations/conformers/contracts.py": "02f2a3d60b9144891323f7061e122d2d3efaabd499bd8e93245ea85e5eb5af8b",
+      "hotpot/cheminfo/operations/forcefields/acceptance.py": "92c1c9fe0306793eda49f644be6b5e9e8a818993799f5495d0e02848f96f943a",
+      "hotpot/cheminfo/operations/forcefields/attempts.py": "7bdf670b044aa5188650ee24d0029e672b2a5a44cc24d63ff4d5ddcd73549385",
+      "hotpot/cheminfo/operations/forcefields/auto.py": "906937ad5941661593bdad0ab5fb798f926a573ceb99e1cdebe1abefa8130974",
+      "hotpot/cheminfo/operations/forcefields/backend.py": "e64aa13f09bbf9cc2deec7d5c490c4629fcdcac7f49ec39cc5c453f88134c9dd",
+      "hotpot/cheminfo/operations/forcefields/contracts.py": "4c6c188f5f023ea7922980927fcdfa9bbd97c2c58eca399282e25f44de6e8a35",
+      "hotpot/cheminfo/operations/forcefields/ligand.py": "6bee24576c48ccae81ba5ec290116aa505c7796286a6fb019ccf5998548e90ca",
+      "hotpot/cheminfo/operations/forcefields/native_adapters.py": "7dfa75a8b3e4285bf90071eb21e46ddf5d129f9a5f5ce971ccf7806a6b9e2fff",
+      "hotpot/cheminfo/operations/forcefields/optimizer.py": "49f0f6ad5c356c14c1a949aa5f30f94c08baf69172b2c05a5456b42bfd0a93b8",
+      "hotpot/cheminfo/operations/forcefields/repair.py": "e160efec3e61b6085d838fb94f4fcaf2c4d4a4c820276c71a43937f483a6f5e4",
+      "hotpot/cheminfo/operations/forcefields/stage.py": "02fca6652d8e658e434bab0153cdaf9dd07a11d552efcc1cba8f69d9f88bb5c1",
+      "hotpot/cheminfo/operations/forcefields/workers.py": "352b21798c26c2b26e3f6c3345a49f1518876d2043876bd339a39cbb3f7ce77e",
+      "hotpot/cheminfo/operations/forcefields/workflows.py": "ee4af2f11272312179729e5a6af348d2abc22bdfbe0c78fd04a7acd057e6d227",
+      "hotpot/cheminfo/operations/inference/cbond/stage.py": "ade465d525c57d39d549bd746c56fb3ec3f06367d02fce671a568f82f6c0ca3b",
+      "hotpot/cheminfo/operations/inference/mca/results.py": "59b4397589b0d3225c28da35d4feaf2ccf5e337e12ff1f77be2ba325ce922101",
+      "hotpot/cheminfo/operations/topology.py": "d767dedcc2634b388b4381a01c697c159e03e73c6b334c5fd282a838ea26c652",
+      "hotpot/cheminfo/structure/atom.py": "89c1b33823f03a697ba844935c070ba005ee61c01eb37d1115088b339b1ec150",
+      "hotpot/cheminfo/structure/molecule.py": "784e2f59f57bc22e3a00c24e3d476810594b41351a8b6727a6f03a38cc08b27b",
+      "hotpot/commands/ff.py": "fa296d404efc65cf6add319a0e88d26fe956fbcf447f909b8b789dc9cb169cf0",
+      "hotpot/plugins/xtb/adapter.py": "9c674746255a03925b6e2053e0f7b7f9a958b01a67933914a75caf35eebf311a",
+      "hotpot/plugins/xtb/cli.py": "6caef3b3cae571a7b0f104879ab5070c13e89be2e3011b50305974a5c6a9dc20",
+      "hotpot/plugins/xtb/contracts.py": "a8e6682110ae14a1bc1b7ee7cd8337b013b8e473b2d4577745f4cdc1a4d50c33",
+      "hotpot/plugins/xtb/runner.py": "e65b20d8c541a64d598e222bc063168961470b53a7ab9e2374d6bd8f45aa2702",
+      "hotpot/plugins/xtb/stage.py": "54f027e8743d66bc0a8f2f9fa89d280f2dc3699852cb951f7b78f44a3872972d",
+      "plan/20_fact_rule_architecture/compare_scientific_reports.py": "1f59ae007b6af7a790e6d63e767ff806f8b2e5cba73aea7234d750ee14694474",
+      "plan/20_fact_rule_architecture/run_performance_baseline.py": "8d17141b7d6478f5611c5a8bfedf1d7fdb7b5e27525e851a5e5bc0c1ebc2ac9c",
+      "plan/20_fact_rule_architecture/run_scientific_report.py": "05ca26898c00ce6b0d7eb7986a3d6eda711aac10e6ae84282466d89db36bb704",
+      "tests/benchmarks/coordination_complexes/backend_comparison.py": "220cb321d63b05e304c8ffb957d8f44a4dcdeccd2867b9b8c05688c293aa1277",
+      "tests/benchmarks/coordination_complexes/io.py": "3018f276a7738ad1eed91bfc9216cac12debf22496107472ddb325b00c92213f",
+      "tests/benchmarks/coordination_complexes/pipeline.py": "aeb10ef2dbc046855389bbb9749e11a3be79c6701999e775c22bf60a00e9ebd0",
+      "tests/benchmarks/coordination_complexes/test_support.py": "f5ce3cbe79872c408b411de8132ea3ef93c20b12a7bde77d00013247089b168c",
+      "tests/benchmarks/coordination_complexes/test_validation_evidence.py": "8dc2957aa547a66c040443c94694c4299f3f03a3cfae11a62eb39efd724221b2",
+      "tests/benchmarks/coordination_complexes/test_validation_providers.py": "f4ac89c003edfa99e1ae304cbef4759c59ed5bb8d0db62ba974151aacb8e8c30",
+      "tests/benchmarks/coordination_complexes/test_xtb_benchmark.py": "a0db1e62b7010d51fb4434209a7a33a24026cbb04705499498aaefa3745bf136",
+      "tests/benchmarks/coordination_complexes/validation_evidence.py": "a17b4ee081d4441b6e860bec40823b43151b84ba635070919777b93e4683b8fe",
+      "tests/benchmarks/coordination_complexes/validation_providers.py": "3ed96d2073d5b34be8ede4073c6c4a90973abc954dde3d1b38011aaea03e06da",
+      "tests/benchmarks/coordination_complexes/validation_routes.py": "6a644f4ec7c382326204e9358c9d946ce3ffe2bb34e29a0e56c2416eabd752f6",
+      "tests/benchmarks/coordination_complexes/xtb_benchmark.py": "af401dd3bd27460b2f3788374e1264579837ecbc249de0b9b336c3a6af6ca38b",
+      "tests/scientific_boundary/test_plan20_report_contract.py": "7301fb0c6f5f8edbfb4f12450d42858529ee8a8805786b13c0d678ffa8647044",
+      "tests/smarts_conformance/test_relevant_cycle_ring_semantics.py": "076c909cdb0ac3d5f7f965edd0bfb1710025d816d4859556ddf3296ce66a3079",
+      "tests/test_cheminfo/adapters/test_io_transport.py": "df426d22b3efde062582085ded7c68319e14d95110837a9a915d10cd88b856ae",
+      "tests/test_cheminfo/forcefields/test_conformer_sampler_seam.py": "3013feadb1000e3455b3bde7bae39b6509be536d92616f68c12b3c39812feef9",
+      "tests/test_cheminfo/forcefields/test_contract_ownership.py": "1ee6ce7e1873b5d80e3b496dfa876521d503044a79fd9b4f4a8a53bcf1b533a5",
+      "tests/test_cheminfo/forcefields/test_forcefield_native_adapters.py": "18fb4a7797f3830f704747edc2f9b883231aa12aab589de9eb7d0673e8792131",
+      "tests/test_cheminfo/forcefields/test_forcefield_routing_contracts.py": "4e3ace98241600e9143befec6113714e9182d3a6cb262401380be8d418e7c3ee",
+      "tests/test_cheminfo/forcefields/test_geometry_only_acceptance.py": "b22b2784616d92d6a0bff5f127134ea8f8e4bf26116ba6240c53056a04202e2f",
+      "tests/test_cheminfo/forcefields/test_sample_failure_identity.py": "1075ef642e901a6ce814d51db22c21b55f2d2d0d381d999ecc97346cad8bd5ba",
+      "tests/test_cheminfo/forcefields/test_stage12_observed_geometry.py": "8a415da973121cf36e19d20ad0c0662057b46e60f6b443035c0f52e780f815a5",
+      "tests/test_cheminfo/kekulize/test_known_limitations.py": "9484098fa850e0f35f8b400602228ef7458a0e478d0b2271667cf0e380ca49e3",
+      "tests/test_cheminfo/rdWrappers/test_r0_benchmark_runner.py": "9ac730532605c13e99d94a3001d3b97a4cb95e2eb55dedd2dea8b10898729d2c",
+      "tests/test_cheminfo/structure/test_builder.py": "8f7dd4015f55bfd79fcb5eb444f0602e5d1a6e7d52302adfb1a3e486f4f1eb0d",
+      "tests/test_cheminfo/structure/test_commit_atomicity.py": "82a060c5b4e0a3292a10122f2ff01fa8d7e55dcb29fc7ef88f6d38a293f53894",
+      "tests/test_cheminfo/structure/test_factual_imports.py": "903ab406fd86c343ef5100ed12b4f26822afa579248de0842c11afde8105f3a4",
+      "tests/test_cheminfo/test_complex_hydrogens.py": "ab89a6757a9c3814506e6e05c8d709ef464de4a69bf75e68d20715a8674d7f11",
+      "tests/test_cheminfo/test_complex_untangling_workflow.py": "1c65e4df72d9698df103e9af23de844c1814d420afeaaaf9a6b73ae0926cc6b7",
+      "tests/test_cheminfo/test_complexes_build.py": "3b32eec1c25ddf788c687dd90b88ee870a6ab52232ad1e784774c69908025a93",
+      "tests/test_cheminfo/test_forcefield_api.py": "7fa28ebb27175b7bb143d925fa1376470fc3a1013e0a3d1a44b2fa5628795d1a",
+      "tests/test_cheminfo/test_forcefield_auto_optimize.py": "cbb9403b9f4816e009e22ec1e756d5a759206afb3ca57980c865c2abca0b3e93",
+      "tests/test_cheminfo/test_forcefield_cli.py": "8463b7fe39a50e912070bffe611283e4250643228140c5df3c5a4825f9af3e64",
+      "tests/test_cheminfo/test_forcefield_integration.py": "aac598bbb722afa7eff34bc709d2e0720d5ceeb26f52d1bda58f03ff5fe1a326",
+      "tests/test_cheminfo/test_forcefield_optimizer.py": "0789a78289dfceac4ac6197f1e94c977af7c23fe4651258d4b3fbf7ea3f68dd0",
+      "tests/test_cheminfo/test_forcefield_stage_scan_boundaries.py": "443d15bb337db1861b3d4eb36acf64cf36aa411902724f0902dd4da5ee0745b6",
+      "tests/test_cheminfo/test_ligand_rings.py": "345042953f9bfcd046a0958f5b62e30ea35e0a5280a348ea20d21c39712bdb3a",
+      "tests/test_cheminfo/test_plan20_carrier_cutover.py": "7f1435a3c46f4af2b6d0746b9192832cf0b0eba6905461e64efa51247b09b45e",
+      "tests/test_cheminfo/test_relevant_ring_integration.py": "7be579eb84c02ef2b134ef31479ae107eb97ec13250379fc1197bc660dd80e0a",
+      "tests/test_cheminfo/test_stereo_extraction.py": "a2dc69252d0a9c2936c1885b603a760fc2bbd9f1753e5e2765e2a7cf0f9260e6",
+      "tests/test_cheminfo/test_stereo_level1_lifecycle.py": "b71e00046b252302c03be98309c129ccbe0cf9bd0e3a7ff71ffb3905a705c666",
+      "tests/test_cheminfo/test_stereo_level2_gate6_derived.py": "5e08a4a658137be75176e8ed2ca1f98d3977109404e658dcabee9f05b5e73eb6",
+      "tests/test_cheminfo/test_stereo_level2_gate6_equivalence.py": "40291f4fdf381615b6c0a4455da88bfcb2b67608a7dfb71a5c1b95fe36a9457b",
+      "tests/test_cheminfo/test_stereo_level2_gate6_projection.py": "92dfcd54a131a9f559a6b6c5a33cc8091e28ac24ae8b52aea1ecf50e538547f3",
+      "tests/test_cheminfo/test_stereo_level2_gate7_coordinates.py": "9598ac1dcc34c3c53f22ab1fb5517e8558140a54a2444fe60052cb5c31fa15a3",
+      "tests/test_cheminfo/test_stereo_level2_gate7_coordination_graph.py": "7eac941510b6517027ec16594f717be33b198b461358aac0716d7210b147ab90",
+      "tests/test_cheminfo/test_stereo_level2_gate7_public.py": "783cde7d9d15e1e4abad29e9725dc88e4916aaca004edb0aeae17884cff1e0b2",
+      "tests/test_cheminfo/test_stereo_level2_gate7_spy_algebra.py": "5b1c62d828472f0ff7f841ac6564cf4c5ee765ac5ce07d9c000cc0a52e0e2dfd",
+      "tests/test_cheminfo/test_topology_index.py": "853aeaa8870f7ffcafc25e4ff6f39b134dc7ecf23d5b8c5f1c83a5d503adf615",
+      "tests/test_cli/test_xtb_cli.py": "e80114b68d28de4a368d00b8f88029cc408d0c9127a405ad42bb9af53d23d699",
+      "tests/test_pipeline/test_builtin_stages.py": "c27e38b11c921d0c60e85ca2977e02a41b562acc4e243391610fd373b5cdb959",
+      "tests/test_pipeline/test_sample_containment.py": "706a3393a09245b4387e0ae653b0485d1772baa0cac671087cf8b2dd77dc7bc6",
+      "tests/test_plan20_performance_reports.py": "6d6201af66aa4492f026191bc1555f25206ef59332c9068a3af1cda192cb4e64",
+      "tests/test_plugin/test_xtb/test_native_convergence.py": "eddd7b25fa66b489c611b0991b6d3428241db96d39ac074cd4c30eaed3f01fac",
+      "tests/test_plugin/test_xtb/test_official_integration.py": "0151f5153a6c9ebc32134a95c0361559bd4f1c48d71c6e58195b156cb900b654",
+      "tests/test_plugin/test_xtb/test_official_pipeline_integration.py": "dcd55b432114c527cc879617198b8accbad0347641a88a53bee7aa4eaadbff66",
+      "tests/test_plugin/test_xtb/test_pipeline_integration.py": "a3ffbe6f81aa2f4f52444a9098b0537a2cd6bad4d3549c04baf94d0729654b57",
+      "tests/test_plugin/test_xtb/test_runner.py": "073189c4f3486d521663279a27842960a8c5af47ea85eb659c756f986aa1a6b9",
+      "tests/test_plugin/test_xtb/test_sample_failure_identity.py": "d46d441c7b6992a6365afb708b833745a74bd8de1147718433e6add68c87e108",
+      "tests/test_plugin/test_xtb/test_workflow_contract.py": "70e41e7654d592911d4195f88c477eb68ba61e11f97354b96a50c95288b77be8",
+      "tests/test_plugin/test_xtb/test_workflow_state.py": "f3beeacc0a97139154ff775d32e1972d8923d6fb6c62ab5388552759c2f040ea"
+    },
+    "natives": {
+      "hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/adapters/native/substructure/_search_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "b0d89a3ba37cd38251eff1fe3391c0f8da33c3e456710cdb66c80754c1a7a2c7",
+        "bytes": 517848
+      },
+      "hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/obWrappers/_ob_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "acb5fc75b4dd63eac6ef80a932f0ec93c2a926a3dd309d356437c3bc98b81a34",
+        "bytes": 2972296
+      },
+      "hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rdWrappers/_rd_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "7492e521de612a17d3a501d2418f447d02ea8ba42a0fb6c8fb4197962000306a",
+        "bytes": 4104824
+      },
+      "hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/geometry/_geometry_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "fb472fa8045c347c6c7b7342fd9dd3d19ea8cb6e9e76076f5b2c94d3f1f49ff1",
+        "bytes": 1288856
+      },
+      "hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/rules/mathematics/graph/_graph_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "febf7937e1e76717d55e632d6d1d9da71dc640681dea1526aa499e9081807f35",
+        "bytes": 371520
+      },
+      "hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so": {
+        "origin": "/home/zhangzhiyuan/hotpot/hotpot/cheminfo/structure/_fact_native.cpython-311-x86_64-linux-gnu.so",
+        "sha256": "51d4022c6333ced340dbd55a98a6ce72694c39187b95cb8e3944bb25d2be2020",
+        "bytes": 433400
+      }
+    },
+    "wheel": {
+      "path": "/tmp/hotpot_plan20/short/output-simplification-20261106/root/installed-attempt01/wheels/hotpot_zzy-0.5.5.0-cp311-cp311-linux_x86_64.whl",
+      "sha256": "e9d45c85836cb6caa84f794a47b714abceb014d2c9d5d5b7ffc931bc1ca9c693",
+      "bytes": 6687095
+    },
+    "ff_final_source_drift": [],
+    "nonff_owned_drift": [],
+    "carrier_test_drift": [],
+    "carrier_later_source_drift": [
+      "hotpot/cheminfo/operations/forcefields/contracts.py",
+      "hotpot/cheminfo/operations/forcefields/optimizer.py",
+      "hotpot/plugins/xtb/adapter.py",
+      "hotpot/plugins/xtb/cli.py",
+      "hotpot/plugins/xtb/contracts.py",
+      "hotpot/plugins/xtb/runner.py",
+      "hotpot/plugins/xtb/stage.py"
+    ],
+    "carrier_reuse_disposition": "Seven later FF/xTB edits covered by final FF/nonFF and installed checks; carrier-owned code/tests unchanged.",
+    "installed_repository_drift": [
+      "hotpot/commands/ff.md"
+    ],
+    "installed_reuse_disposition": "Only later ff.md clarification differs; all production Python and six reused natives match.",
+    "loaded_installed_hotpot_modules": 283
+  },
+  "retained_attempts": [
+    "Earlier builder stdin/spawn and stale dataclasses.replace writer failures, corrected before final freeze/smoke.",
+    "FF source-attempt01 missing existing Open Babel loader path: five collection errors; per-process path corrected.",
+    "FF source-attempt02 private pytest runner lacked main guard, causing recursive child execution; observations invalidated. Original wrapper/snapshot and final main log retained.",
+    "Stale slim-report CLI constructors and stage-scan field-list fixtures corrected before clean source-attempt03.",
+    "Installed attempt01:291 passed/1 failed because benchmark support was not copied; only that case retried successfully.",
+    "Carrier JUnit skipped markers represent three known pytest.xfail cases; precise classification retained without rerunning."
+  ],
+  "debt": {
+    "P20-D047": "CLOSED for this bounded Python result/consumer migration; no global scientific/performance gate closed."
+  },
+  "evidence": {
+    "archive": ".plan20-artifacts/20261106/output-simplification/output-simplification-evidence.tar.gz",
+    "archive_bytes": 7524983,
+    "archive_sha256": "3b47ba2a530b5fc4a39a88c26d009f59601751865a534341fd85d2e5731220e9",
+    "archive_members": 166,
+    "manifest": ".plan20-artifacts/20261106/output-simplification/manifest.json",
+    "manifest_sha256": "227df76dfb0c98bf61e66713ef7a859761abc3147dbd5e8f70898c7e21d2fb45",
+    "receipt_index": {
+      "root/source-attempt01/evidence.json": {
+        "bytes": 73288,
+        "sha256": "0ad63d36e6c72790fe3cf1051e172e3c839ba856ab643e3007e78adc9f12a1e2"
+      },
+      "root/source-attempt01/classification.json": {
+        "bytes": 1053,
+        "sha256": "d09e75747620871ba4da7699f8e7ebc579f44e41cf1cee9e6e71f45aad822e42"
+      },
+      "ff/production-freeze.v2.json": {
+        "bytes": 4414,
+        "sha256": "fd1314da04fde6053c064a3d73f962befb81869bc49eab5cd513263875aebe2f"
+      },
+      "ff/source-attempt03/evidence.json": {
+        "bytes": 94861,
+        "sha256": "54b2924e107511d94ba9b76ffed5cc2109c18c4ea7acb35666b221c25b5bee52"
+      },
+      "ff/runtime-smoke-final/result.json": {
+        "bytes": 8489,
+        "sha256": "6448cefb8879d172eeb37e06232259f46acb1358217c07134274bb0f366b7e77"
+      },
+      "nonff-implementation/provenance-extension/schema-freeze.json": {
+        "bytes": 6838,
+        "sha256": "bfdf8f738a5d81754abc2a099803b9b3cc4f6ccf87536de9b0aded9259331975"
+      },
+      "nonff-implementation/provenance-extension/attempt01/result.json": {
+        "bytes": 145267,
+        "sha256": "295e4e16c46197cf1e710d27a84a0902ad4baf72445a0a15862dcfabe5062093"
+      },
+      "root/installed-attempt01/evidence.json": {
+        "bytes": 298602,
+        "sha256": "8c920d84d39f84ec41b73b502a4f58b945cafa5a225c577766d966e1c83bdb73"
+      },
+      "root/installed-attempt02/evidence.json": {
+        "bytes": 181348,
+        "sha256": "6700783aa12c4b0ec1bd97e5947efeaa8d9a93786fee7d8a89d87b45cfae3bf3"
+      },
+      "root/installed-attempt02/actual-automatic-workflow.json": {
+        "bytes": 7668,
+        "sha256": "0a005f0f4c4a329b51ec7ce988398c02132db1977d31562b30c145186eb089b0"
+      }
+    }
+  },
+  "coverage_limits": [
+    "CP311 source and private installed Python contracts using six existing native binaries; no clean-native/ABI, SDK, sdist or other-Python qualification.",
+    "One actual installed water route and two tiny source builder smokes; no new full187/182 cohort or CBond/MCA model inference.",
+    "No scientific algorithm change, comparative performance benchmark, measured report-size reduction or speedup claim.",
+    "Known aromaticity xfails and opt-in scientific/high-compute/external cases remain distinct from passes.",
+    "This coherent cleanup does not establish full-plan completion or waive independently open obligations."
+  ]
+}

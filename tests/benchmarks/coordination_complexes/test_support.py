@@ -153,7 +153,6 @@ def test_hotpot_auto_backend_calls_auto_directly_without_external_gate(
     trajectory = object()
     routing_report = SimpleNamespace(attempts=(), selected_route="native_fast")
     optimization_report = SimpleNamespace(
-        requested_forcefield="UFF",
         effective_forcefield="UFF",
         quality_report=quality_report,
         trajectory=trajectory,

@@ -39,7 +39,7 @@ def _quality_report():
     )
 
     return ForceFieldValidationReport(
-        level="standard", passed=True,
+        passed=True,
         checks=(AcceptanceCheck(name="finite_coordinates", passed=True),),
     )
 
@@ -200,13 +200,28 @@ def test_forcefield_stage_uses_one_public_route_operation_without_duplicate_gate
     assert "forcefield" in result.report
 
 
-@dataclass(frozen=True)
-class _XTBReport:
-    process_succeeded: bool = True
-    converged: bool = True
-    coordinates_committed: bool = True
-    energy_hartree: float = -76.0
-    stderr: str = ""
+def _xtb_report(*, converged=True, method="gfn2", return_code=0):
+    from hotpot.plugins._harness import NativeProcessResult, ProcessProvenance
+    from hotpot.plugins.xtb.contracts import XTBBackendInfo, XTBMethod, XTBRunReport, XTBTask
+
+    provenance = ProcessProvenance(
+        executable=Path("/fake/xtb"), executable_sha256="a" * 64,
+        argv=("xtb", "input.xyz"), cwd=Path("/fake/xtb-workspace"),
+        return_code=return_code, stdout="native stdout", stderr="native stderr",
+        elapsed_seconds=0.1, artifacts=(),
+    )
+    backend = XTBBackendInfo(
+        provenance.executable, "6.7.1", None, provenance.executable_sha256,
+        NativeProcessResult(("xtb", "--version"), provenance.cwd, 0, "xtb version 6.7.1", "", 0.01),
+        86, 86,
+    )
+    method = XTBMethod(method)
+    return XTBRunReport(
+        backend_info=backend, effective_method=method, task=XTBTask.OPTIMIZE,
+        charge=0, unpaired_electrons=None if method is XTBMethod.GFNFF else 0,
+        converged=converged, artifacts={}, provenance=provenance,
+        energy_hartree=-76.0, coordinates_committed=True,
+    )
 
 
 def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
@@ -231,7 +246,7 @@ def test_xtb_stage_forwards_existing_state_and_calls_public_workflow_once(
 
     def run_gfn_xtb(mol, **options):
         calls.append((mol, options["state"]))
-        return _XTBReport()
+        return _xtb_report()
 
     def duplicate_gate(*args, **kwargs):
         raise AssertionError("the stage repeated a geometry gate owned by xTB")
@@ -313,7 +328,7 @@ def test_gfnff_stage_calls_only_gfnff_node(
 
     def run_gfnff(mol, **options):
         calls.append("gfnff")
-        return _XTBReport()
+        return _xtb_report(method="gfnff")
 
     def must_not_call_gfn_xtb(mol, **options):
         calls.append("gfn-xtb")

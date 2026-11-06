@@ -454,7 +454,6 @@ def test_public_complex_build_failure_is_transactional_and_reaps_worker(
     with pytest.raises(expected_error):
         ff.build_complex3d(
             molecule,
-            candidate_count=1,
             max_attempts=1,
             candidate_warmup_steps=1,
             candidate_score_steps=1,
@@ -1134,12 +1133,10 @@ def test_ligand_retries_share_one_built_root_and_record_distinct_branches(
     def untangle(component_mol, *args, **kwargs):
         return repair._RingUntanglingResult(
             report=ff.RingUntanglingReport(
-                attempt_limit=1,
                 attempts_completed=0,
                 initial_piercing_count=0,
                 final_piercing_count=0,
                 minimum_piercing_count=0,
-                resolved=True,
             ),
             energy=float(component_mol.coordinates[0, 0]),
             checkpoint_report=kwargs["checkpoint_report"],
@@ -1371,12 +1368,10 @@ def test_refined_intersection_retains_all_structured_geometry_evidence(monkeypat
         count = len(checkpoint.piercings)
         return repair._RingUntanglingResult(
             report=ff.RingUntanglingReport(
-                attempt_limit=kwargs["attempt_limit"],
                 attempts_completed=0,
                 initial_piercing_count=count,
                 final_piercing_count=count,
                 minimum_piercing_count=count,
-                resolved=count == 0,
             ),
             energy=1.0,
             checkpoint_report=checkpoint,
@@ -1454,12 +1449,10 @@ def test_best_unqualified_ligand_candidate_is_selected(monkeypatch):
         count = next(piercing_counts)
         return repair._RingUntanglingResult(
             report=ff.RingUntanglingReport(
-                attempt_limit=1,
                 attempts_completed=0,
                 initial_piercing_count=count,
                 final_piercing_count=count,
                 minimum_piercing_count=count,
-                resolved=False,
             ),
             energy={1: 0.0, 2: -100.0, 3: 100.0}[
                 int(current.coordinates[0, 0])
@@ -1554,8 +1547,8 @@ def test_worker_boundary_serializes_an_exception(monkeypatch):
             self.closed = True
 
     class MoleculeDouble:
-        def _update_topology(self, clear_conformers=True):
-            assert clear_conformers is False
+        def _update_topology(self):
+            pass
 
     connection = Connection()
     monkeypatch.setattr(workers, "_build_ligand_proxies", fail)
@@ -1620,7 +1613,6 @@ def test_complexes_build_final_failure_does_not_modify_caller(
             molecule,
             epochs=1,
             steps_per_epoch=1,
-            candidate_count=1,
             max_attempts=1,
             candidate_warmup_steps=1,
             candidate_score_steps=1,
@@ -1739,7 +1731,6 @@ def test_small_zinc_build_preserves_default_geometry_and_hydrogen_declarations()
 
     report = ff.build_complex3d(
         molecule,
-        candidate_count=1,
         max_attempts=3,
         candidate_warmup_steps=2,
         candidate_score_steps=2,
@@ -1769,7 +1760,6 @@ def test_seeded_complex_proxy_build_preserves_finite_complete_structure():
 
     ff.build_complex3d(
         molecule,
-        candidate_count=1,
         max_attempts=3,
         candidate_warmup_steps=2,
         candidate_score_steps=2,

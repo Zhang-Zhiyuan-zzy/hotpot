@@ -93,7 +93,7 @@ def _spy_molecule():
         molecule._create_atom(atomic_number=atomic_number)
     for donor in range(1, 6):
         molecule._add_bond(0, donor, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     record = stereo.StereoRecord(
         anchor=stereo.StereoAnchor(stereo.StereoAnchorKind.ATOM, (0,)),
         carriers=tuple(

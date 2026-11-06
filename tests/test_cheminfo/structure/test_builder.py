@@ -10,6 +10,7 @@ import sys
 import numpy as np
 import pytest
 
+from hotpot.cheminfo.operations import chemistry
 from hotpot.cheminfo.structure._builder import (
     MoleculeRecord, _freeze_value, _make_molecule_record, _thaw_value,
 )
@@ -413,7 +414,7 @@ def test_factual_builder_installs_every_raw_fact_and_builds_topology_once(monkey
         raise AssertionError('factual builder ran chemistry')
     monkeypatch.setattr(molecule_owner, '_build_topology_index', counted)
     monkeypatch.setattr(Atom, 'get_valence', forbidden)
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
+    monkeypatch.setattr(chemistry, '_atom_implicit_proposal', forbidden)
     monkeypatch.setattr(Molecule, 'assign_bond_order', forbidden)
     monkeypatch.setattr(Molecule, 'determine_rings_aromatic', forbidden)
     record = _record()

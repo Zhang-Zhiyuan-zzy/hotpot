@@ -83,7 +83,7 @@ def test_copy_preserves_payload_order_lineage_and_hydrogen_ledgers():
     molecule = _molecule((6, 7, 8))
     molecule._add_bond(0, 1, bond_order=1.0)
     hidden = molecule._add_bond(1, 2, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     _capture_topology_selection(molecule, excluded_bonds=(hidden,))
     group = stereo.StereoGroupRef(
         scope="source-scope",
@@ -137,7 +137,7 @@ def test_selected_components_filter_and_remap_stereo_by_retained_edges():
     molecule._add_bond(4, 5, bond_order=1.0)
     hidden_internal = molecule._add_bond(0, 2, bond_order=1.0)
     hidden_cross = molecule._add_bond(3, 4, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     selection = _capture_topology_selection(molecule, excluded_bonds=(hidden_cross,))
     group = stereo.StereoGroupRef(
         scope="split-source",
@@ -200,7 +200,7 @@ def test_selected_components_filter_and_remap_stereo_by_retained_edges():
 def test_add_component_offsets_incoming_rows_without_group_merging_or_sorting():
     target = _molecule((6, 8))
     target._add_bond(0, 1, bond_order=1.0)
-    target._update_topology(clear_conformers=False)
+    target._update_topology()
     target_group = stereo.StereoGroupRef(
         "target-scope",
         stereo.StereoGroupKind.OR,
@@ -217,7 +217,7 @@ def test_add_component_offsets_incoming_rows_without_group_merging_or_sorting():
     )
     component = _molecule((7, 16))
     hidden = component._add_bond(0, 1, bond_order=1.0)
-    component._update_topology(clear_conformers=False)
+    component._update_topology()
     _capture_topology_selection(component, excluded_bonds=(hidden,))
     component_group = stereo.StereoGroupRef(
         "component-scope",
@@ -270,7 +270,7 @@ def test_atom_removal_filters_whole_records_and_remaps_retained_order():
     molecule._add_bond(1, 2, bond_order=1.0)
     molecule._add_bond(2, 3, bond_order=2.0)
     hidden = molecule._add_bond(0, 2, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     _capture_topology_selection(molecule, excluded_bonds=(hidden,))
     stereo.set_stereo_payload(
         molecule,
@@ -321,7 +321,7 @@ def test_batch_atom_removal_uses_one_stable_source_row_mapping():
     molecule._add_bond(1, 2, bond_order=1.0)
     molecule._add_bond(2, 3, bond_order=1.0)
     molecule._add_bond(3, 4, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     stereo.set_stereo_payload(
         molecule,
         stereo.StereoPayload(
@@ -353,7 +353,7 @@ def test_operation_selection_preserves_stereo_and_permanent_deletion_is_targeted
     molecule = _molecule((6, 7, 8))
     first = molecule._add_bond(0, 1, bond_order=1.0)
     second = molecule._add_bond(1, 2, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     payload = stereo.StereoPayload(
         1,
         (
@@ -405,7 +405,7 @@ def test_axis_lifecycle_tracks_constituent_edges_but_not_chords():
     second = molecule._add_bond(1, 2, bond_order=1.0)
     molecule._add_bond(2, 3, bond_order=2.0)
     chord = molecule._add_bond(0, 2, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     payload = stereo.StereoPayload(
         1,
         (_axis_record(0, 1, 2, 3, descriptor="axis", carriers=(3,)),),
@@ -436,7 +436,7 @@ def test_permanently_removing_axis_edges_drops_the_record(batch):
     molecule = _molecule((6, 6, 6))
     molecule._add_bond(0, 1, bond_order=2.)
     edge = molecule._add_bond(1, 2, bond_order=2.)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     stereo.set_stereo_payload(molecule, stereo.StereoPayload(
         1, (_axis_record(0, 1, 2, descriptor="axis"),), (), ()))
     _capture_topology_selection(molecule, excluded_bonds=(edge,))
@@ -453,7 +453,7 @@ def test_axis_atom_component_and_add_component_lifecycle_is_exact():
     molecule._add_bond(0, 1, bond_order=2.0)
     molecule._add_bond(1, 2, bond_order=1.0)
     molecule._add_bond(2, 3, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     stereo.set_stereo_payload(
         molecule,
         stereo.StereoPayload(
@@ -483,7 +483,7 @@ def test_axis_atom_component_and_add_component_lifecycle_is_exact():
     target = _molecule((8, 6, 6))
     target._add_bond(0, 1, bond_order=1.0)
     target._add_bond(1, 2, bond_order=1.0)
-    target._update_topology(clear_conformers=False)
+    target._update_topology()
     stereo.set_stereo_payload(
         target,
         stereo.StereoPayload(
@@ -505,7 +505,7 @@ def test_atom_sequence_to_mol_filters_and_remaps_payload():
     molecule = _molecule((6, 7, 8))
     molecule._add_bond(0, 1, bond_order=1.0)
     selected_bond = molecule._add_bond(1, 2, bond_order=2.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     stereo.set_stereo_payload(
         molecule,
         stereo.StereoPayload(

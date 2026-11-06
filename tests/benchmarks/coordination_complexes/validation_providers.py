@@ -204,7 +204,7 @@ def freeze_rdkit_proposals(
         if sampler is not None
         else RDKitConformerAdapter(materialized_hydrogens=add_hydrogens)
     )
-    request = ConformerSamplingRequest(conformer_count=1, seed=seed)
+    request = ConformerSamplingRequest(seed=seed)
     proposals = []
     for component in _worker_components(
         molecule,

@@ -353,7 +353,7 @@ def test_official_gfn2_wrapper_matches_direct_cli_for_charged_and_open_shell_sta
     )
     assert report.charge == charge
     assert report.unpaired_electrons == unpaired_electrons
-    assert report.argv[-4:] == (
+    assert report.provenance.argv[-4:] == (
         "--chrg",
         str(charge),
         "--uhf",

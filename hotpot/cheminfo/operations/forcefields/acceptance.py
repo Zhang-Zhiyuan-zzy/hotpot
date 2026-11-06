@@ -328,7 +328,7 @@ def _evaluate_structure_acceptance(
 
     if not finite_ok:
         passed = acceptance_rules._acceptance_checks_pass(checks)
-        return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
+        return ForceFieldValidationReport(passed, tuple(checks), metrics)
 
     atom_pair_checks, atom_pair_metrics = (
         _atom_pair_distance_acceptance_section(mol, level, limits)
@@ -361,7 +361,7 @@ def _evaluate_structure_acceptance(
         metrics.update(bond_ring_metrics)
 
     passed = acceptance_rules._acceptance_checks_pass(checks)
-    return ForceFieldValidationReport(level, passed, tuple(checks), metrics)
+    return ForceFieldValidationReport(passed, tuple(checks), metrics)
 
 
 def evaluate_structure_acceptance_at_checkpoint(

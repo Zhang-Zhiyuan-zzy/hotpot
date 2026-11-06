@@ -15,6 +15,7 @@ from hotpot.cheminfo.structure.snapshots import MolecularFactsIdentity
 from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
 from hotpot.cheminfo.rules.chemistry.scientific_state.composition import ScientificStateIdentity
 from hotpot.plugins.xtb import XTBMethod, XTBTask
+from hotpot.plugins._harness import ProcessProvenance
 
 from .cohort import BenchmarkCohort, LigandCase
 from .io import write_json
@@ -69,7 +70,6 @@ def _fake_report(method: XTBMethod):
             revision="test",
             executable_sha256="c" * 64,
         ),
-        requested_method=method,
         effective_method=method,
         task=XTBTask.OPTIMIZE,
         charge=0,
@@ -81,10 +81,6 @@ def _fake_report(method: XTBMethod):
             if method is XTBMethod.GFNFF
             else "pure_spin_highest_ms"
         ),
-        argv=("xtb", "input.xyz"),
-        return_code=0,
-        elapsed_seconds=0.25,
-        process_succeeded=True,
         converged=True,
         energy_hartree=-1.0,
         gradient_norm=0.01,
@@ -92,8 +88,10 @@ def _fake_report(method: XTBMethod):
         coordinates_committed=True,
         workspace_retained=True,
         artifacts={},
-        stdout="native stdout",
-        stderr="native stderr",
+        provenance=ProcessProvenance(
+            Path("/opt/xtb/bin/xtb"), "c" * 64, ("xtb", "input.xyz"), Path("/tmp/xtb"),
+            0, "native stdout", "native stderr", 0.25, (),
+        ),
     )
 
 
@@ -225,7 +223,12 @@ def test_fake_routes_persist_stage_reports_logs_structures_and_quality(
     ]
     np.testing.assert_allclose(calls[0][1], calls[1][1])
     np.testing.assert_allclose(calls[2][1], calls[1][1] + 0.01)
-    assert (tmp_path / "direct/00-gfn2/report.json").is_file()
+    report = json.loads((tmp_path / "direct/00-gfn2/report.json").read_text())["report"]
+    assert report["effective_method"] == "gfn2"
+    assert report["argv"] == ["xtb", "input.xyz"]
+    assert report["return_code"] == 0
+    assert report["native_elapsed_seconds"] == 0.25
+    assert {"requested_method", "process_succeeded"}.isdisjoint(report)
     assert (tmp_path / "direct/00-gfn2/native.log").read_text(
         encoding="utf-8"
     ).startswith("=== stdout ===\nnative stdout")

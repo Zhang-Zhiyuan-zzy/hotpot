@@ -139,7 +139,7 @@ def _coordination_molecule(family, coordinates):
         molecule._create_atom(atomic_number=atomic_number)
     for carrier in range(1, carrier_count + 1):
         molecule._add_bond(0, carrier, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     descriptor = f"hotpot.stereo/2/{family.value}/1"
     record = stereo.StereoRecord(
         anchor=stereo.StereoAnchor(stereo.StereoAnchorKind.ATOM, (0,)),

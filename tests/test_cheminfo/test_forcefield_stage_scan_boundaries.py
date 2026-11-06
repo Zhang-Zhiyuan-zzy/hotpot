@@ -65,12 +65,10 @@ def _untangling_result(*, attempt_limit=1):
     checkpoint_report = _empty_screening_report(ring_scope="ligand_skeleton")
     return repair._RingUntanglingResult(
         report=ff.RingUntanglingReport(
-            attempt_limit=attempt_limit,
             attempts_completed=0,
             initial_piercing_count=0,
             final_piercing_count=0,
             minimum_piercing_count=0,
-            resolved=True,
         ),
         energy=0.0,
         checkpoint_report=checkpoint_report,
@@ -120,7 +118,6 @@ def test_stage1_reuses_each_checkpoint_report_for_acceptance(monkeypatch):
     def accept(*args, **kwargs):
         accepted_reports.append(kwargs["bond_ring_report"])
         return ff.ForceFieldValidationReport(
-            level="basic",
             passed=True,
             checks=(),
         )
@@ -191,12 +188,10 @@ def test_stage1_basic_gate_still_rejects_confirmed_piercing(monkeypatch):
         "_untangle_ring_piercings",
         lambda *args, **kwargs: repair._RingUntanglingResult(
             report=ff.RingUntanglingReport(
-                attempt_limit=kwargs["attempt_limit"],
                 attempts_completed=0,
                 initial_piercing_count=1,
                 final_piercing_count=1,
                 minimum_piercing_count=1,
-                resolved=False,
             ),
             energy=0.0,
             checkpoint_report=piercing_report,
@@ -206,7 +201,6 @@ def test_stage1_basic_gate_still_rejects_confirmed_piercing(monkeypatch):
         ligand,
         "evaluate_structure_acceptance_at_checkpoint",
         lambda *args, **kwargs: ff.ForceFieldValidationReport(
-            level="basic",
             passed=True,
             checks=(),
         ),
@@ -262,12 +256,10 @@ def test_stage1_refinement_piercing_reenters_untangling(monkeypatch):
         )
         return repair._RingUntanglingResult(
             report=ff.RingUntanglingReport(
-                attempt_limit=kwargs["attempt_limit"],
                 attempts_completed=0,
                 initial_piercing_count=len(checkpoint_report.piercings),
                 final_piercing_count=0,
                 minimum_piercing_count=0,
-                resolved=True,
             ),
             energy=0.0,
             checkpoint_report=terminal_report,
@@ -276,7 +268,6 @@ def test_stage1_refinement_piercing_reenters_untangling(monkeypatch):
     def accept(*args, **kwargs):
         accepted_reports.append(kwargs["bond_ring_report"])
         return ff.ForceFieldValidationReport(
-            level="basic",
             passed=True,
             checks=(),
         )
@@ -306,9 +297,7 @@ def test_stage1_refinement_piercing_reenters_untangling(monkeypatch):
 
 def test_coordination_restoration_report_has_stage2_mechanical_facts_only():
     assert tuple(field.name for field in fields(ff.CoordinationBondRestorationReport)) == (
-        "attempt_limit",
         "attempts_completed",
-        "bond_count",
         "metal_relocation_attempt_count",
         "relocated_metal_indices",
         "infeasible_metal_indices",
@@ -382,7 +371,6 @@ def test_numerical_optimizer_does_not_evaluate_acceptance_or_topology_each_epoch
 
     monkeypatch.setattr(geometry_adapter, "determine_bond_ring_piercing_state", scan)
     optimizer = optimizer_impl._OpenBabelOptimizer(
-        "UFF",
         "UFF",
         algorithm="conjugate",
         epochs=3,

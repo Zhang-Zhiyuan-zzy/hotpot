@@ -301,7 +301,6 @@ def load_canonical_cases(path: Path) -> tuple[CanonicalCase, ...]:
 
 def _quality_payload(report: object) -> dict[str, object]:
     return {
-        "level": report.level,
         "passed": bool(report.passed),
         "checks": json_value(report.checks),
         "failures": json_value(report.failures),

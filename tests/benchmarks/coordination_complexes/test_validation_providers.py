@@ -68,7 +68,7 @@ def test_freeze_and_replay_use_exact_worker_component_rows() -> None:
 
     batch = adapter.sample(
         component,
-        ConformerSamplingRequest(conformer_count=1, seed=999),
+        ConformerSamplingRequest(seed=999),
     )
 
     assert batch.ordinals == (7,)

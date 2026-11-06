@@ -429,7 +429,7 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
 
 
 def _process_parallel_work_item(item: _WorkItem) -> _Outcome:
-    item.record.mol._update_topology(clear_conformers=False)
+    item.record.mol._update_topology()
     return _process_work_item(item)
 
 

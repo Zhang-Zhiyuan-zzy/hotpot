@@ -114,21 +114,13 @@ class XTBRequest:
 
 @dataclass(frozen=True)
 class XTBRunReport:
-    """Immutable process facts and xTB artifact evidence from one run."""
+    """Immutable xTB observations with one process provenance owner."""
 
     backend_info: XTBBackendInfo
-    requested_method: XTBMethod
     effective_method: XTBMethod
     task: XTBTask
     charge: int
     unpaired_electrons: Optional[int]
-    work_directory: Path
-    argv: Tuple[str, ...]
-    return_code: int
-    stdout: str
-    stderr: str
-    elapsed_seconds: float
-    process_succeeded: bool
     converged: bool
     artifacts: Mapping[str, XTBArtifact]
     provenance: ProcessProvenance

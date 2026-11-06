@@ -91,11 +91,10 @@ def test_final_native_geometry_decision_takes_precedence_over_success_files(
 
     report = run_xtb(request)
 
-    assert report.process_succeeded is True
-    assert report.return_code == 0
+    assert report.provenance.return_code == 0
     assert report.converged is converged
     assert {".xtboptok", "xtbopt.log"}.issubset(report.artifacts)
-    assert report.stdout.startswith(stdout)
+    assert report.provenance.stdout.startswith(stdout)
 
 
 @pytest.mark.parametrize("method", (XTBMethod.GFNFF, XTBMethod.GFN2_XTB))
@@ -131,9 +130,9 @@ def test_native_execution_failure_remains_unavailable(
         run_xtb(request)
 
     report = caught.value.report
-    assert report.return_code == 17
+    assert report.provenance.return_code == 17
     assert report.converged is False
-    assert "SCC is not converged" in report.stderr
+    assert "SCC is not converged" in report.provenance.stderr
     assert ".xtboptok" in report.artifacts
     with pytest.raises(XTBResultError):
         parse_xtb_artifacts(report, expected)
@@ -155,7 +154,7 @@ def test_nonconverged_result_still_requires_every_native_artifact(
 
     report = caught.value.report
     assert report.converged is False
-    assert report.process_succeeded is True
+    assert report.provenance.return_code == 0
     assert missing not in report.artifacts
     with pytest.raises(XTBResultError):
         parse_xtb_artifacts(report, expected)

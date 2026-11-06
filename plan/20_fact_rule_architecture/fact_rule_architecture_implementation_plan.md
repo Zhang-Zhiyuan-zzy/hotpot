@@ -2216,6 +2216,20 @@ Gate: pure-policy tests, native and Python workflow parity, rollback,
 trajectory, wrapper standalone tests, and FF benchmarks; O0 scientific execution
 produces per-case monitoring reports rather than a fixed success-count gate.
 
+The owner-authorized 2026-11-06 [Python result simplification](stages/stage08/forcefields/contracts/decisions.md#2026-11-06--approved-python-ff-result-simplification)
+removes known invocation echoes, unavailable/derived report fields and the
+inactive `candidate_count` keyword from `Molecule.build3d`, `build_complex3d`,
+`complexes_build` and `build_and_optimize`. This is an explicit exception to
+prior signature/field preservation. Effective method, actual observations/work,
+failures, coverage, selected/terminal distinctions, native contracts and trajectory
+format5 remain fixed. Optimized workflow JSON stores final quality once under
+`optimization.quality_report`; Python access and build-only top-level quality
+remain available. Scientific/performance evidence recorders retain exact
+completed-step unavailability as `None`. The same bounded decision removes the
+unused count from the one-placement provider request; actual native
+`ETKDGOptions.conformer_count` remains active. Current-source and installed
+qualification are recorded separately by the owning cleanup delivery.
+
 The [Stage8B entry/B1 decision](stages/stage08/forcefields/contracts/decisions.md)
 settles D04/D05/FF-CLI at current source before implementation. One validated
 OptimizationStoppingCriteria belongs to pure physics contracts, the retained

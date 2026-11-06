@@ -15,10 +15,15 @@ import numpy as np
 def json_value(value: object) -> object:
     """Convert scientific report objects without expanding trajectories."""
     if is_dataclass(value) and not isinstance(value, type):
+        from hotpot.cheminfo.operations.forcefields.contracts import ForceFieldWorkflowReport
+
+        excluded = {"trajectory", "ligand_build_attempts"}
+        if isinstance(value, ForceFieldWorkflowReport) and value.optimization is not None:
+            excluded.add("quality_report")
         return {
             field.name: json_value(getattr(value, field.name))
             for field in fields(value)
-            if field.name not in {"trajectory", "ligand_build_attempts"}
+            if field.name not in excluded
         }
     if isinstance(value, np.ndarray):
         return value.tolist()

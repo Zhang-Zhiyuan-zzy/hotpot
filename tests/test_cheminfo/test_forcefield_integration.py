@@ -26,7 +26,6 @@ def test_real_openbabel_complex_proxy_and_full_system_optimization():
         "MMFF94s",
         epochs=2,
         steps_per_epoch=20,
-        candidate_count=1,
         max_attempts=3,
         candidate_warmup_steps=10,
         candidate_score_steps=10,
@@ -41,7 +40,7 @@ def test_real_openbabel_complex_proxy_and_full_system_optimization():
     assert original_bonds <= current_bonds
     assert len(molecule.atoms) == 13
     assert len(molecule.hydrogens) == 8
-    assert report.requested_forcefield == "MMFF94s"
+    assert not hasattr(report, "requested_forcefield")
     assert report.effective_forcefield == "UFF"
     assert report.optimization.energy_unit == "kJ/mol"
     assert np.isfinite(report.optimization.best_energy)
@@ -158,7 +157,6 @@ def _build_zinc_amine(seed):
     molecule = read_mol("[Zn](N)", "smi")
     report = ff.build_complex3d(
         molecule,
-        candidate_count=1,
         max_attempts=2,
         candidate_warmup_steps=2,
         candidate_score_steps=2,

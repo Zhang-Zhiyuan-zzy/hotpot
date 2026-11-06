@@ -22,8 +22,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from .contracts import (
-    ConvergenceLevel,
-    DEFAULT_CONVERGENCE_LEVEL,
     CoordinationBondRestorationReport,
     ForceFieldRunReport,
     RingUntanglingReport,
@@ -238,9 +236,7 @@ def coordination_restoration_report(
 ) -> CoordinationBondRestorationReport:
     """Map one native Stage 2 result to the established Python report."""
     return CoordinationBondRestorationReport(
-        attempt_limit=result.attempt_limit,
         attempts_completed=result.attempts_completed,
-        bond_count=result.bond_count,
         metal_relocation_attempt_count=result.metal_relocation_attempt_count,
         relocated_metal_indices=result.relocated_metal_indices,
         infeasible_metal_indices=result.infeasible_metal_indices,
@@ -260,12 +256,10 @@ def ring_untangling_report(
 ) -> RingUntanglingReport:
     """Map native Stage 3 topology observations to the Python ring report."""
     return RingUntanglingReport(
-        attempt_limit=result.untangling_attempt_limit,
         attempts_completed=result.untangling_attempts_completed,
         initial_piercing_count=result.initial_piercing_count,
         final_piercing_count=result.final_piercing_count,
         minimum_piercing_count=result.minimum_piercing_count,
-        resolved=result.untangling_resolved,
         warning_messages=native_warning_messages(result.warning_codes),
     )
 
@@ -273,22 +267,18 @@ def ring_untangling_report(
 def forcefield_run_report(
     result: ComplexOptimizationResult,
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
-    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
     trajectory: Optional[ForceFieldTrajectoryArchive] = None,
 ) -> ForceFieldRunReport:
     """Map one native Stage 3 result to the established optimizer report."""
     setup_succeeded = result.termination_reason != "topology_blocked"
     return ForceFieldRunReport(
-        requested_forcefield=requested_forcefield,
         effective_forcefield=effective_forcefield,
         setup_succeeded=setup_succeeded,
         converged=result.converged,
         epochs_completed=result.epochs_completed,
         steps_submitted=result.steps_submitted,
         initialization_steps=result.initialization_steps,
-        steps_completed=None,
         final_energy=result.final_energy_kj_mol,
         best_energy=result.best_energy_kj_mol,
         energy_unit="kJ/mol",
@@ -312,7 +302,6 @@ def forcefield_run_report(
         untangling=ring_untangling_report(result),
         trajectory=trajectory,
         elapsed_seconds=result.elapsed_seconds,
-        convergence_level=convergence_level,
     )
 
 

@@ -19,6 +19,11 @@ def _finite(value):
     return float(value) if isinstance(value, (int, float)) and math.isfinite(value) else None
 
 
+def _quality_observations(trial):
+    report = trial["observations"].get("production_report", {})
+    return (report.get("optimization") or report).get("quality_report")
+
+
 def _distribution(values: list[float]) -> dict:
     return {
         "count": len(values),
@@ -83,8 +88,8 @@ def compare_reports(baseline: Path, candidate: Path) -> dict:
             "work": {"baseline": left["work"], "candidate": right["work"]},
             "scientific_status": {"baseline": left["scientific_status"], "candidate": right["scientific_status"]},
             "monitor_observations": {
-                "baseline": left["observations"].get("production_report", {}).get("quality_report"),
-                "candidate": right["observations"].get("production_report", {}).get("quality_report"),
+                "baseline": _quality_observations(left),
+                "candidate": _quality_observations(right),
             },
             "paired_energy_difference_kj_mol": None, "aligned_coordinate_rmsd_angstrom": None,
             "comparison_exclusions": [],

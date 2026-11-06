@@ -200,9 +200,11 @@ def _run_trial(task: tuple[dict, int, str, str]) -> dict:
             if optimization is not None:
                 record["work"] = {
                     name: getattr(optimization, name) for name in (
-                        "epochs_completed", "steps_submitted", "initialization_steps", "steps_completed"
+                        "epochs_completed", "steps_submitted", "initialization_steps"
                     )
                 }
+                # Open Babel exposes submissions, not its exact completed-step count.
+                record["work"]["steps_completed"] = None
                 record["work"]["build_attempt_count"] = execution.report.build.attempt_count
             phase = "monitor_projection"
             evidence = build_acceptance_evidence(case, execution).to_dict()

@@ -56,7 +56,6 @@ def _resolve_organic_forcefield(requested: Optional[str]) -> str:
 def _raise_forcefield_setup_error(
     error: BaseException,
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
     stage: ForceFieldSetupStage,
 ) -> NoReturn:
@@ -64,7 +63,6 @@ def _raise_forcefield_setup_error(
     raise ForceFieldSetupError(
         str(error),
         ForceFieldSetupReport(
-            requested_forcefield,
             effective_forcefield,
             stage,
         ),
@@ -93,7 +91,6 @@ def _single_ob_optimization(
     except native.ForceFieldSetupError as error:
         _raise_forcefield_setup_error(
             error,
-            requested_forcefield=forcefield,
             effective_forcefield=forcefield,
             stage=error.stage,
         )

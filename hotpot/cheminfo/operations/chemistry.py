@@ -879,7 +879,7 @@ def _complete_atom_hydrogens(atom, num):
         return []
     with _FactTransaction(atom.mol, producer=ATOM_SOURCE_CODES['implicit_hydrogens']) as transaction:
         transaction.touch_topology()
-        add_or_rm, hydrogens = atom._add_hydrogens(num)
+        _, hydrogens = _add_atom_hydrogens(atom, num, rm_polar_hs=True, rng=None)
         atom.mol._update_topology()
         return hydrogens
 

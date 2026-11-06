@@ -58,7 +58,7 @@ def test_standard_acceptance_retains_actual_historical_contact(observed_geometry
     before = mol.coordinates.copy()
     report = evaluate_structure_acceptance(mol, level='standard')
     finding = _contact(report)
-    assert report.level == 'standard'
+    assert not hasattr(report, "level")
     assert report.passed is False
     assert finding.passed is False
     assert finding.severity == 'error'

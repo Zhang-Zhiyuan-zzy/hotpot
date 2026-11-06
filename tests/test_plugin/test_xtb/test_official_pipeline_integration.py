@@ -163,22 +163,22 @@ def test_official_controlled_coordination_pipeline(
         assert (stage_directory / "report.json").is_file()
 
     cbond_report = manifest["stages"][0]["report"]["cbond"]
-    assert cbond_report["metal"] == _METAL
+    assert manifest["stages"][0]["argv"] == [_METAL, _LIGAND, "--device", "cpu"]
+    assert "metal" not in cbond_report
     assert cbond_report["donor_indices"] == [0, 3]
 
     forcefield_report = manifest["stages"][1]["report"]["forcefield"][0]
     assert _quality_passed(forcefield_report["quality_report"])
-    assert forcefield_report["quality_report"]["level"] == "standard"
+    assert manifest["stages"][1]["argv"][manifest["stages"][1]["argv"].index("--quality") + 1] == "standard"
 
     xtb_stages = manifest["stages"][2:]
     xtb_reports = [stage["report"]["xtb"] for stage in xtb_stages]
-    assert [report["requested_method"] for report in xtb_reports] == expected_methods
-    assert [report["task"] for report in xtb_reports] == (
+    assert [stage["argv"][1] for stage in xtb_stages] == expected_methods
+    assert [stage["argv"][3] for stage in xtb_stages] == (
         ["optimize", "singlepoint"]
         if include_gfnff
         else ["singlepoint"]
     )
-    assert all(report["process_succeeded"] for report in xtb_reports)
     assert all(report["converged"] for report in xtb_reports)
     assert all(math.isfinite(report["energy_hartree"]) for report in xtb_reports)
     assert all(report["backend"]["version"] for report in xtb_reports)
@@ -237,15 +237,14 @@ def test_official_readme_europium_pipeline(tmp_path: Path) -> None:
 
     xtb_stages = manifest["stages"][2:]
     xtb_reports = [stage["report"]["xtb"] for stage in xtb_stages]
-    assert [report["requested_method"] for report in xtb_reports] == [
+    assert [stage["argv"][1] for stage in xtb_stages] == [
         "gfnff",
         "gfn2",
     ]
-    assert [report["task"] for report in xtb_reports] == [
+    assert [stage["argv"][3] for stage in xtb_stages] == [
         "optimize",
         "optimize",
     ]
-    assert all(report["process_succeeded"] for report in xtb_reports)
     assert all(report["converged"] for report in xtb_reports)
     assert all(report["coordinates_committed"] for report in xtb_reports)
     assert all(math.isfinite(report["energy_hartree"]) for report in xtb_reports)

@@ -45,7 +45,7 @@ def _molecule(numbers, edges=(), *, hydrogens=None):
         mol._create_atom(atomic_number=number, implicit_hydrogens=count)
     for first, second, order in edges:
         mol._add_bond(first, second, bond_order=order)
-    mol._update_topology(clear_conformers=False)
+    mol._update_topology()
     return mol
 
 

@@ -711,7 +711,7 @@ def build_acceptance_evidence(
         unavailable_gradient_events=gradient_events,
         established_recovery_actions=ESTABLISHED_RECOVERY_ACTIONS,
         quality=QualityEvidence(
-            level=quality.level,
+            level=execution.quality_level,
             passed=bool(quality.passed),
             check_names=quality_checks,
             failure_names=tuple(check.name for check in quality.failures),

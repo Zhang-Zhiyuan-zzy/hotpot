@@ -49,7 +49,7 @@ def _build_ligand_proxies_worker(
     try:
         # ``_topology_index`` is derived from object identity.  Spawn creates
         # new Atom identities, so rebuild it at the child task boundary.
-        mol._update_topology(clear_conformers=False)
+        mol._update_topology()
         if seed is not None:
             _backend._seed_openbabel_random(seed)
         coordinates, diagnostics = _build_ligand_proxies(
@@ -94,7 +94,7 @@ def _seeded_ob_build_worker(
 ) -> None:
     """Run OBBuilder in a fresh process whose static RNG starts from ``seed``."""
     try:
-        mol._update_topology(clear_conformers=False)
+        mol._update_topology()
         _backend._seed_openbabel_random(seed)
         _ob_build(mol)
         result = BuildWorkerResult(

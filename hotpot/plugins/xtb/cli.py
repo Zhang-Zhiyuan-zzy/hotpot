@@ -456,8 +456,8 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
                 payload=None,
                 report=report,
                 quality_report=quality_report,
-                native_stdout=report.stdout,
-                native_stderr=report.stderr,
+                native_stdout=report.provenance.stdout,
+                native_stderr=report.provenance.stderr,
                 error_type="AcceptanceCheck",
                 error_message=check.message,
                 error_code=f"XTB:{check.name}",
@@ -478,15 +478,15 @@ def _process_work_item(item: _WorkItem) -> _Outcome:
             payload=payload,
             report=report,
             quality_report=quality_report,
-            native_stdout=report.stdout,
-            native_stderr=report.stderr,
+            native_stdout=report.provenance.stdout,
+            native_stderr=report.provenance.stderr,
         )
     except XTBError as error:
         if error.sample_failure_code not in _XTB_FAILURE_CODES:
             raise
         report = _error_report(error)
-        native_stdout = "" if report is None else report.stdout
-        native_stderr = "" if report is None else report.stderr
+        native_stdout = "" if report is None else report.provenance.stdout
+        native_stderr = "" if report is None else report.provenance.stderr
         message = str(error)
         if native_stderr.strip() and native_stderr.strip() not in message:
             message = f"{message}: {native_stderr.strip()}"

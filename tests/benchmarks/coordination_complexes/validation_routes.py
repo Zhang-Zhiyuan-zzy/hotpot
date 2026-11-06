@@ -88,6 +88,7 @@ class RouteExecution:
     proposal_seconds: float
     forcefield_seconds: float
     elapsed_seconds: float
+    quality_level: str
     proposal_artifact: Optional[Mapping[str, object]] = None
 
 
@@ -164,6 +165,7 @@ def execute_provider_route(
         proposal_seconds=proposal_seconds,
         forcefield_seconds=completed - forcefield_started,
         elapsed_seconds=completed - started,
+        quality_level=settings.quality_level,
         proposal_artifact=proposal_artifact,
     )
 
@@ -351,6 +353,7 @@ def execute_whole_complex_route(
         proposal_seconds=proposal_seconds,
         forcefield_seconds=completed - forcefield_started,
         elapsed_seconds=completed - started,
+        quality_level=settings.quality_level,
         proposal_artifact=proposal_artifact,
     )
 

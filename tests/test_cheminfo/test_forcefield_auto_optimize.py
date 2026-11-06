@@ -27,7 +27,6 @@ def _complex_molecule():
 
 def _quality(passed: bool) -> ff.ForceFieldValidationReport:
     return ff.ForceFieldValidationReport(
-        level="standard",
         passed=passed,
         checks=(),
     )
@@ -55,14 +54,12 @@ def _run_report(
     termination_reason: ff.TerminationReason = "converged",
 ) -> ff.ForceFieldRunReport:
     return ff.ForceFieldRunReport(
-        requested_forcefield="UFF",
         effective_forcefield="UFF",
         setup_succeeded=True,
         converged=True,
         epochs_completed=1,
         steps_submitted=100,
         initialization_steps=1,
-        steps_completed=None,
         final_energy=-1.0,
         best_energy=-1.0,
         energy_unit="kJ/mol",
@@ -71,7 +68,6 @@ def _run_report(
         exploded=False,
         quality_report=_quality(passed),
         trajectory=trajectory,
-        convergence_level=ff.ConvergenceLevel.FAST,
         termination_reason=termination_reason,
     )
 
@@ -90,7 +86,6 @@ def _complex_workflow_report(molecule) -> ff.ComplexBuildReport:
     archive = ff.ForceFieldTrajectoryArchive(trajectory)
     optimization = _run_report(True, trajectory=archive)
     return ff.ComplexBuildReport(
-        requested_forcefield="UFF",
         effective_forcefield="UFF",
         build=_diagnostics(),
         optimization=optimization,

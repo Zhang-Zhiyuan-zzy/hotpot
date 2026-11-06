@@ -28,7 +28,7 @@ def _molecule(atomic_numbers, bonds=(), *, implicit_hydrogens=None):
         )
     for begin, end, order in bonds:
         molecule._add_bond(begin, end, bond_order=order)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     return molecule
 
 
@@ -629,7 +629,7 @@ def test_global_gate6_projection_issue_suppresses_all_priority_output():
         bond_kind="dative",
         bond_direction="sideways",
     )
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     _set_payload(
         molecule,
         (_tetrahedral(0, tuple(_atom(row) for row in range(1, 5))),),

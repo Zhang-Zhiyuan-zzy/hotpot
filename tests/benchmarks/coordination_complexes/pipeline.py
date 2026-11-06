@@ -44,7 +44,6 @@ def _infer_cbond(
 
 def _quality_payload(report: object) -> dict[str, object]:
     return {
-        "level": report.level,
         "passed": report.passed,
         "checks": json_value(report.checks),
         "failures": json_value(report.failures),
@@ -93,7 +92,6 @@ class _ForceFieldOutcome:
     optimization: object
     quality_report: object
     trajectory: object
-    requested_forcefield: Optional[str]
     effective_forcefield: str
     build_diagnostics: Optional[object] = None
     routing_report: Optional[object] = None
@@ -148,7 +146,6 @@ def _run_forcefield_backend(
             optimization=optimization_report,
             quality_report=workflow_report.quality_report,
             trajectory=workflow_report.trajectory,
-            requested_forcefield=workflow_report.requested_forcefield,
             effective_forcefield=workflow_report.effective_forcefield,
             build_diagnostics=workflow_report.build,
         )
@@ -164,7 +161,6 @@ def _run_forcefield_backend(
             optimization=optimization_report,
             quality_report=optimization_report.quality_report,
             trajectory=optimization_report.trajectory,
-            requested_forcefield=optimization_report.requested_forcefield,
             effective_forcefield=optimization_report.effective_forcefield,
             routing_report=optimization_report.routing_report,
         )
@@ -475,14 +471,10 @@ def _run_case(
                     optimization=json_value(forcefield_outcome.optimization),
                     routing_report=json_value(routing_report),
                     forcefield={
-                        "requested_forcefield": (
-                            forcefield_outcome.requested_forcefield
-                        ),
                         "effective_forcefield": (
                             forcefield_outcome.effective_forcefield
                         ),
                         "build": json_value(build_diagnostics),
-                        "quality_report": validation,
                     },
                     validation=validation,
                     trajectory=_trajectory_payload(forcefield_outcome.trajectory),

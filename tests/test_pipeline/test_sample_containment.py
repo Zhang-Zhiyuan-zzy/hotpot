@@ -27,7 +27,7 @@ def _quality(*failed_names, severity="error"):
                         atom_indices=(0, 1), message="observed distance")
         for name in failed_names
     )
-    return ForceFieldValidationReport("standard", not failed_names or severity == "warning", checks)
+    return ForceFieldValidationReport(not failed_names or severity == "warning", checks)
 
 
 @dataclass(frozen=True)
@@ -36,14 +36,28 @@ class _FFReport:
     trajectory: None = None
 
 
-@dataclass(frozen=True)
-class _XTBReport:
-    converged: bool = True
-    process_succeeded: bool = True
-    coordinates_committed: bool = True
-    energy_hartree: float = -76.0
-    stdout: str = "native stdout"
-    stderr: str = "native stderr"
+def _xtb_report(*, converged=True, method="gfn2", return_code=0):
+    from hotpot.plugins._harness import NativeProcessResult, ProcessProvenance
+    from hotpot.plugins.xtb.contracts import XTBBackendInfo, XTBMethod, XTBRunReport, XTBTask
+
+    provenance = ProcessProvenance(
+        executable=Path("/fake/xtb"), executable_sha256="a" * 64,
+        argv=("xtb", "input.xyz"), cwd=Path("/fake/xtb-workspace"),
+        return_code=return_code, stdout="native stdout", stderr="native stderr",
+        elapsed_seconds=0.1, artifacts=(),
+    )
+    backend = XTBBackendInfo(
+        provenance.executable, "6.7.1", None, provenance.executable_sha256,
+        NativeProcessResult(("xtb", "--version"), provenance.cwd, 0, "xtb version 6.7.1", "", 0.01),
+        86, 86,
+    )
+    method = XTBMethod(method)
+    return XTBRunReport(
+        backend_info=backend, effective_method=method, task=XTBTask.OPTIMIZE,
+        charge=0, unpaired_electrons=None if method is XTBMethod.GFNFF else 0,
+        converged=converged, artifacts={}, provenance=provenance,
+        energy_hartree=-76.0, coordinates_committed=True,
+    )
 
 
 def _state_projection():
@@ -96,7 +110,7 @@ def _prepare(kind, monkeypatch, tmp_path, *, argv=(), quality=None, errors=None,
             calls.append(record.molecule)
             if index in errors:
                 raise errors[index]
-            return _XTBReport(converged=convergence), state, projection
+            return _xtb_report(converged=convergence), state, projection
 
         monkeypatch.setattr(stage, "_run_record", run)
         monkeypatch.setattr(stage, "_post_check", lambda mol, level: quality)
@@ -114,7 +128,7 @@ def _known_error(kind):
         return ForceFieldSetupError("unavailable"), "FF-SETUP-UNAVAILABLE"
     from hotpot.plugins.xtb.contracts import XTBResultError
 
-    return XTBResultError("unavailable", _XTBReport()), "XTB-RESULT-UNAVAILABLE"
+    return XTBResultError("unavailable", _xtb_report()), "XTB-RESULT-UNAVAILABLE"
 
 
 @pytest.mark.parametrize("kind", ("ff", "xtb"))
@@ -138,11 +152,66 @@ def test_middle_known_failure_continues_to_trailing_success(kind, monkeypatch, t
     assert rows[1]["failure"]["message"] == "unavailable"
     if kind == "xtb":
         assert [row["report_index"] for row in rows] == [0, 1, 2]
-        assert rows[1]["failure"]["native_report"]["stdout"] == "native stdout"
+        assert report["xtb"][rows[1]["report_index"]]["provenance"]["stdout"] == "native stdout"
+        assert "native_report" not in rows[1]["failure"]
         assert "record 1 stdout" in (context.stage_directory / "native.log").read_text()
     else:
         assert "report_index" not in rows[1]
         assert [rows[i]["report_index"] for i in (0, 2)] == [0, 1]
+
+
+@pytest.mark.parametrize("error_type", ("XTBExecutionError", "XTBResultError"))
+def test_xtb_single_unavailable_sample_retains_one_indexed_native_report(error_type, monkeypatch, tmp_path):
+    from hotpot.pipeline.contracts import MolecularPayload, StageStatus
+    from hotpot.plugins.xtb import contracts
+
+    native_failure = error_type == "XTBExecutionError"
+    native_report = _xtb_report(converged=not native_failure, return_code=17 if native_failure else 0)
+    error = getattr(contracts, error_type)("unavailable", native_report)
+    prepared, payload, context, calls = _prepare("xtb", monkeypatch, tmp_path, errors={0: error})
+    result = prepared.execute(MolecularPayload(payload.records[:1]), context)
+
+    assert len(calls) == 1
+    assert result.status is StageStatus.QUALITY_FAILED
+    assert result.payload.records == ()
+    report = result.report
+    assert (report["input_count"], report["attempted_count"], report["output_count"], report["unavailable_count"]) == (1, 1, 0, 1)
+    row, = report["sample_outcomes"]
+    assert row["input_index"] == 0
+    assert row["output_index"] is None
+    assert row["outcome"] == "unavailable"
+    assert row["report_index"] == 0
+    assert row["failure"] == {
+        "code": error.sample_failure_code,
+        "type": error_type,
+        "message": "unavailable",
+    }
+    assert isinstance(report["xtb"], dict)
+    assert report["xtb"]["provenance"]["stdout"] == "native stdout"
+    assert report["xtb"]["provenance"]["stderr"] == "native stderr"
+    assert report["xtb"]["provenance"]["return_code"] == (17 if native_failure else 0)
+    log = (context.stage_directory / "native.log").read_text()
+    assert "record 0 stdout" in log and "native stdout" in log
+    assert "record 0 stderr" in log and "native stderr" in log
+
+
+def test_xtb_summary_preserves_state_binding_and_projection_decision(monkeypatch, tmp_path):
+    prepared, payload, context, _ = _prepare("xtb", monkeypatch, tmp_path)
+    result = prepared.execute(payload, context)
+
+    for record, report in zip(result.payload.records, result.report["xtb"]):
+        assert {"requested_method", "effective_method", "task", "process_succeeded"}.isdisjoint(report)
+        state = record.scientific_state
+        assert report["scientific_state"] == {
+            "facts_identity": state.facts.identity.chemical_identity_digest,
+            "resolution_status": state.scientific_resolution.status.value,
+            "decision_action": state.execution_decision.action.value,
+            "selected_state_identity": state.execution_decision.selected_state_identity.digest,
+        }
+        assert report["backend_projection"] == {
+            "projection_convention": "test-projection",
+            "decision_source": state.execution_decision.source.value,
+        }
 
 
 @pytest.mark.parametrize("kind", ("ff", "xtb"))
@@ -281,8 +350,8 @@ def test_duplicate_content_composes_ff_xtb_by_position_with_persisted_anchor(anc
         index = len(xtb_calls)
         xtb_calls.append(record.molecule)
         if index == 1:
-            raise XTBResultError("middle xTB unavailable", _XTBReport())
-        return _XTBReport(), state, projection
+            raise XTBResultError("middle xTB unavailable", _xtb_report())
+        return _xtb_report(), state, projection
 
     class CBond:
         def prepare(self, spec):
@@ -320,6 +389,12 @@ def test_duplicate_content_composes_ff_xtb_by_position_with_persisted_anchor(anc
     assert (ff_directory / "output.sdf").read_text().count("$$$$") == 3
     assert (xtb_directory / "output.sdf").read_text().count("$$$$") == 2
     assert json.loads((ff_directory / "report.json").read_text())["input_count"] == 4
+    xtb_report = json.loads((xtb_directory / "report.json").read_text())
+    failure_row = xtb_report["sample_outcomes"][1]
+    assert "native_report" not in failure_row["failure"]
+    assert xtb_report["xtb"][failure_row["report_index"]]["provenance"]["stdout"] == "native stdout"
+    manifest = json.loads((results_directory / "manifest.json").read_text())
+    assert manifest["stages"][-1]["report"] == xtb_report
     if anchor == "cbond":
         generated = results_directory / "stages" / "00-cbond"
         assert (generated / "output.sdf").read_text().count("$$$$") == 4
@@ -436,7 +511,7 @@ def test_ff_unavailable_required_metric_saves_defined_geometry_and_path(metric, 
     from hotpot.pipeline.contracts import StageStatus
 
     quality = ForceFieldValidationReport(
-        "strict", False,
+        False,
         (
             AcceptanceCheck("coordinate_shape", True),
             AcceptanceCheck("finite_coordinates", True),

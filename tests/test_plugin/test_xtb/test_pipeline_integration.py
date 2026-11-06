@@ -144,7 +144,7 @@ def test_controlled_pipeline_composes_optional_gfnff_and_gfn2_with_artifacts(
         "xtb"
     ] * len(expected_methods)
     assert [
-        stage["report"]["xtb"]["requested_method"]
+        stage["argv"][1]
         for stage in manifest["stages"]
     ] == expected_methods
     assert all(

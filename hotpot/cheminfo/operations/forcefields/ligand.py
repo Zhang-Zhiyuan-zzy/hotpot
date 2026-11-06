@@ -142,10 +142,7 @@ def _build_ligand_proxies(
         if sampler is not None
         else OpenBabelConformerAdapter(_builder=_ob_build)
     )
-    sampling_request = ConformerSamplingRequest(
-        conformer_count=1,
-        seed=seed,
-    )
+    sampling_request = ConformerSamplingRequest(seed=seed)
     provider_name = (
         "OBBuilder"
         if isinstance(selected_sampler, OpenBabelConformerAdapter)
@@ -464,7 +461,6 @@ def _build_ligand_proxies(
                             selected_candidate.untangling.minimum_piercing_count,
                             _piercing_count(refined_report),
                         ),
-                        resolved=_piercing_count(refined_report) == 0,
                     )
                 refined_piercing_count = _piercing_count(refined_report)
                 refined_quality = evaluate_structure_acceptance_at_checkpoint(

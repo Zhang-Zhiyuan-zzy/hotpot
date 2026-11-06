@@ -369,7 +369,7 @@ def _quality_report(name, *, passed=False, severity="error"):
 
     check = AcceptanceCheck(name, passed, severity=severity, measured=0.1, threshold=0.5,
                             atom_indices=(0, 1), message="observed geometry finding")
-    return ForceFieldValidationReport("strict", passed or severity == "warning", (check,))
+    return ForceFieldValidationReport(passed or severity == "warning", (check,))
 
 
 @pytest.mark.parametrize("error_kind", ("input", "value", "stream", "commit", "unrecognized-code"))
@@ -481,7 +481,8 @@ def test_required_post_check_omits_output_and_preserves_report_and_exact_code(mo
     assert row["status"] == "error"
     assert row["error"]["code"] == f"XTB:{name}"
     assert row["quality_report"]["checks"][0]["name"] == name
-    assert row["xtb_report"]["process_succeeded"] is True
+    assert row["xtb_report"]["provenance"]["return_code"] == 0
+    assert {"requested_method", "work_directory", "argv", "return_code", "stdout", "stderr", "elapsed_seconds", "process_succeeded"}.isdisjoint(row["xtb_report"])
     assert "TOTAL ENERGY" in native_log_path.read_text()
 
 

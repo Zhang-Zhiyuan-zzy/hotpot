@@ -130,7 +130,7 @@ def _link_atoms(mol, assign_bond_order):
         transaction.touch_topology()
         transaction.touch_dependencies()
         perceive_links(mol)
-        mol._update_topology(clear_conformers=False)
+        mol._update_topology()
         if assign_bond_order:
             mol.assign_bond_order()
 

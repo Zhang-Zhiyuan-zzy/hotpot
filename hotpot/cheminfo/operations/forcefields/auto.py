@@ -206,7 +206,6 @@ def _run_native_fast_build_attempt(
         )
     report = _run_ordinary_optimization_attempt(
         working_mol,
-        requested_forcefield=forcefield,
         effective_forcefield=_resolve_complex_forcefield(forcefield),
         algorithm=algorithm,
         epochs=epochs,

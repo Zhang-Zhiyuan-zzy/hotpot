@@ -18,7 +18,7 @@ def _molecule(
         molecule._create_atom(atomic_number=6)
     for first, second in edges:
         molecule._add_bond(first, second, bond_order=1.0)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     return molecule
 
 
@@ -63,7 +63,7 @@ def test_rebuild_is_deterministic_and_independent_of_bond_insertion_order():
     )
 
     first._topology_index = {}
-    first._update_topology(clear_conformers=False)
+    first._update_topology()
     assert _index_signature(first) == _index_signature(second)
 
 
@@ -84,15 +84,15 @@ def test_add_bonds_commits_topology_once(monkeypatch):
     original = molecule._update_topology
     calls = []
 
-    def record(clear_conformers=True):
-        calls.append(clear_conformers)
-        return original(clear_conformers)
+    def record():
+        calls.append("topology")
+        return original()
 
     monkeypatch.setattr(molecule, "_update_topology", record)
     bonds = molecule.add_bonds(((0, 3, 1.0), (0, 2, 1.0), (0, 1, 1.0)))
 
     assert len(bonds) == 3
-    assert calls == [True]
+    assert calls == ["topology"]
     assert [atom.idx for atom in molecule.atoms[0].neighbours] == [1, 2, 3]
 
 
@@ -108,19 +108,19 @@ def test_rebuild_rejects_duplicate_atoms_pairs_and_bond_handles():
     duplicate_atom = _molecule(1)
     duplicate_atom._atoms.append(duplicate_atom.atoms[0])
     with pytest.raises(ValueError, match="same Atom twice"):
-        duplicate_atom._update_topology(clear_conformers=False)
+        duplicate_atom._update_topology()
 
     duplicate_edge = _molecule(2, ((0, 1),))
     duplicate_edge._bonds.append(
         Bond(duplicate_edge.atoms[1], duplicate_edge.atoms[0], bond_order=2.0)
     )
     with pytest.raises(ValueError, match="parallel Bonds"):
-        duplicate_edge._update_topology(clear_conformers=False)
+        duplicate_edge._update_topology()
 
     repeated_handle = _molecule(2, ((0, 1),))
     repeated_handle._bonds.append(repeated_handle.bonds[0])
     with pytest.raises(ValueError, match="Bond twice|parallel"):
-        repeated_handle._update_topology(clear_conformers=False)
+        repeated_handle._update_topology()
 
 
 def test_remove_atom_reindexes_remaining_membership_and_incidence():

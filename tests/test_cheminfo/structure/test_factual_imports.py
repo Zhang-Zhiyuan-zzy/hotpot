@@ -11,7 +11,7 @@ from openbabel import openbabel as ob
 from rdkit import Chem
 
 from hotpot import Atom, Molecule
-from hotpot.cheminfo.operations import conversion
+from hotpot.cheminfo.operations import chemistry, conversion
 
 molecule_owner = importlib.import_module("hotpot.cheminfo.structure.molecule")
 from hotpot.cheminfo.structure._fields import ATOM_SOURCE_CODES, FIELD_INDEX, FIELD_PRESENCE_BITS
@@ -221,7 +221,7 @@ def test_ccdc_fake_boundary_uses_atoms_collection_returns_carrier_and_installs_n
     def forbidden(*args, **kwargs):
         raise AssertionError('CCDC factual import used chemistry')
     monkeypatch.setattr(Atom, 'get_valence', forbidden)
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
+    monkeypatch.setattr(chemistry, '_atom_implicit_proposal', forbidden)
     mol = conversion.mol_from_ccdc_to_hp(source)
     assert normalized == [True]
     assert isinstance(mol, Molecule)

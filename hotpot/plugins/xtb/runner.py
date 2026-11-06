@@ -113,18 +113,10 @@ def _build_report(
     }
     return XTBRunReport(
         backend_info=request.backend_info,
-        requested_method=request.method,
         effective_method=request.method,
         task=request.task,
         charge=request.charge,
         unpaired_electrons=request.unpaired_electrons,
-        work_directory=request.work_directory.resolve(),
-        argv=process_result.argv,
-        return_code=process_result.return_code,
-        stdout=process_result.stdout,
-        stderr=process_result.stderr,
-        elapsed_seconds=process_result.elapsed_seconds,
-        process_succeeded=process_result.return_code == 0,
         converged=(
             process_result.return_code == 0
             and all(name in artifacts for name in _required_artifacts(request))

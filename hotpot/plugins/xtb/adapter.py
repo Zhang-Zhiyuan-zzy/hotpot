@@ -355,7 +355,7 @@ def parse_xtb_artifacts(
     """Parse complete finite xTB results without mutating a molecule."""
     _validate_geometry(expected_geometry)
     try:
-        if not report.process_succeeded:
+        if report.provenance.return_code != 0:
             raise ValueError("xTB report is not a successful native run")
         if report.effective_method is XTBMethod.GFNFF:
             energy, gradient = _parse_gfnff_result(
@@ -386,7 +386,7 @@ def parse_xtb_artifacts(
         if report.task is XTBTask.OPTIMIZE:
             _artifact_path(report, ".xtboptok")
             _artifact_path(report, "xtbopt.log")
-            input_suffix = Path(report.argv[1]).suffix.lower()
+            input_suffix = Path(report.provenance.argv[1]).suffix.lower()
             optimized_path = _artifact_path(
                 report,
                 f"xtbopt{input_suffix}",

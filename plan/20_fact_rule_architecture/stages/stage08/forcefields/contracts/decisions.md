@@ -988,3 +988,109 @@ usable; the original manifest-hash comparator inconclusive status and absence
 of separate memory probes remain. Twelve unchanged native fences and actual
 unchanged MCA evidence are rebound. This permits Stage8C alignment; no later/global
 scientific/performance/native-ABI/package/version/Plan20/Plan12 acceptance.
+
+
+## 2026-11-06 — Approved Python FF result simplification
+
+This owner-approved correction applies the current goal's ordinary-result rule
+at the existing Python force-field result owners. It is an approved migration,
+not a design proposal or a new Stage8B/scientific route. The bounded stage-entry
+record and final integrated evidence remain in the maintained implementation
+log. Raw native and standalone contracts are outside this migration.
+
+Remove eleven field definitions from the existing frozen Python reports:
+
+| Owner | Removed fields | Retained interpretation |
+| --- | --- | --- |
+| `ForceFieldRunReport` | `requested_forcefield`, `steps_completed`, `convergence_level` | Effective force field, submitted work and initialization work, actual observed epochs, selected/terminal numerical observations and termination remain. Exact completed Open Babel steps are unavailable. |
+| `ForceFieldValidationReport` | `level` | Checks, passed state and measured metrics remain; the requested acceptance level stays at the execution input. |
+| `RingUntanglingReport` | `attempt_limit`, `resolved` | Actual attempts and initial/final/minimum piercing counts remain. The caller already owns its limit; zero final piercings conveys the removed derived predicate. |
+| `CoordinationBondRestorationReport` | `attempt_limit`, `bond_count` | Actual attempts, relocated/infeasible metals, forced bonds, scan observations, warnings and measured duration remain. The input owns its budget and original bond count. |
+| `Build3DReport` | `atom_count` | Added hydrogen count and the build geometry's quality remain. Molecule membership owns the current atom count. |
+| `ForceFieldWorkflowReport` | `requested_forcefield` | Effective force field, build and optimization results remain. Subclasses inherit this removal. |
+| `ForceFieldSetupReport` | `requested_forcefield` | Effective force field and exact setup/workflow failure stage remain. |
+
+These are intentional Python constructor and field-access breaks. Positional
+arguments following a removed field shift to the current dataclass order;
+maintained writers and fixtures use that order or explicit keyword arguments.
+There are no compatibility properties, aliases, alternate report implementations,
+new public DTOs, dataclass additions or dataclass removals. Error producers,
+worker payloads and native-result translators stop forwarding fields used only
+to populate the removed results. Actual acceptance, convergence, repair limits,
+work budgets, random seeds and numerical algorithms remain active and unchanged.
+
+Remove the proven ignored `candidate_count` keyword from `Molecule.build3d`,
+`build_complex3d`, `complexes_build` and `build_and_optimize`, including their
+documentation and forwarding. The private conformer sampling request is seed
+only; the ligand caller constructs `ConformerSamplingRequest(seed=seed)`.
+The real native `ETKDGOptions.conformer_count` still controls native sampling
+and is not removed or repurposed.
+
+Keep `ForceFieldWorkflowReport.quality_report` for direct Python consumers.
+For optimized workflows the existing standard `stage.json_value` and maintained
+coordination-benchmark serializer omit its duplicate top-level JSON field. Final
+selected-frame quality is serialized once at `optimization.quality_report`.
+`build.quality_report` remains because it describes the initial build geometry.
+A build-only workflow with `optimization=None` retains its top-level quality.
+This changes the maintained JSON location without adding an envelope, schema,
+runtime switch or user option; trajectory format5 and trajectory frame meaning
+are unchanged. Connected scientific-comparison readers must select the nested
+optimization result when present and the workflow itself for build-only records.
+
+The scientific recorder explicitly writes `steps_completed=None` at its evidence
+owner. The performance work comparator likewise records unknown completed work
+as `None` when a submitted-step record lacks it; unknown is distinct from a
+measured zero. Benchmark `QualityEvidence.level` remains an execution-evidence
+field sourced from `RouteExecution.quality_level`, which records the existing
+settings value. A08 still requires the configured standard level and the same
+checks; removal of the public result echo cannot weaken that gate.
+
+Preserve effective method attribution, energies and gradients with units,
+selected versus terminal frame distinctions, failure and worker identity,
+coverage, partial-placement/repair findings, rollback, topology, scientific
+monitor content, finite observations and original sample denominators. No
+C++ source, native ABI, standalone result, trained model or scientific acceptance
+threshold changes. Validation records distinguish current CP311 source and
+existing native-binary use from installed-package, other-Python, rebuild,
+corpus and performance acceptance. Final counts and retained original failures
+are bound by the owning integrated execution-log entry; this section alone
+closes no delivery or global gate.
+
+The root's timing review additionally authorizes measuring the existing ordinary
+`_native_optimize` adapter invocation with `perf_counter` at
+`_OpenBabelOptimizer.optimize`. Successful ordinary runs now populate their actual
+wall-clock duration, including argument preparation and native transport but
+excluding subsequent trajectory translation. Complex routes retain their native
+Stage3 duration. The float schema and arithmetic consumers remain unchanged; no
+unmeasured duration is fabricated as zero. A deterministic timer regression
+covers both positive and genuinely measured zero durations. This supersedes the
+initial optimizer-source freeze, and final FF tests and runtime smoke must bind
+the revised bytes.
+
+Current CP311 source qualification for this bounded migration is the guarded
+`ff/run_source_checks.py attempt03` run under the
+`/tmp/hotpot_plan20/short/output-simplification-20261106/` evidence root. The
+full Stage8B existing-Python selection, current FF contract tests and connected
+benchmark/scientific/performance-report tests cover50files and840nodes:
+838passed,2skipped,0failed,0errors in43.48pytest seconds. The skips are the
+opt-in phosphorus scientific-boundary fixture and deep Eu high-compute fixture.
+Exact subprocess argv, CP311 interpreter, per-process loader/thread overrides,
+source/native/test hashes, imported module origins, timing and original JUnit/log
+are in `ff/source-attempt03/evidence.json` and its companion artifacts. All
+bound source/native files remained unchanged during the run. The two serializers
+preserve initial-build and final-selected quality separately; nonstandard
+configured levels still fail A08; scientific comparison retains both optimized
+and build-only/direct quality; unavailable completed steps remain unknown.
+
+The separate guarded final runtime smoke passes actual organic and coordination
+`build_and_optimize` routes against the same production freeze after all producer
+fixes and the timing correction. It records actual positive ordinary-adapter and
+nativeStage3 durations, finite attributed energies and the existing partial-
+placement warning. Its budgets1 and qualityoff support plumbing/schema only,
+not scientific-quality or cost acceptance. Original stdin/spawn, stale writer,
+loader-resolution, unguarded pytest-launcher and stale fixture failures remain
+retained with their corrections. No production workaround was introduced for
+the temporary harness failures. Installed-package qualification, other-Python
+versions, native rebuild/ABI, opt-in scientific/corpus execution, comparable
+performance and global delivery remain separate owning gates; these source
+results close none of those obligations.

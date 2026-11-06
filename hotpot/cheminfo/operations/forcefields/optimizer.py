@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from time import perf_counter
 from typing import Optional, cast
 
 import numpy as np
@@ -34,7 +35,6 @@ class _OpenBabelOptimizer:
 
     def __init__(
         self,
-        requested_forcefield: Optional[str],
         effective_forcefield: str,
         *,
         algorithm: OptimizationAlgorithm,
@@ -63,7 +63,6 @@ class _OpenBabelOptimizer:
             raise ValueError(
                 "vdw_cutoff_end must not be smaller than vdw_cutoff_start"
             )
-        self.requested_forcefield = requested_forcefield
         self.effective_forcefield = effective_forcefield
         self.algorithm = algorithm
         self.epochs = epochs
@@ -120,6 +119,7 @@ class _OpenBabelOptimizer:
 
         stopping = self.stopping_criteria
         native = _native_module()
+        started = perf_counter()
         try:
             result = _native_optimize(
                 mol,
@@ -161,10 +161,11 @@ class _OpenBabelOptimizer:
         except native.ForceFieldSetupError as error:
             _raise_forcefield_setup_error(
                 error,
-                requested_forcefield=self.requested_forcefield,
                 effective_forcefield=self.effective_forcefield,
                 stage=error.stage,
             )
+
+        elapsed_seconds = perf_counter() - started
 
         trajectory_frame_indices: list[int] = []
         if records_trajectory:
@@ -209,14 +210,12 @@ class _OpenBabelOptimizer:
                 )
 
         return ForceFieldRunReport(
-            requested_forcefield=self.requested_forcefield,
             effective_forcefield=self.effective_forcefield,
             setup_succeeded=True,
             converged=result.converged,
             epochs_completed=result.epochs_completed,
             steps_submitted=result.steps_submitted,
             initialization_steps=result.initialization_steps,
-            steps_completed=None,
             final_energy=result.final_energy,
             best_energy=result.best_energy,
             energy_unit=result.energy_unit,
@@ -237,14 +236,13 @@ class _OpenBabelOptimizer:
                 result.termination_reason,
             ),
             terminal_converged=result.terminal_converged,
-            convergence_level=self.convergence_level,
+            elapsed_seconds=elapsed_seconds,
         )
 
 
 def _optimize_working_mol(
     working_mol: "Molecule",
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
     algorithm: OptimizationAlgorithm,
     epochs: int,
@@ -263,7 +261,6 @@ def _optimize_working_mol(
     convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL,
 ) -> ForceFieldRunReport:
     optimizer = _OpenBabelOptimizer(
-        requested_forcefield,
         effective_forcefield,
         algorithm=algorithm,
         epochs=epochs,

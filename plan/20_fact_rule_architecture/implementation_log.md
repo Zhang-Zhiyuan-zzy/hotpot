@@ -11928,3 +11928,118 @@ ad7bc282ea5bed5d5fd6796948c84926c6f4b74ddf4265051dae5d1fdc0c1d99).
 The maintained field assessment is stages/stage08/forcefields/
 build3d_field_assessment.md. Source diff/whitespace and final record validation
 precede the coherent business commit and normal push; root retains acceptance.
+
+
+### 2026-11-06 — Owner-authorized cross-interface result and facade simplification entry
+
+At16c01664 the tracked tree is clean and the coordinate/query refinement is
+pushed. The owner now explicitly requests audit AND implementation of analogous
+issues beyond build3d. Extend the prior assessment into actual public result,
+serialization, no-op argument and unused-forwarder consolidation across the
+chemical operations and connected workflows, including standalone FF, CBond,
+MCA, official xTB, scientific-state and carrier/query seams. This authorization
+supersedes the previous slice's decision to leave output cleanup unimplemented;
+P20-D047 is now an implementation item, not an excuse to stop at inventory.
+
+Apply goal/governance/stage/validation with focused main-plan/accepted-contract
+alignment. Keep chemical values/algorithms, actual attempts and local failures,
+selected/terminal-frame distinctions, unavailable-versus-zero work, mapping,
+source/currentness/atomicity, native ABI, trained features and trajectory format5.
+Remove known invocation-input repetition, unavailable placeholders, strictly
+redundant ordinary-result fields and proven unused forwarding aliases only with
+producer/reader/JSON/test/document migration. Serialization is a real consumer;
+search absence alone is not proof of nonuse. Calibrated/actual observations and
+necessary internal control/persistence metadata are not generic chatter.
+
+Use local agents only: a Sol-max writer owns FF/global-output contract design,
+implementation and narrow main-plan/API amendments; two disjoint read-only
+inventories cover other report owners and carrier/query facades, with follow-on
+writers receiving exclusive ownership after the shared design decision. Root
+owns boundaries, final decisions, consumer integration, CP311 tests, installed
+behavior, maintained summary/debt disposition and small business commits/push.
+No external helper, nested delegation or shared environment/model/config change.
+Temps live under /tmp/hotpot_plan20/short/output-simplification-20261106. Preserve
+unrelated untracked work, including the excluded historical rescore note. Before
+claiming delivery, freeze changed sources, run affected contracts/business checks,
+retain failed attempts, and distinguish reused-native/installed evidence from
+new native/science/model evidence. No universal unused-code or full-plan claim.
+
+### 2026-11-06 — Connected report-owner decisions during simplification
+
+The same owner-authorized slice now includes the Sol-max-reviewed xTB process
+consolidation: existing `ProcessProvenance` owns argv, return code, native
+streams, elapsed time and work directory. Remove the eight repeated/derived
+`XTBRunReport` fields, keep effective-method attribution, and migrate parser,
+CLI, stage, benchmark and actual test readers together. Preserve separate process
+failure and geometry convergence, finite failed observations, artifacts,
+coordinate commit/rollback, cleanup and stable sample denominators. No native,
+SDF stream, model-feature or scientific-state contract is changed.
+
+The FF key review also found that ordinary optimization never populated its
+elapsed-time field, emitting default0 as though measured. The accepted bounded
+repair measures the existing native adapter call with `perf_counter` at its
+Python owner. NativeStage3 retains its existing measurement boundary. Migrate
+the scientific report comparator's final-quality reader alongside serializers;
+no monitor or unknown-work accounting may disappear because nesting changed.
+These are connected migration corrections within the current objective, not
+new chemistry algorithms, extra guards or a reopened full-stage route.
+
+
+### 2026-11-06 — Cross-interface simplification validated and D047 closed
+
+Completed the owner-authorized bounded migration from16c01664. FF removes eleven
+report-field definitions, the ignored candidate_count from all four public
+builders and the unused one-placement request count. Final optimized JSON owns
+quality at optimization.quality_report; Python access and initial-build quality
+remain. Evidence recorders preserve unknown completed work, configured A08 levels
+and monitor observations. Ordinary optimizer duration is now actually measured
+around its existing native-adapter call; nativeStage3 timing is unchanged.
+
+Connected CBond input echo and xTB success/failure duplication are removed.
+XTBRunReport has17fields rather than25; existing ProcessProvenance owns native
+process facts. All connected CLI/pipeline/benchmark/readers are migrated. MCA
+serialization constructs its unchanged five-key schema and nested lists once.
+Carrier cleanup removes three unused/bouncing private methods and the inactive
+clear_conformers argument, retaining H/topology/stereo/source/rollback behavior.
+Molecule.write now forwards documented ob_opt; actual isotope-SMILES writing
+confirms its effect without mutating chemical facts. Conformer contract text now
+matches existing immutable coordinate storage. There is no new DTO, compatibility
+alias, scientific algorithm/default-state change, native ABI, feature encoding or
+trajectory/SDF-format change.
+
+Actual hp-usage CP311 source: carrier28-module selection1080passed/3known aromatic
+xfails; FF50-module selection838passed/2opt-in skips; full affected nonFF selection
+443passed/10external skips. Groups overlap and are not a summed unique-test total.
+Actual commands are the subprocess argv/cwd/environment in the indexed carrier,
+FF and nonFF receipts. Final freezes match current source. Carrier-owned bytes
+and its28test files stayed fixed; seven later FF/xTB edits receive their final
+owning suites and installed qualification. Original loader, recursive-launcher,
+stale-fixture and copied-test-support failures remain preserved and classified.
+No recursive-launcher observation or unexecuted tier is counted as a pass.
+
+A privately assembled wheel with six unchanged native modules built/installed
+successfully. Outside-checkout installed selection:291initial passes plus the
+single missing-benchmark-support case after repair=292distinct passes on the same
+wheel/site. No product assertion was changed; all production Python/natives
+match, with only later commands/ff.md documentation differing from the snapshot.
+Actual installed UFF→GFN-FF→GFN2 water completed in0.435800s; both xTB stages
+converged with finite geometry and preserved atomic order. No charge/UHF/state
+overrides were supplied. Imported Open Babel charge facts retained precedence;
+automatic charge0 and GFN2 UHF0 were used. Scientific resolution remains unresolved
+rather than being promoted to proven truth. Source CC and coordination Zn builder
+smokes also returned; tiny budgets/qualityoff retain their limited plumbing scope,
+high finite coordination energy and placement warning.
+
+Root reviewed the final producer/consumer diff, state/cleanup boundaries, work
+and unit attribution, final source/native/wheel bindings and actual numerical
+observations. P20-D047 is CLOSED for this coordinated Python migration. The
+integrated report and checkpoint are stages/stage12/public-output-simplification/.
+Exact commands, source/native/wheel identities, origins, original logs/JUnit,
+failure dispositions and actual workflow artifacts are archived at
+.plan20-artifacts/20261106/output-simplification/output-simplification-evidence.tar.gz
+(166members,7524983bytes,SHA256
+3b47ba2a530b5fc4a39a88c26d009f59601751865a534341fd85d2e5731220e9).
+No clean-native/ABI, other-version, full187/182 cohort, CBond/MCA inference,
+report-size, comparative performance or global-plan completion claim follows.
+The business commit carries related tests/docs and this disposition; its Git
+identity belongs in the next normal update, without a bookkeeping-only commit.

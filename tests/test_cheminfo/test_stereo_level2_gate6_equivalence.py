@@ -38,7 +38,7 @@ def _molecule(
         )
     for begin, end, order in bonds:
         molecule._add_bond(begin, end, bond_order=order)
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     return molecule
 
 
@@ -432,7 +432,7 @@ def _dative_direction_molecule(*, unknown_direction=False):
         bond_kind="dative",
         bond_direction="atom2_to_atom1",
     )
-    molecule._update_topology(clear_conformers=False)
+    molecule._update_topology()
     _set_payload(
         molecule,
         (_tetrahedral(0, tuple(_atom(row) for row in range(1, 5))),),

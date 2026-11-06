@@ -62,6 +62,7 @@ def test_process_and_result_errors_preserve_raw_report(error_type, code):
 @pytest.fixture
 def isolated_workflow(monkeypatch, tmp_path):
     """Use actual source checks/transactions around a stubbed external run."""
+    from hotpot.plugins._harness import ProcessProvenance
     mol = Molecule()
     mol.create_atom(atomic_number=6)
     mol.create_atom(atomic_number=6)
@@ -77,21 +78,16 @@ def isolated_workflow(monkeypatch, tmp_path):
     backend = SimpleNamespace()
     report = XTBRunReport(
         backend_info=backend,
-        requested_method=XTBMethod.GFN2_XTB,
         effective_method=XTBMethod.GFN2_XTB,
         task=XTBTask.OPTIMIZE,
         charge=0,
         unpaired_electrons=0,
-        work_directory=tmp_path,
-        argv=("stub-xtb",),
-        return_code=0,
-        stdout="raw stdout",
-        stderr="raw stderr",
-        elapsed_seconds=0.1,
-        process_succeeded=True,
         converged=True,
         artifacts={},
-        provenance=object(),
+        provenance=ProcessProvenance(
+            tmp_path / "xtb", "a" * 64, ("stub-xtb",), tmp_path,
+            0, "raw stdout", "raw stderr", 0.1, (),
+        ),
     )
     parsed = XTBParsedResult(
         energy_hartree=-1.0,
@@ -179,8 +175,8 @@ def test_parse_failure_retains_named_result_code_report_and_cause(isolated_workf
     assert caught.value.sample_failure_code == "XTB-RESULT-UNAVAILABLE"
     assert caught.value.__cause__ is cause
     assert str(caught.value) == str(cause)
-    assert caught.value.report.stdout == "raw stdout"
-    assert caught.value.report.stderr == "raw stderr"
+    assert caught.value.report.provenance.stdout == "raw stdout"
+    assert caught.value.report.provenance.stderr == "raw stderr"
     assert caught.value.report.scientific_state_identity is state.scientific_state_identity
     np.testing.assert_array_equal(mol.coordinates, original)
 

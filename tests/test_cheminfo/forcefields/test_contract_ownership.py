@@ -275,7 +275,7 @@ def test_b3d_moved_values_and_operation_classes_cold_pickle_at_actual_owners():
         BondTopologyRevision(0, (BondTopology((0, 1), 1.0, "single"),)),
         CoordinationEnvironment(0, (1,), 1, 30, 2, (7,), ((1,),)),
         ForceFieldFrame(0, TrajectoryStage.LIGAND_BUILD, TrajectoryEvent.INITIAL, 0, 0),
-        ff.Build3DReport(2, 1, ff.ForceFieldValidationReport("basic", True, ())),
+        ff.Build3DReport(1, ff.ForceFieldValidationReport(True, ())),
     )
     for cls in classes:
         assert getattr(ff, cls.__name__) is cls
@@ -296,7 +296,7 @@ assert values[0].symbol == 'C'
 assert values[1].bonds[0].atom_indices == (0, 1)
 assert values[2].chelate_groups == ((1,),)
 assert values[3].stage.value == 'ligand_build'
-assert values[4].atom_count == 2
+assert not hasattr(values[4], 'atom_count')
 assert values[4].added_hydrogen_count == 1
 assert values[4].quality_report.passed
 assert 'hotpot.cheminfo.forcefields' not in sys.modules
@@ -318,3 +318,48 @@ def test_retired_b3d_pickle_paths_have_no_migration_loader(legacy_module, name):
     payload = f"chotpot.cheminfo.forcefields.{legacy_module}\n{name}\n.".encode()
     with pytest.raises(ModuleNotFoundError):
         pickle.loads(payload)
+
+
+@pytest.mark.parametrize("serializer", ("stage", "benchmark"))
+def test_workflow_json_keeps_each_geometry_quality_at_its_result_owner(serializer):
+    if serializer == "stage":
+        from hotpot.cheminfo.operations.forcefields.stage import json_value
+    else:
+        from tests.benchmarks.coordination_complexes.io import json_value
+
+    initial_quality = ff.ForceFieldValidationReport(
+        passed=False,
+        checks=(ff.AcceptanceCheck("initial_geometry", False),),
+    )
+    final_quality = ff.ForceFieldValidationReport(
+        passed=True,
+        checks=(ff.AcceptanceCheck("selected_geometry", True),),
+    )
+    build = ff.Build3DReport(added_hydrogen_count=2, quality_report=initial_quality)
+    optimization = ff.ForceFieldRunReport(
+        effective_forcefield="UFF", setup_succeeded=True, converged=False,
+        epochs_completed=1, steps_submitted=7, initialization_steps=1,
+        final_energy=12.0, best_energy=10.0, energy_unit="kJ/mol",
+        rms_gradient=0.1, max_gradient=0.2, exploded=False,
+        quality_report=final_quality,
+    )
+    workflow = ff.BuildAndOptimizeReport(
+        effective_forcefield="UFF", build=build, optimization=optimization,
+        quality_report=final_quality,
+    )
+
+    payload = json_value(workflow)
+
+    assert workflow.quality_report is optimization.quality_report
+    assert "quality_report" not in payload
+    assert payload["build"]["quality_report"]["checks"][0]["name"] == "initial_geometry"
+    assert payload["optimization"]["quality_report"]["checks"][0]["name"] == "selected_geometry"
+    assert payload["optimization"]["best_energy"] == 10.0
+    assert payload["optimization"]["final_energy"] == 12.0
+    assert "trajectory" not in payload
+
+    build_only = ff.ForceFieldWorkflowReport(
+        effective_forcefield="UFF", build=build, optimization=None,
+        quality_report=initial_quality,
+    )
+    assert json_value(build_only)["quality_report"]["checks"][0]["name"] == "initial_geometry"

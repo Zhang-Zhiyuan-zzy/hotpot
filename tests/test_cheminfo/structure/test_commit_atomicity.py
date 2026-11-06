@@ -9,6 +9,7 @@ import pytest
 
 from hotpot import Atom, Molecule
 from hotpot.cheminfo.stereo import StereoPayload, get_stereo_payload
+from hotpot.cheminfo.operations import chemistry
 from hotpot.cheminfo.structure._commit import (
     _native_fail_after, _FactTransaction, _commit_atom_facts, _commit_atom_sparse, _commit_bond_facts,
     _commit_molecular_declarations, _commit_stereo, _current_transaction,
@@ -130,7 +131,7 @@ def test_bond_endpoint_failure_rolls_back_bond_and_prior_endpoint(monkeypatch):
     before_bond = bond.attrs.tobytes(), bond.bond_kind
     def forbidden(atom):
         raise AssertionError('Bond publication must not execute an endpoint H rule')
-    monkeypatch.setattr(Atom, '_calc_implicit_hydrogens', forbidden)
+    monkeypatch.setattr(chemistry, '_atom_implicit_proposal', forbidden)
     # The second real seed store fails after the Bond and a prior seed changed.
     with _native_fail_after('seed_add', occurrence=2), pytest.raises(KeyboardInterrupt, match='native fact store'):
         mol.bonds[0].bond_order = 2

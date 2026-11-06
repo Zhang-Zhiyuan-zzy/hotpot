@@ -144,6 +144,18 @@ def test_single_frame_option_and_file_return_overwrite_behavior(tmp_path):
     assert _facts(mol) == before
 
 
+def test_molecule_write_applies_openbabel_options_without_changing_facts():
+    mol = read_mol('[13CH4]', 'smi')
+    before = _facts(mol)
+    options = {'i': None}
+
+    assert '13' in mol.write(fmt='smi')
+    assert '13' not in mol.write(fmt='smi', ob_opt=options)
+    assert '13' in mol.write(fmt='smi', ob_opt=None)
+    assert options == {'i': None}
+    assert _facts(mol) == before
+
+
 def test_plugin_registry_order_kwargs_precedence_and_decorator_return_are_preserved(monkeypatch):
     fmt = 'stage7a-contract'
     monkeypatch.setitem(io.MolWriter._plugins, fmt, {})

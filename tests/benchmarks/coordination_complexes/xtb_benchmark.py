@@ -363,7 +363,6 @@ def _run_report_payload(
             "revision": report.backend_info.revision,
             "executable_sha256": report.backend_info.executable_sha256,
         },
-        "requested_method": report.requested_method.value,
         "effective_method": report.effective_method.value,
         "task": report.task.value,
         "charge": report.charge,
@@ -379,10 +378,9 @@ def _run_report_payload(
             else report.facts_identity.chemical_identity_digest
         ),
         "projection_convention": report.projection_convention,
-        "argv": report.argv,
-        "return_code": report.return_code,
-        "native_elapsed_seconds": report.elapsed_seconds,
-        "process_succeeded": report.process_succeeded,
+        "argv": report.provenance.argv,
+        "return_code": report.provenance.return_code,
+        "native_elapsed_seconds": report.provenance.elapsed_seconds,
         "converged": report.converged,
         "energy_hartree": report.energy_hartree,
         "gradient_norm": report.gradient_norm,
@@ -396,9 +394,9 @@ def _run_report_payload(
 def _write_native_log(path: Path, report: XTBRunReport) -> None:
     path.write_text(
         "=== stdout ===\n"
-        + report.stdout.rstrip()
+        + report.provenance.stdout.rstrip()
         + "\n=== stderr ===\n"
-        + report.stderr.rstrip()
+        + report.provenance.stderr.rstrip()
         + "\n",
         encoding="utf-8",
     )

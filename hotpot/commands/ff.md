@@ -290,7 +290,7 @@ hard-fails; its presence does not imply successful optimization.
 ## JSON report
 
 `--report FILE` writes a machine-readable JSON document with ordered
-per-input execution status, requested and effective backend information,
+per-input execution status and effective force-field information,
 energies in kJ/mol where available, quality results, warnings, and failure
 diagnostics:
 
@@ -299,6 +299,18 @@ $ hotpot ff inputs/*.mol2 \
     --report reproduce/ff-report.json \
     -o optimized.sdf
 ```
+
+For a build-plus-optimization workflow, final quality checks and measurements
+are stored at `forcefield_report.optimization.quality_report`. A build-only
+workflow keeps `forcefield_report.quality_report`; standalone optimization keeps
+its own `forcefield_report.quality_report`. Initial-build quality, when present,
+stays under `forcefield_report.build.quality_report` because it describes the
+initial frame. Python workflow objects still expose `report.quality_report`.
+Reports retain the effective force field, actual work, energy/gradient units,
+selected/terminal-frame observations and failures. Requested force field,
+convergence/validation levels, configured attempt limits, derived counts/flags
+and an unavailable completed-step placeholder are omitted. Open Babel does not
+expose exact completed steps; submitted work is not a completed-step count.
 
 The report is separate from the structure payload. JSON numbers are always
 finite JSON values; unavailable measurements are represented as `null`, never

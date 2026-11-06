@@ -338,7 +338,6 @@ def _optimization_options(
 def _native_setup_error(
     error: "_ob_native.ForceFieldSetupError",
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
     diagnostics: Optional[ComplexBuildDiagnostics] = None,
 ) -> ForceFieldSetupError:
@@ -346,7 +345,6 @@ def _native_setup_error(
     return ForceFieldSetupError(
         str(error),
         ForceFieldSetupReport(
-            requested_forcefield=requested_forcefield,
             effective_forcefield=effective_forcefield,
             stage=error.stage,
             workflow_stage=cast(
@@ -397,18 +395,14 @@ def _native_optimization_report(
     working_mol: "Molecule",
     result: ComplexOptimizationResult,
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
-    convergence_level: ConvergenceLevel,
     quality_level: AcceptanceLevel,
     topology_reference: TopologyReference,
     quality_thresholds: Optional[StructureAcceptanceThresholds],
 ) -> ForceFieldRunReport:
     report = forcefield_run_report(
         result,
-        requested_forcefield=requested_forcefield,
         effective_forcefield=effective_forcefield,
-        convergence_level=convergence_level,
     )
     for message in native_warning_messages(result.warning_codes):
         warnings.warn(message, GeometryQualityWarning, stacklevel=3)
@@ -436,9 +430,7 @@ def _complete_native_optimization(
     session_input: ComplexSessionInput,
     result: ComplexOptimizationResult,
     *,
-    requested_forcefield: Optional[str],
     effective_forcefield: str,
-    convergence_level: ConvergenceLevel,
     quality_level: AcceptanceLevel,
     topology_reference: TopologyReference,
     quality_thresholds: Optional[StructureAcceptanceThresholds],
@@ -449,9 +441,7 @@ def _complete_native_optimization(
     return _native_optimization_report(
         working_mol,
         result,
-        requested_forcefield=requested_forcefield,
         effective_forcefield=effective_forcefield,
-        convergence_level=convergence_level,
         quality_level=quality_level,
         topology_reference=topology_reference,
         quality_thresholds=quality_thresholds,
@@ -568,9 +558,7 @@ def _complexes_build_workflow(
         optimization_report = _native_optimization_report(
             prepared.mol,
             native_result.optimization,
-            requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
-            convergence_level=convergence_level,
             quality_level=quality_level,
             topology_reference=topology_reference,
             quality_thresholds=quality_thresholds,
@@ -589,7 +577,6 @@ def _complexes_build_workflow(
             )
         error = _native_setup_error(
             native_error,
-            requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
             diagnostics=prepared.diagnostics,
         )
@@ -634,7 +621,6 @@ def _complexes_build_workflow(
         trajectory=trajectory_archive,
     )
     report = ComplexBuildReport(
-        requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         build=prepared.diagnostics,
         optimization=optimization_report,
@@ -684,7 +670,6 @@ def _build3d_workflow(
     if not quality_report.passed:
         raise GeometryQualityError(quality_report)
     report = Build3DReport(
-        atom_count=len(working_mol.atoms),
         added_hydrogen_count=len(working_mol.hydrogens) - initial_hydrogens,
         quality_report=quality_report,
     )
@@ -750,7 +735,6 @@ def optimize(
     try:
         report = _run_ordinary_optimization_attempt(
             working_mol,
-            requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
             algorithm=algorithm,
             epochs=epochs,
@@ -883,7 +867,6 @@ def _build_complex3d_workflow(
     except _native_module().ForceFieldSetupError as native_error:
         error = _native_setup_error(
             native_error,
-            requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
             diagnostics=prepared.diagnostics,
         )
@@ -937,7 +920,6 @@ def _build_complex3d_workflow(
         ),
     )
     report = ComplexBuildReport(
-        requested_forcefield=forcefield,
         effective_forcefield=effective_forcefield,
         build=prepared.diagnostics,
         optimization=None,
@@ -952,7 +934,6 @@ def build_complex3d(
     mol: "Molecule",
     forcefield: Optional[str] = None,
     *,
-    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -968,16 +949,7 @@ def build_complex3d(
     trajectory_start: TrajectoryStart = TrajectoryStart.COORDINATION_RESTORATION,
     trajectory_path: Optional[TrajectoryPath] = None,
 ) -> ComplexBuildReport:
-    """Build ligand proxies and restore the complete complex topology.
-
-    ``candidate_count`` is reserved and currently has no effect.  The current
-    workflow builds one ligand starting geometry.  A future multi-conformer
-    implementation will generate independent starting conformers, optimize
-    and gate them uniformly, deduplicate or cluster them by geometry, rank
-    them using topology, geometry, and energy evidence, and refine the
-    selected conformer.
-    """
-    _ = candidate_count
+    """Build ligand proxies and restore the complete complex topology."""
     return _build_complex3d_workflow(
         mol,
         forcefield,
@@ -1073,9 +1045,7 @@ def optimize_complex(
             working_mol,
             session_input,
             native_result,
-            requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
-            convergence_level=convergence_level,
             quality_level=quality_level,
             topology_reference=topology_reference,
             quality_thresholds=quality_thresholds,
@@ -1084,7 +1054,6 @@ def optimize_complex(
     except _native_module().ForceFieldSetupError as native_error:
         error = _native_setup_error(
             native_error,
-            requested_forcefield=forcefield,
             effective_forcefield=effective_forcefield,
         )
         _preserve_failed_trajectory(
@@ -1222,7 +1191,6 @@ def _build_and_optimize_workflow(
     )
     _commit_working_copy(mol, working_mol, source=source)
     return BuildAndOptimizeReport(
-        requested_forcefield=optimization_report.requested_forcefield,
         effective_forcefield=optimization_report.effective_forcefield,
         build=build_report,
         optimization=optimization_report,
@@ -1238,7 +1206,6 @@ def complexes_build(
     algorithm: OptimizationAlgorithm = "conjugate",
     epochs: int = 100,
     steps_per_epoch: int = 100,
-    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -1263,16 +1230,7 @@ def complexes_build(
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
 ) -> ComplexBuildReport:
-    """Build, optimize, validate, and atomically commit a complete complex.
-
-    ``candidate_count`` is reserved and currently has no effect.  The current
-    workflow builds one ligand starting geometry.  A future multi-conformer
-    implementation will generate independent starting conformers, optimize
-    and gate them uniformly, deduplicate or cluster them by geometry, rank
-    them using topology, geometry, and energy evidence, and refine the
-    selected conformer.
-    """
-    _ = candidate_count
+    """Build, optimize, validate, and atomically commit a complete complex."""
     return _complexes_build_workflow(
         mol,
         forcefield,
@@ -1327,7 +1285,6 @@ def build_and_optimize(
     increasing_vdw: bool = False,
     vdw_cutoff_start: float = 0.0,
     vdw_cutoff_end: float = 12.5,
-    candidate_count: Optional[int] = None,
     max_attempts: int = 50,
     candidate_warmup_steps: int = 500,
     candidate_score_steps: int = 1000,
@@ -1337,16 +1294,7 @@ def build_and_optimize(
     coordination_relaxation_steps: int = 100,
     complex_untangling_attempts: int = 30,
 ) -> ForceFieldWorkflowReport:
-    """Build and optimize through the organic or complex workflow.
-
-    ``candidate_count`` is reserved and currently has no effect.  The current
-    complex workflow builds one ligand starting geometry.  A future
-    multi-conformer implementation will generate independent starting
-    conformers, optimize and gate them uniformly, deduplicate or cluster them
-    by geometry, rank them using topology, geometry, and energy evidence, and
-    refine the selected conformer.
-    """
-    _ = candidate_count
+    """Build and optimize through the organic or complex workflow."""
     return _build_and_optimize_workflow(
         mol,
         forcefield,

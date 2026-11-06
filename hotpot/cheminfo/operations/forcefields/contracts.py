@@ -111,7 +111,6 @@ class OptimizationAttemptStatus(str, Enum):
 class ForceFieldValidationReport:
     """Acceptance result for coordinates, topology, and force-field evidence."""
 
-    level: AcceptanceLevel
     passed: bool
     checks: Tuple[AcceptanceCheck, ...]
     metrics: Mapping[str, ForceFieldDiagnosticValue] = field(default_factory=dict)
@@ -169,24 +168,24 @@ class ForceFieldRunReport:
     gradient initialization itself takes a step).  Therefore
     ``steps_submitted`` records the number passed to ``TakeNSteps`` and
     ``initialization_steps`` records the first steps performed by conjugate
-    gradient initialization. ``steps_completed`` remains ``None`` rather than
-    claiming how many submitted steps Open Babel completed before stopping.
+    gradient initialization. Exact completed steps are unavailable; submitted
+    steps do not claim how many Open Babel completed before stopping.
     ``best_epoch`` is the zero-based ordinal among frames actually observed by
     the optimizer, not the outer scheduling-loop index.  A value of ``-1``
     means that the selected coordinates are the segment's unoptimized initial
     frame.  ``selected_segment_epochs_completed`` counts observations in the
     numerical segment that produced the selected frame.
-    ``elapsed_seconds`` is the native Stage 3 wall-clock duration.
+    ``elapsed_seconds`` measures the ordinary native-adapter invocation,
+    including argument preparation and native transport, before trajectory
+    translation. Complex workflows instead forward the native Stage 3 duration.
     """
 
-    requested_forcefield: Optional[str]
     effective_forcefield: str
     setup_succeeded: bool
     converged: bool
     epochs_completed: int
     steps_submitted: int
     initialization_steps: int
-    steps_completed: Optional[int]
     final_energy: float
     best_energy: float
     energy_unit: str
@@ -206,13 +205,11 @@ class ForceFieldRunReport:
     untangling: Optional["RingUntanglingReport"] = None
     trajectory: Optional[ForceFieldTrajectoryArchive] = None
     elapsed_seconds: float = 0.0
-    convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL
     routing_report: Optional[OptimizationRoutingReport] = None
 
 
 @dataclass(frozen=True)
 class Build3DReport:
-    atom_count: int
     added_hydrogen_count: int
     quality_report: ForceFieldValidationReport
 
@@ -229,12 +226,10 @@ class CandidateRejection:
 class RingUntanglingReport:
     """Outcome of one bounded covalent-ring untangling stage."""
 
-    attempt_limit: int
     attempts_completed: int
     initial_piercing_count: int
     final_piercing_count: int
     minimum_piercing_count: int
-    resolved: bool
     warning_messages: Tuple[str, ...] = ()
 
 
@@ -247,9 +242,7 @@ class CoordinationBondRestorationReport:
     ``elapsed_seconds`` is the native Stage 2 wall-clock duration.
     """
 
-    attempt_limit: int
     attempts_completed: int
-    bond_count: int
     metal_relocation_attempt_count: int
     relocated_metal_indices: Tuple[int, ...]
     infeasible_metal_indices: Tuple[int, ...]
@@ -294,7 +287,6 @@ class BuildWorkerResult:
 
 @dataclass(frozen=True)
 class ForceFieldWorkflowReport:
-    requested_forcefield: Optional[str]
     effective_forcefield: str
     build: Union[Build3DReport, ComplexBuildDiagnostics]
     optimization: Optional[ForceFieldRunReport]
@@ -315,7 +307,6 @@ class ComplexBuildReport(ForceFieldWorkflowReport):
 
 @dataclass(frozen=True)
 class ForceFieldSetupReport:
-    requested_forcefield: Optional[str]
     effective_forcefield: str
     stage: ForceFieldSetupStage
     setup_succeeded: bool = False

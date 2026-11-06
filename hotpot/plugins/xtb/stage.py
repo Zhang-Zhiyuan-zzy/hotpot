@@ -13,7 +13,6 @@ from typing import Mapping, Optional, Tuple
 
 from hotpot.cheminfo.operations.calculation.scientific_state.contracts import StatePolicy
 from hotpot.cheminfo.operations.calculation.scientific_state.execution_selection import (
-    BackendProjectionStatus,
     BackendStateProjection,
 )
 from hotpot.cheminfo.operations.calculation.scientific_state.state_resolver import (
@@ -144,7 +143,6 @@ class _PreparedXTBStage(PreparedMolecularStage):
                 if isinstance(error, (XTBExecutionError, XTBResultError)):
                     row["report_index"] = len(reports)
                     reports.append(_json_value(error.report))
-                    failure["native_report"] = _json_value(error.report)
                     native_logs.extend(_native_log_sections(index, error.report))
                 else:
                     native_logs.append(f"=== record {index} failure ===\n{type(error).__name__}: {error}\n")
@@ -155,7 +153,7 @@ class _PreparedXTBStage(PreparedMolecularStage):
                 scope = _break_scope((code,), self.options.sample_break_on, self.options.batch_break_on)
             else:
                 row["report_index"] = len(reports)
-                reports.append(_report_summary(report, state, projection, self.options, context.stage_directory))
+                reports.append(_report_summary(report, state, projection, context.stage_directory))
                 native_logs.extend(_native_log_sections(index, report))
                 findings = ()
                 unavailable = False
@@ -342,14 +340,10 @@ def _post_check(mol: Molecule, level: str) -> Optional[object]:
     return _evaluate_geometry_acceptance(mol, level=level)
 
 
-def _report_text(report: object, field: str) -> str:
-    return str(getattr(report, field, ""))
-
-
-def _native_log_sections(index: int, report: object) -> Tuple[str, str]:
+def _native_log_sections(index: int, report: XTBRunReport) -> Tuple[str, str]:
     return (
-        f"=== record {index} stdout ===\n{_report_text(report, 'stdout').rstrip()}\n",
-        f"=== record {index} stderr ===\n{_report_text(report, 'stderr').rstrip()}\n",
+        f"=== record {index} stdout ===\n{report.provenance.stdout.rstrip()}\n",
+        f"=== record {index} stderr ===\n{report.provenance.stderr.rstrip()}\n",
     )
 
 
@@ -364,12 +358,9 @@ def _report_summary(
     report: XTBRunReport,
     state: ScientificStateBundle,
     projection: BackendStateProjection,
-    options: _XTBStageOptions,
     stage_directory: Path,
 ) -> Mapping[str, JSONValue]:
-    summary: dict[str, JSONValue] = {
-        "requested_method": options.method.value,
-        "task": options.task.value,
+    return {
         "scientific_state": {
             "facts_identity": state.facts.identity.chemical_identity_digest,
             "resolution_status": state.scientific_resolution.status.value,
@@ -377,30 +368,21 @@ def _report_summary(
             "selected_state_identity": projection.scientific_state_identity.digest,
         },
         "backend_projection": {
-            "status": BackendProjectionStatus.PROJECTED.value,
             "projection_convention": projection.projection_convention,
             "decision_source": projection.execution_decision.source.value,
         },
-        "energy_hartree": _json_value(getattr(report, "energy_hartree", None)),
-        "gradient_norm": _json_value(getattr(report, "gradient_norm", None)),
-        "process_succeeded": _json_value(
-            getattr(report, "process_succeeded", None)
-        ),
-        "converged": _json_value(getattr(report, "converged", None)),
-        "coordinates_committed": _json_value(
-            getattr(report, "coordinates_committed", None)
-        ),
-    }
-    if isinstance(report, XTBRunReport):
-        summary["effective_method"] = report.effective_method.value
-        summary["charge"] = report.charge
-        summary["unpaired_electrons"] = report.unpaired_electrons
-        summary["backend"] = {
+        "energy_hartree": _json_value(report.energy_hartree),
+        "gradient_norm": _json_value(report.gradient_norm),
+        "converged": report.converged,
+        "coordinates_committed": report.coordinates_committed,
+        "charge": report.charge,
+        "unpaired_electrons": report.unpaired_electrons,
+        "backend": {
             "version": report.backend_info.version,
             "revision": report.backend_info.revision,
             "executable_sha256": report.backend_info.executable_sha256,
-        }
-        summary["native_artifacts"] = tuple(
+        },
+        "native_artifacts": tuple(
             {
                 "name": artifact.name,
                 "relative_path": artifact.path.absolute()
@@ -410,8 +392,8 @@ def _report_summary(
                 "size_bytes": artifact.size_bytes,
             }
             for artifact in report.artifacts.values()
-        )
-    return summary
+        ),
+    }
 
 
 def _json_value(value: object) -> JSONValue:

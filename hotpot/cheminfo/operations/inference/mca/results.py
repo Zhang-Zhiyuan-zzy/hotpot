@@ -35,12 +35,13 @@ class MoleculePrediction:
     atom_predictions: tuple[AtomPrediction, ...] = ()
 
     def to_dict(self):
-        value = asdict(self)
-        value["sites"] = [site.to_dict() for site in self.sites]
-        value["atom_predictions"] = [
-            atom.to_dict() for atom in self.atom_predictions
-        ]
-        return value
+        return {
+            "smiles": self.smiles,
+            "formal_charge": self.formal_charge,
+            "sites": [site.to_dict() for site in self.sites],
+            "model_variant": self.model_variant,
+            "atom_predictions": [atom.to_dict() for atom in self.atom_predictions],
+        }
 
 
 MCA_MOLECULE_DTO_VERSION = 1

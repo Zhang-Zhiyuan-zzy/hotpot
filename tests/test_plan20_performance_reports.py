@@ -31,13 +31,12 @@ def _forcefield_observation():
             "atoms": 9,
             "finite_coordinates": True,
             "report": {
-                "build": {"atom_count": 9, "added_hydrogen_count": 6},
+                "build": {"added_hydrogen_count": 6},
                 "optimization": {
                     "epochs_completed": 20,
                     "selected_segment_epochs_completed": 20,
                     "steps_submitted": 399,
                     "initialization_steps": 1,
-                    "steps_completed": None,
                     "converged": False,
                     "final_energy": 19.75,
                     "elapsed_seconds": 10.0,
@@ -99,19 +98,21 @@ def test_faster_forcefield_with_different_actual_work_is_not_a_gain(field, reduc
     assert result["end_to_end"]["geometric_mean_runtime_ratio"] is None
 
 
-def test_unknown_completed_steps_remain_distinct_from_missing_or_zero():
+def test_recorder_keeps_unavailable_completed_steps_distinct_from_zero():
     before = _forcefield_observation()
     path = "value.report.optimization.steps_completed"
+    assert "steps_completed" not in before["value"]["report"]["optimization"]
     assert _runner.work_counters(before)[path] is None
-    for replacement in ({}, {"steps_completed": 0}):
-        after = deepcopy(before)
-        after["value"]["report"]["optimization"].pop("steps_completed")
-        after["value"]["report"]["optimization"].update(replacement)
-        result = _comparison.compare(
-            _report("organic_forcefield", before),
-            _report("organic_forcefield", after, seconds=1.0),
-        )
-        assert not result["workloads"][0]["comparable"]
+    legacy = deepcopy(before)
+    legacy["value"]["report"]["optimization"]["steps_completed"] = None
+    assert _runner.work_counters(legacy) == _runner.work_counters(before)
+    after = deepcopy(before)
+    after["value"]["report"]["optimization"]["steps_completed"] = 0
+    result = _comparison.compare(
+        _report("organic_forcefield", before),
+        _report("organic_forcefield", after, seconds=1.0),
+    )
+    assert not result["workloads"][0]["comparable"]
 
 
 @pytest.mark.parametrize("field", ["ob_atoms", "rd_atoms"])

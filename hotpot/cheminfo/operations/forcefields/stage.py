@@ -509,7 +509,6 @@ def execute_forcefield_route(
         if quality_report is None:
             raise RuntimeError("The force-field optimizer omitted its quality report")
         return BuildAndOptimizeReport(
-            requested_forcefield=optimization_report.requested_forcefield,
             effective_forcefield=optimization_report.effective_forcefield,
             build=build_report,
             optimization=optimization_report,
@@ -543,6 +542,11 @@ def json_value(value: object) -> JSONValue:
             field.name: json_value(getattr(value, field.name))
             for field in fields(value)
             if field.name != "trajectory"
+            and not (
+                field.name == "quality_report"
+                and isinstance(value, ForceFieldWorkflowReport)
+                and value.optimization is not None
+            )
         }
     if isinstance(value, Mapping):
         return {str(key): json_value(item) for key, item in value.items()}

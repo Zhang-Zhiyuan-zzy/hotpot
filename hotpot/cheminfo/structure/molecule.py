@@ -4,7 +4,7 @@ from copy import copy, deepcopy
 from functools import wraps as _wraps
 from itertools import combinations
 from threading import RLock as _RLock
-from typing import Union, Literal, Iterable, Optional, Mapping
+from typing import Union, Literal, Iterable, Optional
 
 import numpy as np
 
@@ -188,26 +188,6 @@ class Molecule:
             for bond in self._bonds
         )
 
-    def _set_remapped_stereo_payload(
-            self,
-            source: "Molecule",
-            atom_mapping: Mapping[int, int],
-            *,
-            filter_bonds: bool,
-    ) -> None:
-        from ._stereo import _get_stereo_payload
-        from ..operations.chemistry import _remap_stereo_transport, _set_stereo_payload
-
-        allowed_bonds = self._structural_bond_rows() if filter_bonds else None
-        _set_stereo_payload(
-            self,
-            _remap_stereo_transport(
-                _get_stereo_payload(source),
-                atom_mapping,
-                allowed_bonds=allowed_bonds,
-            ),
-        )
-
     def _replace_atom_transport(self, target_row, source_atom):
         """Install current occurrences and available source H at a member row."""
         from dataclasses import replace
@@ -382,7 +362,7 @@ class Molecule:
         from ..operations.topology_queries import _simple_paths
         return _simple_paths(self, source, target, cutoff)
 
-    def _update_topology(self, clear_conformers: bool = True, *,
+    def _update_topology(self, *,
                          _prepared_index=None, _constraint_rows=None) -> None:
         with _FactTransaction(self, producer=_ATOM_SOURCE_CODES['explicit']) as transaction:
             if _prepared_index is self._topology_index and _constraint_rows is None:
@@ -806,7 +786,6 @@ class Molecule:
             increasing_vdw: bool = False,
             vdw_cutoff_start: float = 0.0,
             vdw_cutoff_end: float = 12.5,
-            candidate_count: Optional[int] = None,
             max_attempts: int = 50,
             candidate_warmup_steps: int = 500,
             candidate_score_steps: int = 1000,
@@ -816,14 +795,7 @@ class Molecule:
             coordination_relaxation_steps: int = 100,
             complex_untangling_attempts: int = 30,
     ):
-        """Build and optimize this molecule with the appropriate FF workflow.
-
-        ``candidate_count`` is reserved and currently has no effect.  Complex
-        building uses one ligand starting geometry.  Future multi-conformer
-        support will generate independent starts, optimize and gate each one,
-        deduplicate or cluster them by geometry, rank them by topology,
-        geometry, and energy evidence, and refine the selected conformer.
-        """
+        """Build and optimize this molecule with the appropriate FF workflow."""
         from ..operations.forcefields import build_and_optimize
         return build_and_optimize(
             self,
@@ -846,7 +818,6 @@ class Molecule:
             increasing_vdw=increasing_vdw,
             vdw_cutoff_start=vdw_cutoff_start,
             vdw_cutoff_end=vdw_cutoff_end,
-            candidate_count=candidate_count,
             max_attempts=max_attempts,
             candidate_warmup_steps=candidate_warmup_steps,
             candidate_score_steps=candidate_score_steps,
@@ -1845,18 +1816,17 @@ class Molecule:
             If True, specifies that only a single entity (e.g., molecule) should be
             written to the file.
         ob_opt : dict, optional
-            A dictionary of additional options for the write operation, which may be
-            passed to the underlying Open Babel functionalities.
+            Options passed to the underlying Open Babel writer.
         **kwargs
             Additional keyword arguments passed to the internal file writer.
 
         Returns:
-        bool
-            True if the file was successfully written, False otherwise.
+        str or None
+            Serialized text when filename is omitted; None after writing a file.
         """
-        # write_by_pybel(self, fmt, str(filename), overwrite, opt)
         from ..operations.io import MolWriter
-        writer = MolWriter(filename, fmt, overwrite=overwrite, **kwargs)
+        writer = MolWriter(filename, fmt, overwrite=overwrite,
+                           ob_opt={} if ob_opt is None else ob_opt, **kwargs)
         return writer.write(self, write_single=write_single)
 
 
@@ -2026,7 +1996,7 @@ class Molecule:
         # A missing complete-record transport retains the established schema1 default.
         _install_stereo_storage(self, record.stereo_payload if record.stereo_payload is not None
                                 else _StereoPayload(1, (), (), ()))
-        self._update_topology(clear_conformers=False, _prepared_index=topology_index,
+        self._update_topology(_prepared_index=topology_index,
                              _constraint_rows=(record.angle_constraints, record.torsion_constraints))
         for name, declaration in (('charge', record.charge), ('spin', record.spin_mult)):
             present, value, source = declaration

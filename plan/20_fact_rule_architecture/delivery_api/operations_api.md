@@ -1173,11 +1173,14 @@ to_pyg_dataset(list_mol: tp.Iterable[Molecule], dataset_root: os.PathLike)
 定义 owner `hotpot.cheminfo.operations.conformers.contracts.ConformerSamplingRequest`；基类 无。
 
 ```python
-ConformerSamplingRequest(conformer_count: int = 1, seed: int | None = None)
+ConformerSamplingRequest(seed: int | None = None)
 ```
 
-- `conformer_count: int` = `1` [只读值字段]
 - `seed: int | None` = `None` [只读值字段]
+
+This provider request selects one starting placement. Native
+`rdWrappers.ETKDGOptions.conformer_count` still controls actual multi-conformer
+sampling at its standalone boundary.
 
 
 <a id="hotpot-cheminfo-operations-conformers-openbabel"></a>
@@ -1394,10 +1397,10 @@ write_by_pybel(mol, fmt='smi', filename=None, overwrite=False, opt=None)
 - 导出 `collect_coordination_environments` → `hotpot.cheminfo.adapters.structure.forcefields.collect_coordination_environments`；`collect_coordination_environments(mol: 'Molecule') -> Tuple[CoordinationEnvironment, ...]`
 - 导出 `build3d` → `hotpot.cheminfo.operations.forcefields.workflows.build3d`；`build3d(mol: 'Molecule', *, add_hydrogens: bool=True, seed: Optional[int]=None, timeout: float=1000.0) -> Build3DReport`
 - 导出 `optimize` → `hotpot.cheminfo.operations.forcefields.workflows.optimize`；`optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=1, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.FINAL_OPTIMIZATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ForceFieldRunReport`
-- 导出 `build_complex3d` → `hotpot.cheminfo.operations.forcefields.workflows.build_complex3d`；`build_complex3d(mol: 'Molecule', forcefield: Optional[str]=None, *, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, timeout: float=1000.0, add_hydrogens: bool=True, seed: Optional[int]=None, perturb_sigma: float=0.5, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None) -> ComplexBuildReport`
+- 导出 `build_complex3d` → `hotpot.cheminfo.operations.forcefields.workflows.build_complex3d`；`build_complex3d(mol: 'Molecule', forcefield: Optional[str]=None, *, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, timeout: float=1000.0, add_hydrogens: bool=True, seed: Optional[int]=None, perturb_sigma: float=0.5, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None) -> ComplexBuildReport`
 - 导出 `optimize_complex` → `hotpot.cheminfo.operations.forcefields.workflows.optimize_complex`；`optimize_complex(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, complex_untangling_attempts: int=30, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COMPLEX_UNTANGLING, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ForceFieldRunReport`
-- 导出 `complexes_build` → `hotpot.cheminfo.operations.forcefields.workflows.complexes_build`；`complexes_build(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ComplexBuildReport`
-- 导出 `build_and_optimize` → `hotpot.cheminfo.operations.forcefields.workflows.build_and_optimize`；`build_and_optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, timeout: float=1000.0, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30) -> ForceFieldWorkflowReport`
+- 导出 `complexes_build` → `hotpot.cheminfo.operations.forcefields.workflows.complexes_build`；`complexes_build(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ComplexBuildReport`
+- 导出 `build_and_optimize` → `hotpot.cheminfo.operations.forcefields.workflows.build_and_optimize`；`build_and_optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, timeout: float=1000.0, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30) -> ForceFieldWorkflowReport`
 - 导出 `auto_optimize` → `hotpot.cheminfo.operations.forcefields.auto.auto_optimize`；`auto_optimize(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ForceFieldRunReport`
 
 
@@ -1506,13 +1509,12 @@ Enum members: read-only .name/.value; class iteration, name lookup C[name], valu
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldValidationReport`；基类 无。
 
 ```python
-ForceFieldValidationReport(level: AcceptanceLevel, passed: bool, checks: Tuple[AcceptanceCheck, ...], metrics: Mapping[str, ForceFieldDiagnosticValue] = field(default_factory=dict))
+ForceFieldValidationReport(passed: bool, checks: Tuple[AcceptanceCheck, ...], metrics: Mapping[str, ForceFieldDiagnosticValue] = field(default_factory=dict))
 ```
 
 - `to_dict(self) -> dict[str, ForceFieldDiagnosticValue]`
 - `failures` [只读]: `Tuple[AcceptanceCheck, ...]`
 - `warnings` [只读]: `Tuple[AcceptanceCheck, ...]`
-- `level: AcceptanceLevel` [只读值字段]
 - `passed: bool` [只读值字段]
 - `checks: Tuple[AcceptanceCheck, ...]` [只读值字段]
 - `metrics: Mapping[str, ForceFieldDiagnosticValue]` = `field(default_factory=dict)` [只读值字段]
@@ -1553,17 +1555,15 @@ OptimizationRoutingReport(attempts: Tuple[OptimizationAttemptReport, ...], selec
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldRunReport`；基类 无。
 
 ```python
-ForceFieldRunReport(requested_forcefield: Optional[str], effective_forcefield: str, setup_succeeded: bool, converged: bool, epochs_completed: int, steps_submitted: int, initialization_steps: int, steps_completed: Optional[int], final_energy: float, best_energy: float, energy_unit: str, rms_gradient: float, max_gradient: float, exploded: bool, quality_report: Optional[ForceFieldValidationReport] = None, backend_energy_unit: Optional[str] = None, gradient_unit: str = 'kJ/(mol*angstrom)', energy_changes: Tuple[float, ...] = (), max_displacements: Tuple[float, ...] = (), best_epoch: int = 0, selected_segment_epochs_completed: int = 0, epoch_energies: Tuple[float, ...] = (), termination_reason: TerminationReason = 'budget_exhausted', terminal_converged: bool = False, untangling: Optional['RingUntanglingReport'] = None, trajectory: Optional[ForceFieldTrajectoryArchive] = None, elapsed_seconds: float = 0.0, convergence_level: ConvergenceLevel = DEFAULT_CONVERGENCE_LEVEL, routing_report: Optional[OptimizationRoutingReport] = None)
+ForceFieldRunReport(effective_forcefield: str, setup_succeeded: bool, converged: bool, epochs_completed: int, steps_submitted: int, initialization_steps: int, final_energy: float, best_energy: float, energy_unit: str, rms_gradient: float, max_gradient: float, exploded: bool, quality_report: Optional[ForceFieldValidationReport] = None, backend_energy_unit: Optional[str] = None, gradient_unit: str = 'kJ/(mol*angstrom)', energy_changes: Tuple[float, ...] = (), max_displacements: Tuple[float, ...] = (), best_epoch: int = 0, selected_segment_epochs_completed: int = 0, epoch_energies: Tuple[float, ...] = (), termination_reason: TerminationReason = 'budget_exhausted', terminal_converged: bool = False, untangling: Optional['RingUntanglingReport'] = None, trajectory: Optional[ForceFieldTrajectoryArchive] = None, elapsed_seconds: float = 0.0, routing_report: Optional[OptimizationRoutingReport] = None)
 ```
 
-- `requested_forcefield: Optional[str]` [只读值字段]
 - `effective_forcefield: str` [只读值字段]
 - `setup_succeeded: bool` [只读值字段]
 - `converged: bool` [只读值字段]
 - `epochs_completed: int` [只读值字段]
 - `steps_submitted: int` [只读值字段]
 - `initialization_steps: int` [只读值字段]
-- `steps_completed: Optional[int]` [只读值字段]
 - `final_energy: float` [只读值字段]
 - `best_energy: float` [只读值字段]
 - `energy_unit: str` [只读值字段]
@@ -1583,8 +1583,12 @@ ForceFieldRunReport(requested_forcefield: Optional[str], effective_forcefield: s
 - `untangling: Optional['RingUntanglingReport']` = `None` [只读值字段]
 - `trajectory: Optional[ForceFieldTrajectoryArchive]` = `None` [只读值字段]
 - `elapsed_seconds: float` = `0.0` [只读值字段]
-- `convergence_level: ConvergenceLevel` = `DEFAULT_CONVERGENCE_LEVEL` [只读值字段]
 - `routing_report: Optional[OptimizationRoutingReport]` = `None` [只读值字段]
+
+`elapsed_seconds` records an actual ordinary native-adapter invocation duration
+(including argument preparation/native transport, before trajectory translation),
+or the native Stage 3 duration on the complex route. It remains a float; ordinary
+execution no longer leaves the unmeasured constructor default as an observation.
 
 <a id="hotpot-cheminfo-operations-forcefields-contracts-build3dreport"></a>
 ### `Build3DReport`
@@ -1592,10 +1596,9 @@ ForceFieldRunReport(requested_forcefield: Optional[str], effective_forcefield: s
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.Build3DReport`；基类 无。
 
 ```python
-Build3DReport(atom_count: int, added_hydrogen_count: int, quality_report: ForceFieldValidationReport)
+Build3DReport(added_hydrogen_count: int, quality_report: ForceFieldValidationReport)
 ```
 
-- `atom_count: int` [只读值字段]
 - `added_hydrogen_count: int` [只读值字段]
 - `quality_report: ForceFieldValidationReport` [只读值字段]
 
@@ -1619,15 +1622,13 @@ CandidateRejection(component_index: int, attempt: int, reason: str, quality_fail
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.RingUntanglingReport`；基类 无。
 
 ```python
-RingUntanglingReport(attempt_limit: int, attempts_completed: int, initial_piercing_count: int, final_piercing_count: int, minimum_piercing_count: int, resolved: bool, warning_messages: Tuple[str, ...] = ())
+RingUntanglingReport(attempts_completed: int, initial_piercing_count: int, final_piercing_count: int, minimum_piercing_count: int, warning_messages: Tuple[str, ...] = ())
 ```
 
-- `attempt_limit: int` [只读值字段]
 - `attempts_completed: int` [只读值字段]
 - `initial_piercing_count: int` [只读值字段]
 - `final_piercing_count: int` [只读值字段]
 - `minimum_piercing_count: int` [只读值字段]
-- `resolved: bool` [只读值字段]
 - `warning_messages: Tuple[str, ...]` = `()` [只读值字段]
 
 <a id="hotpot-cheminfo-operations-forcefields-contracts-coordinationbondrestorationreport"></a>
@@ -1636,12 +1637,10 @@ RingUntanglingReport(attempt_limit: int, attempts_completed: int, initial_pierci
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.CoordinationBondRestorationReport`；基类 无。
 
 ```python
-CoordinationBondRestorationReport(attempt_limit: int, attempts_completed: int, bond_count: int, metal_relocation_attempt_count: int, relocated_metal_indices: Tuple[int, ...], infeasible_metal_indices: Tuple[int, ...], forced_bond_keys: Tuple[Tuple[int, int], ...], rejected_piercing_trial_count: int, undetermined_trial_count: int, excluded_ring_observation_count: int, warning_messages: Tuple[str, ...] = (), elapsed_seconds: float = 0.0)
+CoordinationBondRestorationReport(attempts_completed: int, metal_relocation_attempt_count: int, relocated_metal_indices: Tuple[int, ...], infeasible_metal_indices: Tuple[int, ...], forced_bond_keys: Tuple[Tuple[int, int], ...], rejected_piercing_trial_count: int, undetermined_trial_count: int, excluded_ring_observation_count: int, warning_messages: Tuple[str, ...] = (), elapsed_seconds: float = 0.0)
 ```
 
-- `attempt_limit: int` [只读值字段]
 - `attempts_completed: int` [只读值字段]
-- `bond_count: int` [只读值字段]
 - `metal_relocation_attempt_count: int` [只读值字段]
 - `relocated_metal_indices: Tuple[int, ...]` [只读值字段]
 - `infeasible_metal_indices: Tuple[int, ...]` [只读值字段]
@@ -1694,15 +1693,20 @@ BuildWorkerResult(status: Literal['ok', 'error'], coordinates: Optional[np.ndarr
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`；基类 无。
 
 ```python
-ForceFieldWorkflowReport(requested_forcefield: Optional[str], effective_forcefield: str, build: Union[Build3DReport, ComplexBuildDiagnostics], optimization: Optional[ForceFieldRunReport], quality_report: ForceFieldValidationReport, trajectory: Optional[ForceFieldTrajectoryArchive] = None)
+ForceFieldWorkflowReport(effective_forcefield: str, build: Union[Build3DReport, ComplexBuildDiagnostics], optimization: Optional[ForceFieldRunReport], quality_report: ForceFieldValidationReport, trajectory: Optional[ForceFieldTrajectoryArchive] = None)
 ```
 
-- `requested_forcefield: Optional[str]` [只读值字段]
 - `effective_forcefield: str` [只读值字段]
 - `build: Union[Build3DReport, ComplexBuildDiagnostics]` [只读值字段]
 - `optimization: Optional[ForceFieldRunReport]` [只读值字段]
 - `quality_report: ForceFieldValidationReport` [只读值字段]
 - `trajectory: Optional[ForceFieldTrajectoryArchive]` = `None` [只读值字段]
+
+The Python `quality_report` attribute remains available. With optimization,
+standard CLI/pipeline and benchmark JSON store final quality once at
+`optimization.quality_report`; build-only workflow JSON retains top-level
+`quality_report`. Initial `build.quality_report` describes a different frame.
+
 
 <a id="hotpot-cheminfo-operations-forcefields-contracts-buildandoptimizereport"></a>
 ### `BuildAndOptimizeReport`
@@ -1710,12 +1714,11 @@ ForceFieldWorkflowReport(requested_forcefield: Optional[str], effective_forcefie
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.BuildAndOptimizeReport`；基类 `ForceFieldWorkflowReport`。
 
 ```python
-BuildAndOptimizeReport(requested_forcefield: Optional[str], effective_forcefield: str, quality_report: ForceFieldValidationReport, trajectory: Optional[ForceFieldTrajectoryArchive] = None, build: Build3DReport, optimization: ForceFieldRunReport)
+BuildAndOptimizeReport(effective_forcefield: str, build: Build3DReport, optimization: ForceFieldRunReport, quality_report: ForceFieldValidationReport, trajectory: Optional[ForceFieldTrajectoryArchive] = None)
 ```
 
 - `build: Build3DReport` [只读值字段]
 - `optimization: ForceFieldRunReport` [只读值字段]
-- `requested_forcefield: Optional[str]` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
 - `effective_forcefield: str` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
 - `quality_report: ForceFieldValidationReport` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
 - `trajectory: Optional[ForceFieldTrajectoryArchive]` = `None` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
@@ -1726,11 +1729,10 @@ BuildAndOptimizeReport(requested_forcefield: Optional[str], effective_forcefield
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.ComplexBuildReport`；基类 `ForceFieldWorkflowReport`。
 
 ```python
-ComplexBuildReport(requested_forcefield: Optional[str], effective_forcefield: str, optimization: Optional[ForceFieldRunReport], quality_report: ForceFieldValidationReport, trajectory: Optional[ForceFieldTrajectoryArchive] = None, build: ComplexBuildDiagnostics)
+ComplexBuildReport(effective_forcefield: str, build: ComplexBuildDiagnostics, optimization: Optional[ForceFieldRunReport], quality_report: ForceFieldValidationReport, trajectory: Optional[ForceFieldTrajectoryArchive] = None)
 ```
 
 - `build: ComplexBuildDiagnostics` [只读值字段]
-- `requested_forcefield: Optional[str]` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
 - `effective_forcefield: str` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
 - `optimization: Optional[ForceFieldRunReport]` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
 - `quality_report: ForceFieldValidationReport` [只读值字段] ← `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldWorkflowReport`
@@ -1742,10 +1744,9 @@ ComplexBuildReport(requested_forcefield: Optional[str], effective_forcefield: st
 定义 owner `hotpot.cheminfo.operations.forcefields.contracts.ForceFieldSetupReport`；基类 无。
 
 ```python
-ForceFieldSetupReport(requested_forcefield: Optional[str], effective_forcefield: str, stage: ForceFieldSetupStage, setup_succeeded: bool = False, workflow_stage: Optional[ForceFieldWorkflowStage] = None)
+ForceFieldSetupReport(effective_forcefield: str, stage: ForceFieldSetupStage, setup_succeeded: bool = False, workflow_stage: Optional[ForceFieldWorkflowStage] = None)
 ```
 
-- `requested_forcefield: Optional[str]` [只读值字段]
 - `effective_forcefield: str` [只读值字段]
 - `stage: ForceFieldSetupStage` [只读值字段]
 - `setup_succeeded: bool` = `False` [只读值字段]
@@ -1951,10 +1952,10 @@ perturb(mol: 'Molecule', *, sigma: float=0.5, seed: Optional[int]=None) -> np.nd
 - 导出 `collect_coordination_environments` → `hotpot.cheminfo.adapters.structure.forcefields.collect_coordination_environments`；`collect_coordination_environments(mol: 'Molecule') -> Tuple[CoordinationEnvironment, ...]`
 - 导出 `build3d` → `hotpot.cheminfo.operations.forcefields.workflows.build3d`；`build3d(mol: 'Molecule', *, add_hydrogens: bool=True, seed: Optional[int]=None, timeout: float=1000.0) -> Build3DReport`
 - 导出 `optimize` → `hotpot.cheminfo.operations.forcefields.workflows.optimize`；`optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=1, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.FINAL_OPTIMIZATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ForceFieldRunReport`
-- 导出 `build_complex3d` → `hotpot.cheminfo.operations.forcefields.workflows.build_complex3d`；`build_complex3d(mol: 'Molecule', forcefield: Optional[str]=None, *, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, timeout: float=1000.0, add_hydrogens: bool=True, seed: Optional[int]=None, perturb_sigma: float=0.5, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None) -> ComplexBuildReport`
+- 导出 `build_complex3d` → `hotpot.cheminfo.operations.forcefields.workflows.build_complex3d`；`build_complex3d(mol: 'Molecule', forcefield: Optional[str]=None, *, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, timeout: float=1000.0, add_hydrogens: bool=True, seed: Optional[int]=None, perturb_sigma: float=0.5, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None) -> ComplexBuildReport`
 - 导出 `optimize_complex` → `hotpot.cheminfo.operations.forcefields.workflows.optimize_complex`；`optimize_complex(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, complex_untangling_attempts: int=30, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COMPLEX_UNTANGLING, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ForceFieldRunReport`
-- 导出 `complexes_build` → `hotpot.cheminfo.operations.forcefields.workflows.complexes_build`；`complexes_build(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ComplexBuildReport`
-- 导出 `build_and_optimize` → `hotpot.cheminfo.operations.forcefields.workflows.build_and_optimize`；`build_and_optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, timeout: float=1000.0, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30) -> ForceFieldWorkflowReport`
+- 导出 `complexes_build` → `hotpot.cheminfo.operations.forcefields.workflows.complexes_build`；`complexes_build(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ComplexBuildReport`
+- 导出 `build_and_optimize` → `hotpot.cheminfo.operations.forcefields.workflows.build_and_optimize`；`build_and_optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, timeout: float=1000.0, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30) -> ForceFieldWorkflowReport`
 - 导出 `auto_optimize` → `hotpot.cheminfo.operations.forcefields.auto.auto_optimize`；`auto_optimize(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ForceFieldRunReport`
 
 
@@ -2042,7 +2043,7 @@ ring_untangling_report(result: ComplexOptimizationResult) -> RingUntanglingRepor
 ### `forcefield_run_report`
 
 ```python
-forcefield_run_report(result: ComplexOptimizationResult, *, requested_forcefield: Optional[str], effective_forcefield: str, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, trajectory: Optional[ForceFieldTrajectoryArchive]=None) -> ForceFieldRunReport
+forcefield_run_report(result: ComplexOptimizationResult, *, effective_forcefield: str, trajectory: Optional[ForceFieldTrajectoryArchive]=None) -> ForceFieldRunReport
 ```
 
 <a id="hotpot-cheminfo-operations-forcefields-native-adapters-apply-native-selected-structure"></a>
@@ -2254,7 +2255,7 @@ optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: Optimiz
 ### `build_complex3d`
 
 ```python
-build_complex3d(mol: 'Molecule', forcefield: Optional[str]=None, *, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, timeout: float=1000.0, add_hydrogens: bool=True, seed: Optional[int]=None, perturb_sigma: float=0.5, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None) -> ComplexBuildReport
+build_complex3d(mol: 'Molecule', forcefield: Optional[str]=None, *, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, timeout: float=1000.0, add_hydrogens: bool=True, seed: Optional[int]=None, perturb_sigma: float=0.5, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None) -> ComplexBuildReport
 ```
 
 <a id="hotpot-cheminfo-operations-forcefields-workflows-optimize-complex"></a>
@@ -2268,14 +2269,14 @@ optimize_complex(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: 
 ### `complexes_build`
 
 ```python
-complexes_build(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ComplexBuildReport
+complexes_build(mol: 'Molecule', forcefield: Optional[str]=None, *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30, timeout: float=1000.0, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: TrajectoryStart=TrajectoryStart.COORDINATION_RESTORATION, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5) -> ComplexBuildReport
 ```
 
 <a id="hotpot-cheminfo-operations-forcefields-workflows-build-and-optimize"></a>
 ### `build_and_optimize`
 
 ```python
-build_and_optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, timeout: float=1000.0, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5, candidate_count: Optional[int]=None, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30) -> ForceFieldWorkflowReport
+build_and_optimize(mol: 'Molecule', forcefield: Optional[str]='UFF', *, algorithm: OptimizationAlgorithm='conjugate', epochs: int=100, steps_per_epoch: int=100, add_hydrogens: bool=True, quality_level: AcceptanceLevel='standard', quality_thresholds: Optional[StructureAcceptanceThresholds]=None, seed: Optional[int]=None, timeout: float=1000.0, perturb_interval: Optional[int]=None, perturb_sigma: float=0.5, stopping_criteria: Optional[OptimizationStoppingCriteria]=None, convergence_level: ConvergenceLevel=DEFAULT_CONVERGENCE_LEVEL, save_movie: bool=False, trajectory_start: Optional[TrajectoryStart]=None, trajectory_path: Optional[TrajectoryPath]=None, increasing_vdw: bool=False, vdw_cutoff_start: float=0.0, vdw_cutoff_end: float=12.5, max_attempts: int=50, candidate_warmup_steps: int=500, candidate_score_steps: int=1000, best_candidate_refine_steps: int=3000, ligand_untangling_attempts: int=20, coordination_restoration_attempts: int=20, coordination_relaxation_steps: int=100, complex_untangling_attempts: int=30) -> ForceFieldWorkflowReport
 ```
 
 

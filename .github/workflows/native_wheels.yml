@@ -1,0 +1,51 @@
+name: Native wheels
+
+on:
+  workflow_call:
+    inputs:
+      python-tags:
+        description: JSON array of CPython tags to build
+        type: string
+        default: '["cp310","cp311","cp312","cp313","cp314"]'
+
+permissions:
+  contents: read
+
+jobs:
+  native-wheel:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-tag: ${{ fromJSON(inputs.python-tags) }}
+
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build and smoke-test the native wheel
+        uses: pypa/cibuildwheel@v4.3.0
+        env:
+          CIBW_BUILD: ${{ matrix.python-tag }}-manylinux_x86_64
+          CIBW_ARCHS_LINUX: x86_64
+          CIBW_MANYLINUX_X86_64_IMAGE: >-
+            quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82
+          CIBW_CONTAINER_ENGINE: >-
+            docker; disable_host_mount: true
+          CIBW_ENVIRONMENT_LINUX: >-
+            HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64
+            HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot-rdkit-source-cache
+          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >-
+            auditwheel repair
+            --exclude libopenbabel.so.7
+            --exclude libopenbabel.so.8
+            -w {dest_dir} {wheel}
+          CIBW_TEST_COMMAND: >-
+            python {project}/tests/test_packaging/native_wheel_smoke.py hotpot-first
+            && python {project}/tests/test_packaging/native_wheel_smoke.py rdkit-first
+      - name: Audit wheel contents
+        run: python tests/test_packaging/audit_rdwrapper_wheel.py wheelhouse/*.whl
+      - name: Upload wheel
+        uses: actions/upload-artifact@v7
+        with:
+          name: wheel-${{ matrix.python-tag }}
+          path: wheelhouse/*.whl
+          if-no-files-found: error

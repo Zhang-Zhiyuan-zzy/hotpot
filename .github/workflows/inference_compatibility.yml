@@ -2,39 +2,62 @@ name: Inference compatibility
 
 on:
   pull_request:
-    paths:
-      - "README.md"
-      - "doc/**"
-      - "hotpot/**"
-      - "tests/**"
-      - "molecules/extractant/**"
-      - "assets/readme/**"
-      - "pyproject.toml"
-      - "setup.py"
-      - "MANIFEST.in"
-      - ".github/workflows/inference_compatibility.yml"
   push:
     branches:
-      - "**"
-    paths:
-      - "README.md"
-      - "doc/**"
-      - "hotpot/**"
-      - "tests/**"
-      - "molecules/extractant/**"
-      - "assets/readme/**"
-      - "pyproject.toml"
-      - "setup.py"
-      - "MANIFEST.in"
-      - ".github/workflows/inference_compatibility.yml"
+      - main
+      - '[0-9]*'
   workflow_dispatch:
+    inputs:
+      full_matrix:
+        description: Validate every supported Python version
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      full_matrix:
+        description: Validate every supported Python version
+        type: boolean
+        default: true
+      export_sdist:
+        description: Export the validated source distribution
+        type: boolean
+        default: false
+  schedule:
+    - cron: "30 2 * * 1"
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ (inputs.full_matrix || github.event_name == 'schedule') && 'full' || 'daily' }}-${{ (github.event_name == 'push' && github.ref_type == 'branch' || github.event_name == 'pull_request') && 'latest' || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'push' && github.ref_type == 'branch' || github.event_name == 'pull_request' }}
+
 jobs:
+  scope:
+    runs-on: ubuntu-latest
+    outputs:
+      core: ${{ steps.scope.outputs.core }}
+      python_tags: ${{ steps.scope.outputs.python_tags }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Select validation scope
+        id: scope
+        env:
+          HOTPOT_CI_FULL_MATRIX: ${{ inputs.full_matrix || github.event_name == 'schedule' }}
+        run: python .github/scripts/ci_scope.py
+
+  native-wheel:
+    needs: scope
+    if: ${{ needs.scope.outputs.core == 'true' }}
+    uses: ./.github/workflows/native_wheels.yml
+    with:
+      python-tags: ${{ needs.scope.outputs.python_tags }}
+
   cpu-inference:
-    needs: package-smoke
+    needs: [scope, package-smoke]
+    if: ${{ needs.scope.outputs.core == 'true' && needs.scope.outputs.python_tags != '["cp311"]' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -77,58 +100,9 @@ jobs:
           mkdir -p "$HOTPOT_TEST_WORKDIR"
           ./tests/run_inference_compatibility.sh "${{ matrix.python-version }}"
 
-  native-wheel:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-tag: [cp310, cp311, cp312, cp313, cp314]
-
-    steps:
-      - uses: actions/checkout@v7
-      - name: Build and smoke-test the native wheel
-        uses: pypa/cibuildwheel@v4.3.0
-        env:
-          CIBW_BUILD: ${{ matrix.python-tag }}-manylinux_x86_64
-          CIBW_ARCHS_LINUX: x86_64
-          CIBW_MANYLINUX_X86_64_IMAGE: >-
-            quay.io/pypa/manylinux_2_28_x86_64@sha256:39df0042d5cc900b085aa25a0659368b42a0006c54c474299b785b44c1b4ff82
-          CIBW_CONTAINER_ENGINE: >-
-            docker; disable_host_mount: true
-          CIBW_ENVIRONMENT_LINUX: >-
-            HOTPOT_RDWRAPPERS_BUILD_PROFILE=manylinux_2_28_x86_64
-            HOTPOT_RDKIT_SOURCE_CACHE=/tmp/hotpot-rdkit-source-cache
-          CIBW_REPAIR_WHEEL_COMMAND_LINUX: >-
-            auditwheel repair
-            --exclude libopenbabel.so.7
-            --exclude libopenbabel.so.8
-            -w {dest_dir} {wheel}
-          CIBW_TEST_COMMAND: >-
-            python -c "import hotpot;
-            from hotpot.cheminfo.rules.mathematics.geometry import _geometry_native;
-            from hotpot.cheminfo.rules.chemistry.descriptors.graph_spectrum import GraphSpectrum;
-            from hotpot.cheminfo.rules.mathematics.graph import relevant_cycles;
-            from hotpot.cheminfo.adapters.native.substructure import _search_native;
-            from hotpot.cheminfo.obWrappers import _ob_native;
-            from hotpot.cheminfo import rdWrappers;
-            assert GraphSpectrum is not None;
-            assert _geometry_native is not None and _ob_native is not None;
-            assert _search_native.NativeProblem is not None;
-            assert tuple(h.atom_indices for h in hotpot.read_mol('CCO', 'smi').search_substructure('[C]-[O]')) == (frozenset((1, 2)),);
-            assert relevant_cycles([(4, 7), (7, 9), (9, 4)]) == ((4, 7, 9),);
-            info = rdWrappers.runtime_info();
-            assert info.native and info.rdkit_version == '2026.09.1'"
-      - name: Audit wheel contents
-        run: python tests/test_packaging/audit_rdwrapper_wheel.py wheelhouse/*.whl
-      - name: Upload wheel
-        uses: actions/upload-artifact@v7
-        with:
-          name: wheel-${{ matrix.python-tag }}
-          path: wheelhouse/*.whl
-          if-no-files-found: error
-
   package-smoke:
-    needs: native-wheel
+    needs: [scope, native-wheel]
+    if: ${{ needs.scope.outputs.core == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -151,110 +125,7 @@ jobs:
       - name: Build distributions and install wheel
         run: |
           python -m build --sdist
-          python - <<'PY'
-          from pathlib import Path
-          import tarfile
-
-          expected = {
-              "hotpot/commands/models.py",
-              "hotpot/commands/mca.py",
-              "hotpot/commands/mca.md",
-              "hotpot/commands/cbond.py",
-              "hotpot/commands/cbond.md",
-              "hotpot/cheminfo/operations/inference/mca/attachment.py",
-              "hotpot/cheminfo/operations/inference/mca/results.py",
-              "hotpot/cheminfo/operations/inference/mca/MODEL_CARD.md",
-              "hotpot/cheminfo/operations/inference/cbond/runtime.py",
-              "hotpot/cheminfo/rules/chemistry/mca_sites/__init__.py",
-              "hotpot/cheminfo/adapters/inference/cbond.py",
-              "hotpot/cheminfo/adapters/inference/runtime.py",
-              "hotpot/cheminfo/adapters/rdkit/conformers.py",
-              "hotpot/cheminfo/adapters/rdkit/sampling.py",
-              "hotpot/cheminfo/operations/conformers/contracts.py",
-              "hotpot/cheminfo/operations/conformers/openbabel.py",
-              "hotpot/cheminfo/operations/conformers/rdkit.py",
-              "tools/model_deployment/cbond/make_dynamic_onnx.py",
-              "tools/model_deployment/cbond/models.py",
-              "hotpot/cheminfo/operations/inference/artifacts/__init__.py",
-              "hotpot/cheminfo/operations/inference/artifacts/resolver.py",
-              "hotpot/cheminfo/adapters/inference/artifacts.py",
-              "hotpot/cheminfo/operations/inference/artifacts/data/mca/manifest.json",
-              "hotpot/cheminfo/operations/inference/artifacts/data/mca/README.md",
-              "hotpot/cheminfo/operations/inference/artifacts/data/cbond/manifest.json",
-              "hotpot/cheminfo/operations/inference/artifacts/data/cbond/README.md",
-              "hotpot/_cli.py",
-              "hotpot/pipeline/cli.py",
-              "hotpot/pipeline/cli_doc.md",
-              "hotpot/commands/ff.py",
-              "hotpot/commands/ff.md",
-              "hotpot/cheminfo/operations/forcefields/__init__.py",
-              "hotpot/cheminfo/operations/forcefields/ff.py",
-              "hotpot/cheminfo/operations/calculation/scientific_state/execution_selection.py",
-              "hotpot/cheminfo/rules/chemistry/scientific_state/data/profiles/coordination_screening_v1.json",
-              "hotpot/cheminfo/adapters/native/substructure/_search_native.pyi",
-              "hotpot/cheminfo/rules/mathematics/graph/_graph_native.pyi",
-              "hotpot/cheminfo/rules/mathematics/graph/_native/graph.cpp",
-              "hotpot/cheminfo/rules/mathematics/graph/_native/graph.hpp",
-              "hotpot/cheminfo/rules/mathematics/graph/_native/cycle_basis.cpp",
-              "hotpot/cheminfo/rules/mathematics/graph/_native/cycle_basis.hpp",
-              "hotpot/cheminfo/adapters/native/substructure/_native/bindings.cpp",
-              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/compatibility.hpp",
-              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/matcher.cpp",
-              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/matcher.hpp",
-              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/automorphism.cpp",
-              "hotpot/cheminfo/rules/mathematics/graph_matching/_native/automorphism.hpp",
-              "hotpot/cheminfo/rules/chemistry/substructure/_native/predicates.cpp",
-              "hotpot/cheminfo/rules/chemistry/substructure/_native/predicates.hpp",
-              "hotpot/cheminfo/adapters/native/substructure/_native/production.cpp",
-              "hotpot/cheminfo/adapters/native/substructure/_native/production.hpp",
-              "hotpot/plugins/xtb/cli.py",
-              "hotpot/plugins/xtb/cli_doc.md",
-              "hotpot/plugins/xtb/README.md",
-              "hotpot/plugins/xtb/stage.py",
-              "hotpot/plugins/xtb/workflow.py",
-              "hotpot/pipeline/README.md",
-              "hotpot/pipeline/state_recovery.py",
-          }
-          obsolete = {
-              "hotpot/cheminfo/AImodels/artifacts/__init__.py",
-              "hotpot/cheminfo/AImodels/artifacts/errors.py",
-              "hotpot/cheminfo/AImodels/artifacts/manifest.py",
-              "hotpot/cheminfo/AImodels/artifacts/registry.py",
-              "hotpot/cheminfo/AImodels/artifacts/resolver.py",
-              "hotpot/cheminfo/AImodels/artifacts/cli.py",
-              "hotpot/cheminfo/AImodels/mca/models/manifest.json",
-              "hotpot/cheminfo/AImodels/mca/models/README.md",
-              "hotpot/cheminfo/AImodels/cbond/onnx/manifest.json",
-              "hotpot/cheminfo/AImodels/cbond/onnx/README.md",
-              "hotpot/cheminfo/forcefields/ff39.py",
-              "hotpot/cheminfo/forcefields/utils.py",
-              "hotpot/cheminfo/forcefields/utils39.py",
-              "hotpot/cheminfo/_io/xtb.py",
-              "hotpot/plugins/xtb/core.py",
-              "hotpot/plugins/xtb/xtb_doc.md",
-              "hotpot/cheminfo/search/_search_native.pyi",
-              "hotpot/cheminfo/search/_native/bindings.cpp",
-              "hotpot/cheminfo/search/_native/compatibility.hpp",
-              "hotpot/cheminfo/search/_native/matcher.cpp",
-              "hotpot/cheminfo/search/_native/matcher.hpp",
-              "hotpot/cheminfo/search/_native/production.cpp",
-              "hotpot/cheminfo/search/_native/production.hpp",
-              "hotpot/cheminfo/search/_native/graph_data.cpp",
-              "hotpot/cheminfo/search/_native/graph_data.hpp",
-          }
-          (sdist,) = Path("dist").glob("*.tar.gz")
-          with tarfile.open(sdist) as archive:
-              members = {
-                  "/".join(Path(name).parts[1:])
-                  for name in archive.getnames()
-              }
-          assert expected <= members
-          assert obsolete.isdisjoint(members)
-          assert not any(name.startswith((
-              "hotpot/cheminfo/AImodels/", "hotpot/cheminfo/calculator/",
-              "hotpot/cheminfo/conformers/",
-          )) for name in members)
-          PY
+          python tests/test_packaging/audit_sdist.py dist/*.tar.gz
           python -m pip install --no-deps --force-reinstall wheelhouse/*.whl
       - name: Install and verify inference models
         working-directory: /tmp
@@ -294,6 +165,14 @@ jobs:
           python
           "${{ github.workspace }}/tests/test_packaging/installed_package_smoke.py"
           forcefield
+
+      - name: Upload validated source distribution
+        if: ${{ inputs.export_sdist }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
 
   coverage:
     needs: package-smoke
@@ -346,3 +225,22 @@ jobs:
           fail_ci_if_error: true
           files: ./tests/coverage/coverage.xml
           use_oidc: true
+
+  doc-check:
+    needs: scope
+    if: ${{ needs.scope.outputs.core == 'false' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Install workflow test runner
+        run: python -m pip install pytest
+      - name: Check documentation validation routing
+        run: >-
+          python -m pytest -q --confcutdir=tests/test_packaging
+          tests/test_packaging/test_github_workflows.py
+          tests/test_packaging/test_ci_scope.py

@@ -1,34 +1,65 @@
 # GitHub Actions
 
-The `0.5.5.0` branch contains two workflow definitions. Actions runs are bound to
-commits and retain the branch name used when they started; renaming a branch does
-not change historical run names or conclusions.
+Two entry workflows share one internal native-wheel workflow. Installed-package
+checks run outside the checkout; test support exposes only `tests` and `plan`.
+The ordinary result of a chemical calculation and its scientific meaning are
+unchanged by CI scheduling.
 
-| Workflow | File | Trigger | Work performed |
-| --- | --- | --- | --- |
-| Inference compatibility | [inference_compatibility.yml](workflows/inference_compatibility.yml) | Push and pull request with matching source, test, packaging or workflow paths; manual dispatch. | Build Linux x86-64 native wheels for CPython3.10–3.14; audit wheel contents; check installed CP311 core/docs, MCA, CBond and FF; run maintained inference/graph-search tests on3.10/3.12/3.13/3.14; run CP311 default tests with coverage and upload Codecov reports. |
-| Build and optionally publish Python distributions | [publish_pypi.yml](workflows/publish_pypi.yml) | `v*` tags; manual dispatch. | Validate tag/version agreement; build and smoke-test CPython3.10–3.14 manylinux x86-64 wheels and an sdist; upload distribution artifacts. Publish to PyPI only on manual dispatch with `publish=true`, through the configured `pypi` environment and OIDC Trusted Publisher. Tag runs build without publishing. |
+| Definition | Trigger and purpose |
+| --- | --- |
+| [Inference compatibility](workflows/inference_compatibility.yml) | Pushes to `main` and numeric version branches, pull requests, manual dispatch and a weekly schedule. Selects lightweight documentation checks or installed CP311 business validation. Manual `full_matrix=true` and scheduled runs add CP310/312/313/314 compatibility checks. It is also callable by the release workflow. |
+| [Build and optionally publish Python distributions](workflows/publish_pypi.yml) | `v*` tags or manual dispatch. Validates release metadata, calls the complete five-version validation and reuses its wheel/sdist artifacts. PyPI publishing requires manual `publish=true` and the configured `pypi` environment/OIDC publisher. |
+| [Native wheels](workflows/native_wheels.yml) | Internal `workflow_call` only, with no independent push, PR, schedule or manual trigger. Owns the pinned manylinux build, both native/toolkit load-order smokes, wheel audit and wheel artifacts for both entry workflows. |
 
-Tests run against installed wheels outside the checkout. Their isolated support
-directory exposes repository `tests` and `plan` helpers without adding the
-checkout root to `PYTHONPATH`. Scientific tests, model tests and optional/external
-execution retain their explicit switches. A test failure fails the job; collection
-errors and missing targets do not establish business results.
+## Scope and frequency
 
-## Additional entries in the GitHub workflow registry
+- Ordinary source/configuration pushes and PRs build one CP311 wheel, run the
+  installed core/docs/MCA/CBond/FF smokes and the complete maintained CP311
+  default/model-artifact selection with coverage and Codecov upload.
+- Feature branches run CI on PR or manual dispatch, avoiding duplicate push/PR
+  runs for the same feature work. Numeric version branches such as `0.5.5.0`
+  retain direct push validation.
+- Changes confined to documentation outside runtime/test/tool/input owners use
+  whitespace and workflow/scope contract checks. Runtime-owned Markdown,
+  executable plan helpers, unknown paths, unavailable old history and initial
+  branch pushes retain core checks. PR changes are compared with the merge base;
+  code deleted or renamed into documentation still triggers business checks.
+- Manual full validation, release validation and weekly validation retain the
+  CPython 3.10–3.14 native builds and the four non-CP311 inference matrices.
+  Lower ordinary frequency does not waive applicable release/final-plan gates.
+- Weekly full validation is scheduled for Monday 02:30 UTC. GitHub schedules run
+  from the default branch. The current default branch is `main`; the schedule
+  in this version branch takes effect only after that definition reaches `main`.
+  Manual dispatch can select this branch because the entry file already exists
+  on `main`.
+- Superseded ordinary push/PR runs on the same ref are canceled. Full and daily
+  validation have separate concurrency groups. Manual, scheduled and release
+  validations have unique run groups, so they cannot replace each other while
+  pending. Publishing is never automatically canceled by the ordinary-CI policy.
 
-GitHub's Actions catalogue also retains the following entries. They are not
-workflow definitions in the current `0.5.5.0` or `main` trees. Their presence is
-not evidence that they run when this version branch is pushed.
+The fixed scientific/external/high-compute test switches remain explicit. A
+business failure fails its job. A skipped unrelated tier is not a passed tier.
+Release wheel and source-distribution audits live in `tests/test_packaging/`,
+not as duplicate inline YAML programs. Tag pushes always build without publishing;
+GitHub does not apply path filters to tag pushes.
 
-| Registry name | Historical function | Scope |
+## Historical registrations
+
+The following YAML files are absent from both this branch and the inspected
+`main` tree. Existing runs remain historical evidence. GitHub can retain their
+registry entries even though the current branch has no corresponding definition.
+
+| Registration | ID | Disposition |
 | --- | --- | --- |
-| Diagnose installed inference smoke | Download a fixed earlier CP311 wheel and diagnose installed MCA/CBond behavior. | Historical `fix/github-workflows` push diagnostic; successful diagnostic completion is not an inference correctness verdict. |
-| Export validated PyPI artifacts | Copy distribution artifacts from a fixed earlier run to a transfer endpoint. | Historical one-time export branch; it does not itself publish to PyPI. |
-| Tests and coverage | Create a Python3.9 Conda environment, run unittest coverage and upload through Codecov. | Older branches, including `old_version_discard`; superseded by current installed-package CI. |
-| Dependency Graph | GitHub-managed dependency graph update. | Platform-generated workflow, not a YAML file maintained here. |
+| Diagnose installed inference smoke | 397804761 | Superseded one-time fixed-wheel MCA/CBond diagnostic; disable server registration. |
+| Export validated PyPI artifacts | 397728709 | Superseded one-time artifact transfer; disable server registration. |
+| Tests and coverage | 64041508 | Old Python 3.9 Conda/unittest/Codecov route; disable server registration. |
+| Dependency Graph | Platform-generated | Keep dependency-graph updates; no repository YAML. |
 
-The current workflows use read-only repository access. The coverage upload and
-manual PyPI publishing jobs additionally request `id-token: write` for OIDC.
-No external export workflow or historical upload credential is incorporated into
-this branch.
+At cleanup entry on 2026-11-06, all three legacy registrations still reported
+`active`. This session has working SSH Git push access but no GitHub API
+credential, so their server-side disablement is **pending**. It requires a
+GitHub login with repository Actions write permission or the repository Actions
+web UI. No token, historical upload credential or external export path is added
+to this branch. Removing a registry entry is separate from changing repository
+files; historical run records are preserved.

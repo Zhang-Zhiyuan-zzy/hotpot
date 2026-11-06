@@ -12105,3 +12105,44 @@ Original failures, repaired runs and exact provenance are retained under
 local-validation/attempt03 and runner/native-builder-stereo-repair in the task
 root. The new GitHub run's actual commit/check conclusions are authoritative
 for remote qualification; historical branch/run names remain historical.
+
+### 2026-11-06 — Owner-approved GitHub workflow cleanup
+
+Entry: clean tracked HEAD1feed50e; the previous current-sha CI run42158683121
+passed all11jobs and both Codecov contexts. Apply effective goal.md, governance
+and validation skills, Stage12 verification scope and stage_verification_map.json:
+CP311 business validation remains the daily gate; the complete CP310–314 scope
+and scientific/integrity assertions remain unchanged. The owner accepts the
+proposed workflow cleanup: retire three superseded server registrations where
+authenticated API access permits; preserve their historical evidence; keep two
+entry workflows and factor native builds into one internal callable workflow.
+Ordinary pushes/PRs use CP311, manual/full/release runs retain all five versions;
+weekly scheduling is effective only after this definition reaches the default
+branch. Scope classification keeps doc-only work lightweight without leaving
+a top-level path-filtered required check pending. Cancel superseded ordinary CI,
+never a publishing operation. Extract the existing sdist audit and unify native
+smoke checks without weakening them. Release calls the full validation workflow
+and reuses its artifacts instead of rebuilding identical wheels. Root owns scope
+selection, records, authenticated cleanup and final review; a local Sol worker
+owns bounded workflow/script migration. No chemistry/model/native-source change,
+package version change, publication or final-plan gate release is authorized.
+Evidence: /tmp/hotpot_plan20/short/github-workflow-cleanup-20261106.
+
+Pre-push qualification:24 workflow/scope tests passed on CP311, including real
+Git histories, doc-only routing, first/force push, PR merge base, code-to-doc
+rename, release selection and unique non-ordinary concurrency groups. Actionlint
+v1.7.12 passed all three definitions. Both extracted native-smoke load orders
+passed against the previously identified installed CP311 wheel; this reuses
+unchanged native/product bytes and is not a new container build. A fresh isolated
+sdist build and all58required/25obsolete member audits passed. The first local
+fixture attempt exposed Git2.25 lacking init --initial-branch; select HEAD with
+symbolic-ref instead. The Conda interpreter lacked the build frontend, so fresh
+sdist validation used a task-local build venv. Original failed attempts remain
+retained. Root rechecked shared build settings,14unique smoke assertions and
+all3sdist assertions; chemistry assertions and the existing coverage/compatibility
+runner selections remain intact. Three legacy server registrations remain active:
+397804761,397728709,64041508; no API credential is available for their authorized
+disablement. SSH push access does not supply that credential. Subsequent current-
+commit remote conclusions and compact receipts are recorded under
+.plan20-artifacts/20261106/github-workflow-cleanup/; no release/full remote run,
+PyPI publication, weekly activation on main or final-stage closure is implied.
